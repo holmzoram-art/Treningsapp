@@ -57,7 +57,7 @@ createApp({
       now.setHours(0, 0, 0, 0);
       const days = Math.floor((now - start) / 86400000);
       const n = Math.floor(days / 7) + 1;
-      return Math.max(1, Math.min(n, PROGRAM_DATA.totalWeeks));
+      return Math.max(1, Math.min(n, PROGRAM_DATA.meta.totalWeeks));
     });
 
     const currentWeek = computed(() =>
