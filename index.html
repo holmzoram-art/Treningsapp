@@ -88,13 +88,6 @@
         </button>
       </div>
 
-      <!-- Ingen økt valgt -->
-      <div v-if="!selectedSessionKey && !selectedStrengthKey" class="rest-card">
-        <div class="rest-icon">👆</div>
-        <h2>Velg en økt</h2>
-        <p>Trykk på en av øktene over for å se hva du skal gjøre.</p>
-      </div>
-
       <!-- Styrkeøkt-velger -->
       <div class="strength-picker-wrap">
         <div class="strength-picker-label">Styrkeøkt:</div>
@@ -110,6 +103,13 @@
             <span class="sp-check" v-if="isStrengthDone(key)">✓</span>
           </button>
         </div>
+      </div>
+
+      <!-- Ingen økt valgt -->
+      <div v-if="!selectedSessionKey && !selectedStrengthKey" class="rest-card">
+        <div class="rest-icon">👆</div>
+        <h2>Velg en økt</h2>
+        <p>Trykk på en av øktene over for å se hva du skal gjøre.</p>
       </div>
 
       <!-- Øktvisning (løp/OCR) -->
