@@ -1,5 +1,30 @@
 const { createApp, ref, computed, watch, onMounted } = Vue;
 
+const SESSION_LOG_FIELDS = {
+  intervals: [
+    { key: 'sets_done',    label: 'Drag fullført', unit: 'stk',  integer: true },
+    { key: 'speed_kmh',    label: 'Snittfart',     unit: 'km/t', step: 0.1 },
+    { key: 'incline_pct',  label: 'Stigning',      unit: '%',    step: 0.5 },
+    { key: 'duration_min', label: 'Varighet',       unit: 'min',  integer: true },
+  ],
+  ocr: [
+    { key: 'rounds_done',  label: 'Runder fullført', unit: 'stk', integer: true },
+    { key: 'hang_sec',     label: 'Beste hang',      unit: 'sek', integer: true },
+    { key: 'carry_kg',     label: 'Carry-vekt',      unit: 'kg',  step: 0.5 },
+    { key: 'duration_min', label: 'Varighet',         unit: 'min', integer: true },
+  ],
+  strength: [
+    { key: 'sets_done',    label: 'Sett fullført',    unit: 'stk', integer: true },
+    { key: 'weight_pct',   label: 'Vekt (% av plan)', unit: '%',   integer: true },
+    { key: 'duration_min', label: 'Varighet',          unit: 'min', integer: true },
+  ],
+  recovery: [
+    { key: 'duration_min', label: 'Varighet',  unit: 'min', integer: true },
+    { key: 'speed_kmh',    label: 'Snittfart', unit: 'km/t', step: 0.1 },
+    { key: 'incline_pct',  label: 'Stigning',  unit: '%',   step: 0.5 },
+  ],
+};
+
 createApp({
   setup() {
 
@@ -15,6 +40,7 @@ createApp({
     const todayNote = ref('');
     const noteSaved = ref(false);
     const newTest = ref({ athlete: 'sondre', type: 'cooper', value: '', date: today() });
+    const workoutMetrics = ref({});
 
     // localStorage keys
     const STORAGE = {
@@ -23,6 +49,7 @@ createApp({
       rpe: (id) => `onitio_rpe_${id}`,
       note: (id) => `onitio_note_${id}`,
       tests: 'onitio_tests',
+      wlog:  (id) => `onitio_wlog_${id}`,
     };
 
     // ── DATE HELPERS ───────────────────────────────────────────────────────
@@ -550,16 +577,49 @@ createApp({
       return 'high';
     }
 
-    function sessionId() {
-      return `${today()}_${selectedAthlete.value}_${todaySessionKey.value || 'rest'}`;
+    function prefillMetrics(session, workout) {
+      if (!session) { workoutMetrics.value = {}; return; }
+      const type = session.type || 'recovery';
+      const m = {};
+      const durM = (session.duration || '').match(/(\d+)(?:–(\d+))?\s*min/);
+      if (durM) m.duration_min = durM[2] ? Math.round((+durM[1] + +durM[2]) / 2) : +durM[1];
+      if (type === 'intervals') {
+        const setsM = (workout?.part1?.sets || '').match(/^(\d+)×/);
+        if (setsM) m.sets_done = +setsM[1];
+        const speedM = (workout?.part1?.speed || '').match(/(\d+\.?\d*)(?:–(\d+\.?\d*))?/);
+        if (speedM) m.speed_kmh = speedM[2] ? Math.round(((+speedM[1] + +speedM[2]) / 2) * 10) / 10 : +speedM[1];
+        const inclM = (workout?.part1?.incline || '').match(/(\d+\.?\d*)(?:–(\d+\.?\d*))?/);
+        if (inclM) m.incline_pct = inclM[2] ? Math.round((+inclM[1] + +inclM[2]) / 2) : +inclM[1];
+      } else if (type === 'ocr') {
+        if (workout?.rounds) m.rounds_done = workout.rounds;
+        const hangStep = workout?.circuit?.find(s => /hang/i.test(s));
+        if (hangStep) { const hm = hangStep.match(/(\d+)(?:–(\d+))?/); if (hm) m.hang_sec = hm[2] ? Math.round((+hm[1] + +hm[2]) / 2) : +hm[1]; }
+        const carryStep = workout?.circuit?.find(s => /carry/i.test(s));
+        if (carryStep) { const cm = carryStep.match(/(\d+\.?\d*)\s*kg/); if (cm) m.carry_kg = +cm[1]; }
+      } else if (type === 'strength') {
+        m.weight_pct = 100;
+        const firstEx = workout?.exercises?.[0] ? parseExercise(workout.exercises[0]) : null;
+        if (firstEx?.sets) m.sets_done = firstEx.sets;
+      }
+      workoutMetrics.value = m;
     }
 
-    function logRpe(n) {
+    function saveWorkoutLog(rpe) {
       markSessionDone(selectedSessionKey.value);
-      const history = JSON.parse(localStorage.getItem(STORAGE.rpe(selectedAthlete.value)) || '[]');
-      history.push({ date: today(), rpe: n, session: selectedSessionKey.value });
-      localStorage.setItem(STORAGE.rpe(selectedAthlete.value), JSON.stringify(history));
+      const rpeHist = JSON.parse(localStorage.getItem(STORAGE.rpe(selectedAthlete.value)) || '[]');
+      rpeHist.push({ date: today(), rpe, session: selectedSessionKey.value });
+      localStorage.setItem(STORAGE.rpe(selectedAthlete.value), JSON.stringify(rpeHist));
+      const logs = JSON.parse(localStorage.getItem(STORAGE.wlog(selectedAthlete.value)) || '[]');
+      logs.push({
+        date: today(), weekNumber: currentWeekNumber.value,
+        sessionKey: selectedSessionKey.value,
+        type: selectedSession.value?.type || 'unknown',
+        rpe, metrics: { ...workoutMetrics.value },
+      });
+      localStorage.setItem(STORAGE.wlog(selectedAthlete.value), JSON.stringify(logs));
     }
+
+    function saveNote() {
 
     function saveNote() {
       if (!todayNote.value.trim()) return;
@@ -604,7 +664,52 @@ createApp({
       return (h.reduce((s, e) => s + e.rpe, 0) / h.length).toFixed(1);
     });
 
-    // ── TESTS ─────────────────────────────────────────────────────────────
+    // ── WORKOUT LOGS + GRAPHS ──────────────────────────────────────────────
+    const workoutLogs = computed(() =>
+      JSON.parse(localStorage.getItem(STORAGE.wlog(selectedAthlete.value)) || '[]')
+    );
+
+    const logFields = computed(() =>
+      SESSION_LOG_FIELDS[selectedSession.value?.type] || SESSION_LOG_FIELDS.recovery
+    );
+
+    const speedLogs = computed(() =>
+      workoutLogs.value.filter(l => l.metrics?.speed_kmh)
+        .map(l => ({ date: l.date, value: l.metrics.speed_kmh, type: l.type })).slice(-15)
+    );
+    const intervalLogs = computed(() =>
+      workoutLogs.value.filter(l => l.type === 'intervals' && l.metrics?.sets_done)
+        .map(l => ({ date: l.date, value: l.metrics.sets_done })).slice(-15)
+    );
+    const recoveryLogs = computed(() =>
+      workoutLogs.value.filter(l => l.type === 'recovery' && l.metrics?.duration_min)
+        .map(l => ({ date: l.date, value: l.metrics.duration_min })).slice(-15)
+    );
+    const strengthLogs = computed(() =>
+      workoutLogs.value.filter(l => l.type === 'strength' && l.metrics?.weight_pct)
+        .map(l => ({ date: l.date, value: l.metrics.weight_pct })).slice(-15)
+    );
+
+    function sparkPoints(data, w = 280, h = 50) {
+      if (!data.length) return '';
+      const vals = data.map(d => d.value);
+      const min = Math.min(...vals); const max = Math.max(...vals); const range = max - min || 1;
+      return data.map((d, i) => {
+        const x = data.length === 1 ? w / 2 : (i / (data.length - 1)) * w;
+        const y = h - ((d.value - min) / range) * (h - 12) - 6;
+        return `${x.toFixed(1)},${y.toFixed(1)}`;
+      }).join(' ');
+    }
+    function sparkDots(data, w = 280, h = 50) {
+      if (!data.length) return [];
+      const vals = data.map(d => d.value);
+      const min = Math.min(...vals); const max = Math.max(...vals); const range = max - min || 1;
+      return data.map((d, i) => {
+        const x = data.length === 1 ? w / 2 : (i / (data.length - 1)) * w;
+        const y = h - ((d.value - min) / range) * (h - 12) - 6;
+        return { x: +x.toFixed(1), y: +y.toFixed(1), value: d.value, date: d.date };
+      });
+    }
     const testTypes = [
       {
         id: 'run20min', label: 'Løpetest 20 min', unit: 'm', higherBetter: true,
@@ -671,6 +776,10 @@ createApp({
 
     function testsOfType(type) {
       return testHistory.value.filter(t => t.type === type).sort((a, b) => a.date > b.date ? 1 : -1);
+    }
+    function myTestsOfType(type) {
+      return testHistory.value.filter(t => t.type === type && t.athlete === selectedAthlete.value)
+        .sort((a, b) => a.date > b.date ? 1 : -1);
     }
 
     function isPR(entry, type) {
@@ -802,12 +911,17 @@ createApp({
     });
 
     watch(dagsform, (v) => localStorage.setItem(STORAGE.dagsform, v));
+    watch(selectedSessionKey, (key) => {
+      if (key) prefillMetrics(selectedSession.value, selectedWorkout.value);
+      else workoutMetrics.value = {};
+    });
+    watch(selectedAthlete, (id) => { newTest.value.athlete = id; });
 
     return {
       // state
       selectedAthlete, dagsform, view, viewWeek, selectedSessionKey,
       showStrengthAlternative, deloadMode, shortMode,
-      todayNote, noteSaved, newTest,
+      todayNote, noteSaved, newTest, workoutMetrics,
       // computed
       athletes, currentWeek, currentWeekNumber, viewingWeekData, totalWeeks,
       daysToRace, selectedSession,
@@ -818,6 +932,8 @@ createApp({
       testTypes, testPlaceholder, selectedTestType, testHistory, testReminders,
       athleteLevels, upcomingTests, testCalendar,
       equipment, currentAthleteName,
+      logFields, workoutLogs, speedLogs, intervalLogs, recoveryLogs, strengthLogs,
+      SESSION_LOG_FIELDS,
       // exercise parser
       parseExercise, parseExercises, deloadExercises, deloadCircuit,
       // timer
@@ -829,9 +945,10 @@ createApp({
       startTimer, endIntervalEarly, pauseTimer, resetTimer, toggleGps,
       // methods
       selectAthlete, selectSession, navigateWeek, weekDates,
-      rpeClass, logRpe, saveNote, saveTest,
+      rpeClass, saveWorkoutLog, saveNote, saveTest,
       isSessionDone, markSessionDone,
-      testsOfType, isPR, athleteName, athleteColor,
+      testsOfType, myTestsOfType, isPR, athleteName, athleteColor,
+      sparkPoints, sparkDots,
       formatDate, formatShortDate,
     };
   }
