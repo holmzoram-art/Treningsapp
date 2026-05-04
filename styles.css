@@ -579,6 +579,29 @@ main { padding: 16px; max-width: 600px; margin: 0 auto; }
 .note-date { color: var(--text2); font-size: 0.78rem; display: block; }
 .empty-state { color: var(--text2); text-align: center; padding: 40px 20px; }
 
+/* ── SEED SECTION ── */
+.seed-section {
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--border);
+  margin-top: 8px;
+}
+.seed-btn {
+  background: var(--card2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text2);
+  font-size: 0.82rem;
+  padding: 8px 14px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.seed-btn:hover { border-color: var(--accent); color: var(--text); }
+.seed-status { font-size: 0.82rem; color: var(--green); }
+
 /* ── LEVELS CARD ── */
 .levels-card {
   background: var(--card);

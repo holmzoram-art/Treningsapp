@@ -641,6 +641,13 @@
       <div class="empty-state" v-if="!completedSessions && !workoutLogs.length">
         <p>Logg RPE og øktdata etter trening for å se fremgang her!</p>
       </div>
+
+      <div class="seed-section">
+        <button class="seed-btn" @click="seedHistoricalData">
+          📊 Last inn historisk treningsdata (uke 1–{{ currentWeekNumber - 1 }})
+        </button>
+        <span v-if="seedStatus" class="seed-status">{{ seedStatus }}</span>
+      </div>
     </main>
 
     <!-- ───────────── TESTER ───────────── -->
