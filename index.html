@@ -43,6 +43,11 @@
       <button class="df-btn yellow" :class="{ active: dagsform === 'yellow' }" @click="dagsform = 'yellow'">🟡 Gul</button>
       <button class="df-btn red" :class="{ active: dagsform === 'red' }" @click="dagsform = 'red'">🔴 Rød</button>
       <span class="df-hint" v-if="dagsform !== 'green'">{{ dagsformHint }}</span>
+      <div v-if="selectedSessionKey" class="adjust-row">
+        <button class="adj-btn deload" :class="{ active: deloadMode }" @click="deloadMode = !deloadMode">😴 Deload</button>
+        <button class="adj-btn short" :class="{ active: shortMode }" @click="shortMode = !shortMode">⚡ 20 min</button>
+        <button class="adj-btn strength" :class="{ active: showStrengthAlternative }" @click="showStrengthAlternative = !showStrengthAlternative">💪 Styrke</button>
+      </div>
     </div>
 
     <!-- NAVIGATION TABS -->
@@ -100,7 +105,12 @@
 
           <div class="session-header">
             <h2>{{ selectedSession?.title }}</h2>
-            <span class="duration-badge">{{ selectedSession?.duration }}</span>
+            <div class="header-right">
+              <span class="duration-badge">{{ selectedSession?.duration }}</span>
+              <button class="done-chip" :class="{ done: isSessionDone(selectedSessionKey) }" @click="markSessionDone(selectedSessionKey)">
+                {{ isSessionDone(selectedSessionKey) ? '✓ Fullført' : 'Merk fullført' }}
+              </button>
+            </div>
           </div>
           <p class="session-summary">{{ selectedSession?.summary }}</p>
 
@@ -256,22 +266,6 @@
                 <button class="timer-btn reset-btn" @click="resetTimer">↺ Nullstill</button>
               </div>
             </div>
-          </div>
-
-          <!-- Bytt økt-knapper -->
-          <div class="switch-buttons">
-            <button class="switch-btn done-btn" @click="markSessionDone(selectedSessionKey)">
-              {{ isSessionDone(selectedSessionKey) ? '✓ Fullført' : 'Merk som fullført' }}
-            </button>
-            <button class="switch-btn" @click="showStrengthAlternative = !showStrengthAlternative">
-              💪 {{ showStrengthAlternative ? 'Skjul styrkeøkt' : 'Bytt til styrkeøkt' }}
-            </button>
-            <button class="switch-btn deload" @click="deloadMode = !deloadMode">
-              😴 {{ deloadMode ? 'Normal økt' : 'Jeg tar deload i dag' }}
-            </button>
-            <button class="switch-btn short" @click="shortMode = !shortMode">
-              ⚡ {{ shortMode ? 'Full økt' : 'Jeg har bare 20 min' }}
-            </button>
           </div>
 
           <!-- Kalkulert deload -->

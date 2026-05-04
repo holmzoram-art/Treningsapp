@@ -104,6 +104,32 @@ body {
 .df-btn.red.active { background: var(--red); color: #fff; }
 .df-hint { font-size: 0.78rem; color: var(--text2); flex-basis: 100%; }
 
+/* ── TILPASNING (deload / kort / styrke) ── */
+.adjust-row {
+  display: flex;
+  gap: 6px;
+  flex-basis: 100%;
+  padding-top: 8px;
+  flex-wrap: wrap;
+}
+.adj-btn {
+  padding: 5px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: 20px;
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text2);
+  transition: all 0.15s;
+}
+.adj-btn.deload { border-color: var(--yellow); }
+.adj-btn.short  { border-color: var(--green); }
+.adj-btn.strength { border-color: var(--strength); }
+.adj-btn.deload.active { background: var(--yellow); color: #000; }
+.adj-btn.short.active  { background: var(--green); color: #fff; }
+.adj-btn.strength.active { background: var(--strength); color: #fff; }
+
 /* ── TAB BAR ── */
 .tab-bar {
   display: flex;
@@ -228,7 +254,20 @@ main { padding: 16px; max-width: 600px; margin: 0 auto; }
 
 .session-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; flex-wrap: wrap; gap: 8px; }
 .session-header h2 { font-size: 1.15rem; }
+.header-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .duration-badge { background: var(--card2); color: var(--text2); padding: 3px 10px; border-radius: 10px; font-size: 0.78rem; }
+.done-chip {
+  padding: 3px 10px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text2);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.done-chip.done { background: var(--green); border-color: var(--green); color: #fff; }
 .session-summary { color: var(--text2); font-size: 0.88rem; margin-bottom: 14px; line-height: 1.5; }
 
 .exercise-list, .circuit-list, .options-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
