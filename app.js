@@ -782,21 +782,32 @@ createApp({
       return SESSION_LOG_FIELDS[selectedSession.value?.type] || SESSION_LOG_FIELDS.recovery;
     });
 
-    const speedLogs = computed(() =>
-      workoutLogs.value.filter(l => l.metrics?.speed_kmh)
-        .map(l => ({ date: l.date, value: l.metrics.speed_kmh, type: l.type })).slice(-15)
+    const intervalSpeedLogs = computed(() =>
+      workoutLogs.value
+        .filter(l => l.type === 'intervals' && l.metrics?.speed_kmh)
+        .map(l => ({ date: l.date, value: l.metrics.speed_kmh, week: l.weekNumber }))
     );
     const intervalLogs = computed(() =>
       workoutLogs.value.filter(l => l.type === 'intervals' && l.metrics?.sets_done)
-        .map(l => ({ date: l.date, value: l.metrics.sets_done })).slice(-15)
+        .map(l => ({ date: l.date, value: l.metrics.sets_done }))
+    );
+    const hangLogs = computed(() =>
+      workoutLogs.value
+        .filter(l => l.type === 'ocr' && l.metrics?.hang_sec)
+        .map(l => ({ date: l.date, value: l.metrics.hang_sec, week: l.weekNumber }))
+    );
+    const ocrRoundsLogs = computed(() =>
+      workoutLogs.value
+        .filter(l => l.type === 'ocr' && l.metrics?.rounds_done)
+        .map(l => ({ date: l.date, value: l.metrics.rounds_done, week: l.weekNumber }))
     );
     const recoveryLogs = computed(() =>
       workoutLogs.value.filter(l => l.type === 'recovery' && l.metrics?.duration_min)
-        .map(l => ({ date: l.date, value: l.metrics.duration_min })).slice(-15)
+        .map(l => ({ date: l.date, value: l.metrics.duration_min }))
     );
     const strengthLogs = computed(() =>
-      workoutLogs.value.filter(l => l.type === 'strength' && l.metrics?.weight_pct)
-        .map(l => ({ date: l.date, value: l.metrics.weight_pct })).slice(-15)
+      workoutLogs.value.filter(l => l.type === 'strength' && l.metrics?.sets_done)
+        .map(l => ({ date: l.date, value: l.metrics.sets_done }))
     );
 
     function sparkPoints(data, w = 280, h = 50) {
@@ -985,8 +996,11 @@ createApp({
     // ── HISTORICAL DATA SEEDING ────────────────────────────────────────────
     const seedStatus = ref('');
 
-    function extractSeedMetrics(type, workout, session) {
+    function extractSeedMetrics(type, workout, session, athleteId, weekNumber) {
       const m = {};
+      const athlete = ATHLETES.find(a => a.id === athleteId);
+      const profile  = athlete?.level ? TRAINING_LEVELS[athlete.level] : null;
+
       function mid(str) {
         if (!str) return null;
         const r = String(str).match(/(\d+(?:\.\d+)?)(?:[–\-](\d+(?:\.\d+)?))?/);
@@ -994,6 +1008,7 @@ createApp({
         const a = parseFloat(r[1]), b = r[2] ? parseFloat(r[2]) : null;
         return b != null ? Math.round(((a + b) / 2) * 10) / 10 : a;
       }
+
       const durM = (session.duration || '').match(/(\d+)(?:–(\d+))?\s*min/);
       if (durM) m.duration_min = durM[2] ? Math.round((+durM[1] + +durM[2]) / 2) : +durM[1];
 
@@ -1003,6 +1018,12 @@ createApp({
           if (setsM) m.sets_done = +setsM[1];
           if (workout.part1.speed)   m.speed_kmh   = mid(workout.part1.speed);
           if (workout.part1.incline) m.incline_pct = mid(workout.part1.incline);
+          // Geir/Kjetil: part1 = romaskin (no speed), speed is in part2.options
+          if (!m.speed_kmh && workout.part2?.options) {
+            const opt = workout.part2.options[0] || '';
+            const sm = opt.match(/(\d+(?:\.\d+)?(?:[–\-]\d+(?:\.\d+)?)?)\s*km\/t/);
+            if (sm) m.speed_kmh = mid(sm[0]);
+          }
         } else if (workout.options) {
           const opt = workout.options[0] || '';
           const setsM = opt.match(/(\d+)[×x]/);
@@ -1010,20 +1031,35 @@ createApp({
           const inclM = opt.match(/(\d+)(?:–(\d+))?%/);
           if (inclM) m.incline_pct = inclM[2] ? Math.round((+inclM[1] + +inclM[2]) / 2) : +inclM[1];
         }
+        if (!m.sets_done) m.sets_done = 8;
+        // Phase 1 has no speed in common data → derive from profile with weekly progression
+        if (!m.speed_kmh && profile) {
+          const pct = 0.88 + Math.min(0.08, (weekNumber - 1) * 0.005);
+          m.speed_kmh = Math.round(profile.threshold_kmh * pct * 10) / 10;
+        }
+
       } else if (type === 'ocr') {
         const rounds = workout.rounds;
-        if (rounds != null) m.rounds_done = typeof rounds === 'number' ? rounds : (mid(String(rounds)) ?? 3);
+        m.rounds_done = rounds != null
+          ? (typeof rounds === 'number' ? rounds : (mid(String(rounds)) ?? 3))
+          : 4;
         const hangStep = workout.circuit?.find(s => /hang/i.test(s));
-        if (hangStep) { const hv = mid(hangStep); if (hv) m.hang_sec = hv; }
-        m.carry_kg = 20;
+        const hangFromCircuit = hangStep ? mid(hangStep) : null;
+        const baseHang = hangFromCircuit ?? profile?.hang_sec ?? 60;
+        // Hang time improves ~1.5% per week over the program
+        m.hang_sec = Math.round(baseHang * (1 + Math.min(0.25, (weekNumber - 1) * 0.015)));
+        m.carry_kg  = profile?.carry_kg ?? 20;
+
       } else if (type === 'recovery') {
         const src = typeof workout.part1 === 'string' ? workout.part1 : (workout.options?.[0] || '');
-        const speedM = src.match(/(\d+(?:\.\d+)?(?:[–\-]\d+(?:\.\d+)?)?)\s*km\/t/);
-        if (speedM) m.speed_kmh = mid(speedM[1]);
-        const inclM = src.match(/(\d+(?:[–\-]\d+)?)\s*%/);
-        if (inclM) m.incline_pct = mid(inclM[1]);
+        const sm = src.match(/(\d+(?:\.\d+)?(?:[–\-]\d+(?:\.\d+)?)?)\s*km\/t/);
+        if (sm) m.speed_kmh = mid(sm[0]);
+        const im = src.match(/(\d+(?:[–\-]\d+)?)\s*%/);
+        if (im) m.incline_pct = mid(im[0]);
+        if (!m.speed_kmh && profile) m.speed_kmh = profile.easy_run_kmh;
+
       } else if (type === 'strength') {
-        m.sets_done = typeof workout.rounds === 'number' ? workout.rounds : 3;
+        m.sets_done  = typeof workout.rounds === 'number' ? workout.rounds : 3;
         m.weight_pct = 100;
       }
       return m;
@@ -1059,7 +1095,7 @@ createApp({
             if (!workout) continue;
 
             const type = session.type || 'recovery';
-            const metrics = extractSeedMetrics(type, workout, session);
+            const metrics = extractSeedMetrics(type, workout, session, athleteId, week.weekNumber);
             const rpeBase = week.isDeload ? 5 : { intervals: 7, ocr: 7, strength: 6, recovery: 5 }[type] ?? 6;
             const rpe = Math.min(9, Math.max(4, rpeBase + ((week.weekNumber + Object.keys(dayOffsets).indexOf(dayKey)) % 3) - 1));
 
@@ -1145,7 +1181,7 @@ createApp({
       testTypes, testPlaceholder, selectedTestType, testHistory, testReminders,
       athleteLevels, upcomingTests, testCalendar,
       equipment, currentAthleteName,
-      logFields, workoutLogs, speedLogs, intervalLogs, recoveryLogs, strengthLogs,
+      logFields, workoutLogs, intervalSpeedLogs, intervalLogs, hangLogs, ocrRoundsLogs, recoveryLogs, strengthLogs,
       SESSION_LOG_FIELDS, seedStatus,
       seedHistoricalData,
       // exercise parser

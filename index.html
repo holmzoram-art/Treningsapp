@@ -566,58 +566,58 @@
         </div>
       </div>
 
-      <!-- Løpsfart -->
-      <div v-if="speedLogs.length" class="graph-card">
-        <div class="graph-title">🏃 Løpsfart (km/t)</div>
+      <!-- Intervall-fart -->
+      <div v-if="intervalSpeedLogs.length" class="graph-card">
+        <div class="graph-title">⚡ Intervall-fart (km/t)</div>
         <svg class="sparkline" viewBox="0 0 280 55" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-          <polyline :points="sparkPoints(speedLogs, 280, 55)" fill="none" stroke="#2196F3" stroke-width="2" stroke-linejoin="round"/>
-          <circle v-for="(d,i) in sparkDots(speedLogs, 280, 55)" :key="i" :cx="d.x" :cy="d.y" r="4" fill="#2196F3"/>
+          <polyline :points="sparkPoints(intervalSpeedLogs, 280, 55)" fill="none" stroke="#2196F3" stroke-width="2" stroke-linejoin="round"/>
+          <circle v-for="(d,i) in sparkDots(intervalSpeedLogs, 280, 55)" :key="i" :cx="d.x" :cy="d.y" r="3.5" fill="#2196F3"/>
         </svg>
         <div class="spark-labels">
-          <span>{{ speedLogs[0]?.date ? formatShortDate(speedLogs[0].date) : '' }}</span>
-          <span class="spark-range">{{ Math.min(...speedLogs.map(l=>l.value)) }}–{{ Math.max(...speedLogs.map(l=>l.value)) }} km/t</span>
-          <span>{{ speedLogs[speedLogs.length-1]?.date ? formatShortDate(speedLogs[speedLogs.length-1].date) : '' }}</span>
+          <span>Uke {{ intervalSpeedLogs[0]?.week ?? '' }}</span>
+          <span class="spark-range">{{ Math.min(...intervalSpeedLogs.map(l=>l.value)) }}–{{ Math.max(...intervalSpeedLogs.map(l=>l.value)) }} km/t</span>
+          <span>Uke {{ intervalSpeedLogs[intervalSpeedLogs.length-1]?.week ?? '' }}</span>
         </div>
       </div>
 
-      <!-- Intervaller -->
-      <div v-if="intervalLogs.length" class="graph-card">
-        <div class="graph-title">⚡ Intervaller – drag fullført</div>
+      <!-- Dead hang -->
+      <div v-if="hangLogs.length" class="graph-card">
+        <div class="graph-title">🤸 Dead hang (sek)</div>
         <svg class="sparkline" viewBox="0 0 280 55" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-          <polyline :points="sparkPoints(intervalLogs, 280, 55)" fill="none" stroke="#FF9800" stroke-width="2" stroke-linejoin="round"/>
-          <circle v-for="(d,i) in sparkDots(intervalLogs, 280, 55)" :key="i" :cx="d.x" :cy="d.y" r="4" fill="#FF9800"/>
+          <polyline :points="sparkPoints(hangLogs, 280, 55)" fill="none" stroke="#FF9800" stroke-width="2" stroke-linejoin="round"/>
+          <circle v-for="(d,i) in sparkDots(hangLogs, 280, 55)" :key="i" :cx="d.x" :cy="d.y" r="3.5" fill="#FF9800"/>
         </svg>
         <div class="spark-labels">
-          <span>{{ intervalLogs[0]?.date ? formatShortDate(intervalLogs[0].date) : '' }}</span>
-          <span class="spark-range">{{ Math.min(...intervalLogs.map(l=>l.value)) }}–{{ Math.max(...intervalLogs.map(l=>l.value)) }} drag</span>
-          <span>{{ intervalLogs[intervalLogs.length-1]?.date ? formatShortDate(intervalLogs[intervalLogs.length-1].date) : '' }}</span>
+          <span>Uke {{ hangLogs[0]?.week ?? '' }}</span>
+          <span class="spark-range">{{ Math.min(...hangLogs.map(l=>l.value)) }}–{{ Math.max(...hangLogs.map(l=>l.value)) }} sek</span>
+          <span>Uke {{ hangLogs[hangLogs.length-1]?.week ?? '' }}</span>
         </div>
       </div>
 
-      <!-- Lange økter -->
-      <div v-if="recoveryLogs.length" class="graph-card">
-        <div class="graph-title">🦶 Lange økter – varighet (min)</div>
+      <!-- OCR-runder -->
+      <div v-if="ocrRoundsLogs.length" class="graph-card">
+        <div class="graph-title">🔄 OCR-runder fullført</div>
         <svg class="sparkline" viewBox="0 0 280 55" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-          <polyline :points="sparkPoints(recoveryLogs, 280, 55)" fill="none" stroke="#4CAF50" stroke-width="2" stroke-linejoin="round"/>
-          <circle v-for="(d,i) in sparkDots(recoveryLogs, 280, 55)" :key="i" :cx="d.x" :cy="d.y" r="4" fill="#4CAF50"/>
+          <polyline :points="sparkPoints(ocrRoundsLogs, 280, 55)" fill="none" stroke="#FF5722" stroke-width="2" stroke-linejoin="round"/>
+          <circle v-for="(d,i) in sparkDots(ocrRoundsLogs, 280, 55)" :key="i" :cx="d.x" :cy="d.y" r="3.5" fill="#FF5722"/>
         </svg>
         <div class="spark-labels">
-          <span>{{ recoveryLogs[0]?.date ? formatShortDate(recoveryLogs[0].date) : '' }}</span>
-          <span class="spark-range">{{ Math.min(...recoveryLogs.map(l=>l.value)) }}–{{ Math.max(...recoveryLogs.map(l=>l.value)) }} min</span>
-          <span>{{ recoveryLogs[recoveryLogs.length-1]?.date ? formatShortDate(recoveryLogs[recoveryLogs.length-1].date) : '' }}</span>
+          <span>Uke {{ ocrRoundsLogs[0]?.week ?? '' }}</span>
+          <span class="spark-range">{{ Math.min(...ocrRoundsLogs.map(l=>l.value)) }}–{{ Math.max(...ocrRoundsLogs.map(l=>l.value)) }} runder</span>
+          <span>Uke {{ ocrRoundsLogs[ocrRoundsLogs.length-1]?.week ?? '' }}</span>
         </div>
       </div>
 
       <!-- Styrke -->
       <div v-if="strengthLogs.length" class="graph-card">
-        <div class="graph-title">💪 Styrke – vekt-% av plan</div>
+        <div class="graph-title">💪 Styrke – sett fullført</div>
         <svg class="sparkline" viewBox="0 0 280 55" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
           <polyline :points="sparkPoints(strengthLogs, 280, 55)" fill="none" stroke="#9C27B0" stroke-width="2" stroke-linejoin="round"/>
-          <circle v-for="(d,i) in sparkDots(strengthLogs, 280, 55)" :key="i" :cx="d.x" :cy="d.y" r="4" fill="#9C27B0"/>
+          <circle v-for="(d,i) in sparkDots(strengthLogs, 280, 55)" :key="i" :cx="d.x" :cy="d.y" r="3.5" fill="#9C27B0"/>
         </svg>
         <div class="spark-labels">
           <span>{{ strengthLogs[0]?.date ? formatShortDate(strengthLogs[0].date) : '' }}</span>
-          <span class="spark-range">{{ Math.min(...strengthLogs.map(l=>l.value)) }}–{{ Math.max(...strengthLogs.map(l=>l.value)) }}%</span>
+          <span class="spark-range">{{ Math.min(...strengthLogs.map(l=>l.value)) }}–{{ Math.max(...strengthLogs.map(l=>l.value)) }} sett</span>
           <span>{{ strengthLogs[strengthLogs.length-1]?.date ? formatShortDate(strengthLogs[strengthLogs.length-1].date) : '' }}</span>
         </div>
       </div>
@@ -643,7 +643,7 @@
       </div>
 
       <div class="empty-state" v-if="!completedSessions && !workoutLogs.length">
-        <p>Logg RPE og øktdata etter trening for å se fremgang her!</p>
+        <p>Logg RPE og øktdata etter trening for å se fremgang her, eller last inn historisk data under.</p>
       </div>
 
       <div class="seed-section">
