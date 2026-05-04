@@ -159,6 +159,71 @@ createApp({
       };
     }
 
+    // ── ADJUST WORKOUT (dagsform / deload / short) ────────────────────────────
+    function adjustSetsStr(s, vf) {
+      if (!s || vf === 1) return s;
+      return s.replace(/^(\d+)(×)/, (_, n, x) => `${Math.max(1, Math.round(+n * vf))}${x}`);
+    }
+    function adjustSpeedInStr(s, sd) {
+      if (!s || sd === 0) return s;
+      return s.replace(/(\d+(?:\.\d+)?)–(\d+(?:\.\d+)?)\s*km\/t/g, (_, a, b) =>
+        `${Math.max(1, parseFloat(a) + sd).toFixed(1)}–${Math.max(1, parseFloat(b) + sd).toFixed(1)} km/t`
+      );
+    }
+    function adjustCircuitStep(s, vf, sd) {
+      if (!s) return s;
+      let r = s;
+      r = r.replace(/(\d+)–(\d+)\s*sek\s*hang/i, (_, a, b) =>
+        `${Math.round(+a * vf)}–${Math.round(+b * vf)} sek hang`);
+      r = r.replace(/(\d+)\s*sek\s*hang/i, (_, n) => `${Math.round(+n * vf)} sek hang`);
+      r = r.replace(/(\d+)\s*burpees/i, (_, n) => `${Math.max(1, Math.round(+n * vf))} burpees`);
+      if (sd !== 0) r = adjustSpeedInStr(r, sd);
+      return r;
+    }
+    function adjustOptionStr(s, vf, sd) {
+      if (!s) return s;
+      let r = s.replace(/(\d+)(×)/, (_, n, x) => `${Math.max(1, Math.round(+n * vf))}${x}`);
+      if (sd !== 0) r = adjustSpeedInStr(r, sd);
+      return r;
+    }
+    function adjustWorkout(w, dgForm, isDeload, isShort) {
+      if (!w) return w;
+      const strong = isDeload || dgForm === 'red';
+      const mild   = !strong && dgForm === 'yellow';
+      const vf = strong ? 0.5 : mild ? 0.8 : 1;
+      const sd = strong ? -1.0 : mild ? -0.5 : 0;
+      if (vf === 1 && sd === 0 && !isShort) return w;
+      const w2 = { ...w };
+      if (w2.rounds != null) w2.rounds = Math.max(1, Math.round(w2.rounds * vf));
+      if (w2.exercises) w2.exercises = w2.exercises.map(s =>
+        s.replace(/(\d+)(×)/, (_, n, x) => `${Math.max(1, Math.round(+n * vf))}${x}`)
+      );
+      if (w2.circuit) w2.circuit = w2.circuit.map(s => adjustCircuitStep(s, vf, sd));
+      if (w2.options) w2.options = w2.options.map(o => adjustOptionStr(o, vf, sd));
+      if (w2.part1) {
+        w2.part1 = typeof w2.part1 === 'string'
+          ? adjustSpeedInStr(w2.part1, sd)
+          : { ...w2.part1,
+              sets:    adjustSetsStr(w2.part1.sets, vf),
+              speed:   adjustSpeedInStr(w2.part1.speed, sd),
+              options: w2.part1.options?.map(o => adjustOptionStr(o, vf, sd)) };
+      }
+      if (isShort) {
+        w2.part2   = null;
+        w2.strides = null;
+        if (w2.mobility) w2.mobility = w2.mobility.slice(0, 2);
+        if (w2.rounds != null) w2.rounds = Math.min(w2.rounds, 2);
+      } else if (w2.part2) {
+        w2.part2 = typeof w2.part2 === 'string'
+          ? adjustSpeedInStr(w2.part2, sd)
+          : { ...w2.part2,
+              sets:    adjustSetsStr(w2.part2.sets, vf),
+              speed:   adjustSpeedInStr(w2.part2.speed, sd),
+              options: w2.part2.options?.map(o => adjustOptionStr(o, vf, sd)) };
+      }
+      return w2;
+    }
+
     // ── AUDIO ──────────────────────────────────────────────────────────────────
     const audioMuted = ref(false);
     let _audioCtx = null;
@@ -383,10 +448,36 @@ createApp({
 
     const isPaused = computed(() => timerState.value !== 'config' && timerState.value !== 'done' && !timerTick.value);
 
-    const showTimer = computed(() =>
-      selectedSession.value?.type === 'intervals' ||
-      (selectedSession.value?.type === 'ocr' && selectedWorkout.value?.circuit)
+    const displayedWorkout = computed(() => {
+      if (showStrengthAlternative.value) {
+        const sd = todayStrengthDay.value;
+        if (!sd) return null;
+        const w = {
+          exercises: (sd.exercises || []).map(ex =>
+            `${ex.name} ${ex.sets}×${ex.reps}${ex.note ? ' (' + ex.note + ')' : ''}`
+          ),
+          note: sd.finisher ? `Finisher: ${sd.finisher}` : null,
+        };
+        return adjustWorkout(w, dagsform.value, deloadMode.value, shortMode.value);
+      }
+      return adjustWorkout(selectedWorkout.value, dagsform.value, deloadMode.value, shortMode.value);
+    });
+
+    const displayedTitle = computed(() =>
+      showStrengthAlternative.value ? strengthDayTitle.value : selectedSession.value?.title
     );
+
+    const displayedDuration = computed(() => {
+      if (shortMode.value) return '20 min';
+      if (showStrengthAlternative.value) return todayStrengthDay.value?.duration || '70–75 min';
+      return selectedSession.value?.duration;
+    });
+
+    const showTimer = computed(() => {
+      if (showStrengthAlternative.value) return false;
+      return selectedSession.value?.type === 'intervals' ||
+        (selectedSession.value?.type === 'ocr' && selectedWorkout.value?.circuit);
+    });
     function resolveWorkout(session, athleteId) {
       if (!session) return null;
       const raw = session.athletes?.[athleteId];
@@ -668,8 +759,9 @@ createApp({
       todayNote, noteSaved, newTest,
       // computed
       athletes, currentWeek, currentWeekNumber, viewingWeekData, totalWeeks,
-      daysToRace, selectedSession, selectedWorkout,
+      daysToRace, selectedSession,
       todayStrengthDay, strengthDayTitle,
+      selectedWorkout, displayedWorkout, displayedTitle, displayedDuration,
       dagsformHint, weekDays, rpeHistory, notesHistory,
       completedSessions, currentStreak, avgRpe,
       testTypes, testPlaceholder, testHistory, testReminders,
