@@ -262,7 +262,7 @@
 
       <div class="sessions-grid">
         <div
-          v-for="(dayKey, dayLabel) in weekDays"
+          v-for="(dayLabel, dayKey) in weekDays"
           :key="dayKey"
           class="session-mini-card"
           :class="[viewingWeekData?.sessions?.[dayKey]?.type, { 'no-session': !viewingWeekData?.sessions?.[dayKey] }]"
