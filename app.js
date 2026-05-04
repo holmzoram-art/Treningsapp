@@ -34,7 +34,7 @@ createApp({
     const view = ref('today');
     const viewWeek = ref(1);
     const selectedSessionKey = ref(null);
-    const showStrengthAlternative = ref(false);
+    const selectedStrengthKey = ref(null); // 'monday' | 'wednesday' | 'friday' | null
     const deloadMode = ref(false);
     const shortMode = ref(false);
     const todayNote = ref('');
@@ -128,9 +128,18 @@ createApp({
 
     function selectSession(key) {
       selectedSessionKey.value = key;
-      showStrengthAlternative.value = false;
+      selectedStrengthKey.value = null;
       deloadMode.value = false;
       shortMode.value = false;
+      cancelRestTimer();
+    }
+
+    function selectStrengthSession(key) {
+      selectedStrengthKey.value = selectedStrengthKey.value === key ? null : key;
+      selectedSessionKey.value = null;
+      deloadMode.value = false;
+      shortMode.value = false;
+      cancelRestTimer();
     }
 
     // ── DONE TRACKING ──────────────────────────────────────────────────────
@@ -144,6 +153,12 @@ createApp({
       return done.includes(sessionKey);
     }
 
+    function isStrengthDone(strengthKey) {
+      if (!strengthKey) return false;
+      const done = JSON.parse(localStorage.getItem(doneKey(currentWeekNumber.value, selectedAthlete.value)) || '[]');
+      return done.includes('strength_' + strengthKey);
+    }
+
     function isSessionDoneForWeek(weekNum, sessionKey) {
       if (!sessionKey) return false;
       const done = JSON.parse(localStorage.getItem(doneKey(weekNum, selectedAthlete.value)) || '[]');
@@ -155,7 +170,17 @@ createApp({
       const key = doneKey(currentWeekNumber.value, selectedAthlete.value);
       const done = JSON.parse(localStorage.getItem(key) || '[]');
       if (!done.includes(sessionKey)) done.push(sessionKey);
-      else done.splice(done.indexOf(sessionKey), 1); // toggle off
+      else done.splice(done.indexOf(sessionKey), 1);
+      localStorage.setItem(key, JSON.stringify(done));
+    }
+
+    function markStrengthDone(strengthKey) {
+      if (!strengthKey) return;
+      const sk = 'strength_' + strengthKey;
+      const key = doneKey(currentWeekNumber.value, selectedAthlete.value);
+      const done = JSON.parse(localStorage.getItem(key) || '[]');
+      if (!done.includes(sk)) done.push(sk);
+      else done.splice(done.indexOf(sk), 1);
       localStorage.setItem(key, JSON.stringify(done));
     }
 
@@ -362,6 +387,39 @@ createApp({
     }
 
 
+    // ── REST TIMER (pauseteller mellom styrkeøvelser) ─────────────────────
+    const restTimer = ref({ active: false, remaining: 0, total: 0, exerciseName: '' });
+    let _restInterval = null;
+
+    function formatRestTime(sec) {
+      const m = Math.floor(sec / 60), s = sec % 60;
+      return m > 0 ? `${m}:${String(s).padStart(2, '0')}` : `${s}s`;
+    }
+
+    function startRestTimer(sec, name) {
+      cancelRestTimer();
+      restTimer.value = { active: true, remaining: sec, total: sec, exerciseName: name };
+      speak(`Pause – ${sec >= 60 ? Math.floor(sec/60) + ' minutt' : sec + ' sekunder'}`);
+      _restInterval = setInterval(() => {
+        restTimer.value.remaining--;
+        const r = restTimer.value.remaining;
+        if (r === 10) speak('Ti sekunder');
+        if (r === 3) beep(660, 120);
+        else if (r === 2) beep(660, 120);
+        else if (r === 1) beep(660, 120);
+        if (r <= 0) {
+          cancelRestTimer();
+          beep(880, 200); setTimeout(() => beep(1100, 300), 220);
+          speak('Klar!');
+        }
+      }, 1000);
+    }
+
+    function cancelRestTimer() {
+      if (_restInterval) { clearInterval(_restInterval); _restInterval = null; }
+      restTimer.value = { active: false, remaining: 0, total: 0, exerciseName: '' };
+    }
+
     function extractTimerConfig(workout) {
       if (!workout) return { count: 8, workSec: 60, restSec: 60 };
       const toSec = (n, u) => u === 'min' ? n * 60 : n;
@@ -495,33 +553,40 @@ createApp({
 
     const isPaused = computed(() => timerState.value !== 'config' && timerState.value !== 'done' && !timerTick.value);
 
+    const selectedStrengthDay = computed(() =>
+      selectedStrengthKey.value ? STRENGTH_PROGRAM.days[selectedStrengthKey.value] : null
+    );
+
     const displayedWorkout = computed(() => {
-      if (showStrengthAlternative.value) {
-        const sd = todayStrengthDay.value;
+      if (selectedStrengthKey.value) {
+        const sd = selectedStrengthDay.value;
         if (!sd) return null;
-        const w = {
-          exercises: (sd.exercises || []).map(ex =>
-            `${ex.name} ${ex.sets}×${ex.reps}${ex.note ? ' (' + ex.note + ')' : ''}`
-          ),
-          note: sd.finisher ? `Finisher: ${sd.finisher}` : null,
-        };
-        return adjustWorkout(w, dagsform.value, deloadMode.value, shortMode.value);
+        let exs = sd.exercises.map(ex => ({ ...ex }));
+        // Apply dagsform/deload adjustments to strength exercises
+        let setFactor = 1;
+        if (deloadMode.value)            setFactor *= 0.5;
+        if (dagsform.value === 'yellow') setFactor *= 0.8;
+        if (dagsform.value === 'red')    setFactor *= 0.5;
+        if (setFactor !== 1) {
+          exs = exs.map(ex => ({ ...ex, sets: Math.max(1, Math.round(ex.sets * setFactor)) }));
+        }
+        return { exercises_raw: exs };
       }
       return adjustWorkout(selectedWorkout.value, dagsform.value, deloadMode.value, shortMode.value);
     });
 
     const displayedTitle = computed(() =>
-      showStrengthAlternative.value ? strengthDayTitle.value : selectedSession.value?.title
+      selectedStrengthDay.value?.title || selectedSession.value?.title
     );
 
     const displayedDuration = computed(() => {
       if (shortMode.value) return '20 min';
-      if (showStrengthAlternative.value) return todayStrengthDay.value?.duration || '70–75 min';
+      if (selectedStrengthDay.value) return selectedStrengthDay.value.duration;
       return selectedSession.value?.duration;
     });
 
     const showTimer = computed(() => {
-      if (showStrengthAlternative.value) return false;
+      if (selectedStrengthKey.value) return false;
       return selectedSession.value?.type === 'intervals' ||
         (selectedSession.value?.type === 'ocr' && selectedWorkout.value?.circuit);
     });
@@ -558,19 +623,6 @@ createApp({
       }
       return obj;
     }
-
-    // ── STRENGTH ALTERNATIVE ───────────────────────────────────────────────
-    const STRENGTH_DAYS = { 1: 'monday', 3: 'wednesday', 5: 'friday' };
-    const STRENGTH_FALLBACK = { 0: 'monday', 2: 'monday', 4: 'monday', 6: 'monday' };
-
-    const todayStrengthKey = computed(() => {
-      const d = new Date().getDay();
-      return STRENGTH_DAYS[d] || STRENGTH_FALLBACK[d];
-    });
-
-    const todayStrengthDay = computed(() => STRENGTH_PROGRAM.days[todayStrengthKey.value]);
-
-    const strengthDayTitle = computed(() => todayStrengthDay.value?.title || 'Styrkeøkt');
 
     // ── DAGSFORM HINT ──────────────────────────────────────────────────────
     const dagsformHint = computed(() => {
@@ -621,7 +673,32 @@ createApp({
       workoutMetrics.value = m;
     }
 
+    function prefillStrengthMetrics() {
+      const sd = selectedStrengthDay.value;
+      if (!sd) { workoutMetrics.value = {}; return; }
+      const durM = (sd.duration || '').match(/(\d+)(?:–(\d+))?\s*min/);
+      workoutMetrics.value = {
+        sets_done: sd.exercises?.[0]?.sets ?? null,
+        weight_pct: 100,
+        duration_min: durM ? (durM[2] ? Math.round((+durM[1] + +durM[2]) / 2) : +durM[1]) : null,
+      };
+    }
+
     function saveWorkoutLog(rpe) {
+      if (selectedStrengthKey.value) {
+        markStrengthDone(selectedStrengthKey.value);
+        const sessionKey = 'strength_' + selectedStrengthKey.value;
+        const rpeHist = JSON.parse(localStorage.getItem(STORAGE.rpe(selectedAthlete.value)) || '[]');
+        rpeHist.push({ date: today(), rpe, session: sessionKey });
+        localStorage.setItem(STORAGE.rpe(selectedAthlete.value), JSON.stringify(rpeHist));
+        const logs = JSON.parse(localStorage.getItem(STORAGE.wlog(selectedAthlete.value)) || '[]');
+        logs.push({
+          date: today(), weekNumber: currentWeekNumber.value,
+          sessionKey, type: 'strength', rpe, metrics: { ...workoutMetrics.value },
+        });
+        localStorage.setItem(STORAGE.wlog(selectedAthlete.value), JSON.stringify(logs));
+        return;
+      }
       markSessionDone(selectedSessionKey.value);
       const rpeHist = JSON.parse(localStorage.getItem(STORAGE.rpe(selectedAthlete.value)) || '[]');
       rpeHist.push({ date: today(), rpe, session: selectedSessionKey.value });
@@ -637,11 +714,9 @@ createApp({
     }
 
     function saveNote() {
-
-    function saveNote() {
       if (!todayNote.value.trim()) return;
       const history = JSON.parse(localStorage.getItem(STORAGE.note(selectedAthlete.value)) || '[]');
-      history.push({ date: today(), text: todayNote.value.trim(), session: selectedSessionKey.value });
+      history.push({ date: today(), text: todayNote.value.trim(), session: selectedSessionKey.value || ('strength_' + selectedStrengthKey.value) });
       localStorage.setItem(STORAGE.note(selectedAthlete.value), JSON.stringify(history));
       noteSaved.value = true;
       setTimeout(() => { noteSaved.value = false; }, 2000);
@@ -686,9 +761,10 @@ createApp({
       JSON.parse(localStorage.getItem(STORAGE.wlog(selectedAthlete.value)) || '[]')
     );
 
-    const logFields = computed(() =>
-      SESSION_LOG_FIELDS[selectedSession.value?.type] || SESSION_LOG_FIELDS.recovery
-    );
+    const logFields = computed(() => {
+      if (selectedStrengthKey.value) return SESSION_LOG_FIELDS.strength;
+      return SESSION_LOG_FIELDS[selectedSession.value?.type] || SESSION_LOG_FIELDS.recovery;
+    });
 
     const speedLogs = computed(() =>
       workoutLogs.value.filter(l => l.metrics?.speed_kmh)
@@ -895,10 +971,10 @@ createApp({
 
     function selectAthlete(id) {
       selectedAthlete.value = id;
-      rpeLogged.value = null;
-      showStrengthAlternative.value = false;
+      selectedStrengthKey.value = null;
       deloadMode.value = false;
       shortMode.value = false;
+      cancelRestTimer();
       localStorage.setItem(STORAGE.athlete, id);
     }
 
@@ -931,18 +1007,24 @@ createApp({
     watch(selectedSessionKey, (key) => {
       if (key) prefillMetrics(selectedSession.value, selectedWorkout.value);
       else workoutMetrics.value = {};
+      cancelRestTimer();
+    });
+    watch(selectedStrengthKey, (key) => {
+      if (key) prefillStrengthMetrics();
+      else if (!selectedSessionKey.value) workoutMetrics.value = {};
+      cancelRestTimer();
     });
     watch(selectedAthlete, (id) => { newTest.value.athlete = id; });
 
     return {
       // state
-      selectedAthlete, dagsform, view, viewWeek, selectedSessionKey,
-      showStrengthAlternative, deloadMode, shortMode,
+      selectedAthlete, dagsform, view, viewWeek, selectedSessionKey, selectedStrengthKey,
+      deloadMode, shortMode,
       todayNote, noteSaved, newTest, workoutMetrics,
       // computed
       athletes, currentWeek, currentWeekNumber, viewingWeekData, viewingWeekWorkouts, totalWeeks,
       daysToRace, selectedSession,
-      todayStrengthDay, strengthDayTitle,
+      selectedStrengthDay,
       selectedWorkout, displayedWorkout, displayedTitle, displayedDuration,
       dagsformHint, weekDays, rpeHistory, notesHistory,
       completedSessions, currentStreak, avgRpe,
@@ -961,12 +1043,14 @@ createApp({
       formatSec, formatPace, formatDist,
       startTimer, endIntervalEarly, pauseTimer, resetTimer, toggleGps,
       // methods
-      selectAthlete, selectSession, navigateWeek, weekDates,
+      selectAthlete, selectSession, selectStrengthSession, navigateWeek, weekDates,
       rpeClass, saveWorkoutLog, saveNote, saveTest,
-      isSessionDone, isSessionDoneForWeek, markSessionDone,
+      isSessionDone, isSessionDoneForWeek, isStrengthDone, markSessionDone, markStrengthDone,
       testsOfType, myTestsOfType, isPR, athleteName, athleteColor,
       sparkPoints, sparkDots,
       formatDate, formatShortDate,
+      // rest timer
+      restTimer, startRestTimer, cancelRestTimer, formatRestTime,
     };
   }
 }).mount('#app');

@@ -104,7 +104,7 @@ body {
 .df-btn.red.active { background: var(--red); color: #fff; }
 .df-hint { font-size: 0.78rem; color: var(--text2); flex-basis: 100%; }
 
-/* ── TILPASNING (deload / kort / styrke) ── */
+/* ── TILPASNING (deload / kort) ── */
 .adjust-row {
   display: flex;
   gap: 6px;
@@ -125,10 +125,114 @@ body {
 }
 .adj-btn.deload { border-color: var(--yellow); }
 .adj-btn.short  { border-color: var(--green); }
-.adj-btn.strength { border-color: var(--strength); }
 .adj-btn.deload.active { background: var(--yellow); color: #000; }
 .adj-btn.short.active  { background: var(--green); color: #fff; }
-.adj-btn.strength.active { background: var(--strength); color: #fff; }
+
+/* ── STRENGTH PICKER ── */
+.strength-picker-wrap {
+  padding: 10px 16px 4px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.strength-picker-label {
+  font-size: 0.82rem;
+  color: var(--text2);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.strength-picker {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.strength-picker-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  background: var(--card);
+  border: 1.5px solid var(--strength);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  opacity: 0.7;
+}
+.strength-picker-btn:hover { opacity: 1; }
+.strength-picker-btn.active {
+  background: var(--strength);
+  color: #fff;
+  opacity: 1;
+}
+.strength-picker-btn.done {
+  border-color: var(--green);
+  background: rgba(76, 175, 80, 0.12);
+  color: var(--green);
+  opacity: 1;
+}
+.strength-picker-btn.done.active {
+  background: var(--green);
+  color: #fff;
+}
+.sp-check { font-size: 0.85rem; }
+
+/* ── REST TIMER ── */
+.rest-start-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  color: var(--text2);
+  font-size: 0.78rem;
+  padding: 3px 9px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+}
+.rest-start-btn:hover, .rest-start-btn.active {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.rest-timer-bar {
+  margin: 12px 0 4px;
+  background: var(--card2);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+}
+.rest-timer-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.rest-timer-name { font-size: 0.85rem; color: var(--text2); }
+.rest-timer-countdown { font-size: 1.4rem; font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; }
+.rest-timer-track {
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+.rest-timer-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 3px;
+  transition: width 1s linear;
+}
+.rest-cancel-btn {
+  background: transparent;
+  border: none;
+  color: var(--text2);
+  font-size: 0.78rem;
+  cursor: pointer;
+  padding: 0;
+}
+.rest-cancel-btn:hover { color: var(--red); }
 
 /* ── TAB BAR ── */
 .tab-bar {

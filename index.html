@@ -46,7 +46,9 @@
       <div v-if="selectedSessionKey" class="adjust-row">
         <button class="adj-btn deload" :class="{ active: deloadMode }" @click="deloadMode = !deloadMode">😴 Deload</button>
         <button class="adj-btn short" :class="{ active: shortMode }" @click="shortMode = !shortMode">⚡ 20 min</button>
-        <button class="adj-btn strength" :class="{ active: showStrengthAlternative }" @click="showStrengthAlternative = !showStrengthAlternative">💪 Styrke</button>
+      </div>
+      <div v-if="selectedStrengthKey" class="adjust-row">
+        <button class="adj-btn deload" :class="{ active: deloadMode }" @click="deloadMode = !deloadMode">😴 Deload</button>
       </div>
     </div>
 
@@ -87,20 +89,37 @@
       </div>
 
       <!-- Ingen økt valgt -->
-      <div v-if="!selectedSessionKey" class="rest-card">
+      <div v-if="!selectedSessionKey && !selectedStrengthKey" class="rest-card">
         <div class="rest-icon">👆</div>
         <h2>Velg en økt</h2>
-        <p>Trykk på en av de 4 øktene over for å se hva du skal gjøre.</p>
+        <p>Trykk på en av øktene over for å se hva du skal gjøre.</p>
       </div>
 
-      <!-- Øktvisning -->
+      <!-- Styrkeøkt-velger -->
+      <div class="strength-picker-wrap">
+        <div class="strength-picker-label">Styrkeøkt:</div>
+        <div class="strength-picker">
+          <button
+            v-for="(day, key) in { monday: 'Pull + Bein', wednesday: 'Push + Bein', friday: 'Helkropp' }"
+            :key="key"
+            class="strength-picker-btn"
+            :class="{ active: selectedStrengthKey === key, done: isStrengthDone(key) }"
+            @click="selectStrengthSession(key)"
+          >
+            <span class="sp-title">{{ day }}</span>
+            <span class="sp-check" v-if="isStrengthDone(key)">✓</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Øktvisning (løp/OCR) -->
       <div v-if="selectedSessionKey && selectedSession">
         <div class="session-card" :class="selectedSession?.type">
 
           <!-- Justeringsindikator -->
-          <div v-if="deloadMode || dagsform !== 'green' || shortMode || showStrengthAlternative"
+          <div v-if="deloadMode || dagsform !== 'green' || shortMode"
                class="dagsform-banner" :class="{ yellow: dagsform === 'yellow', red: dagsform === 'red' }">
-            {{ [showStrengthAlternative ? '💪 Styrkeøkt' : '', deloadMode ? '😴 Deload' : '', dagsform === 'yellow' ? '🟡 Gul dag' : '', dagsform === 'red' ? '🔴 Rød dag' : '', shortMode ? '⚡ 20 min' : ''].filter(Boolean).join(' · ') }}
+            {{ [deloadMode ? '😴 Deload' : '', dagsform === 'yellow' ? '🟡 Gul dag' : '', dagsform === 'red' ? '🔴 Rød dag' : '', shortMode ? '⚡ 20 min' : ''].filter(Boolean).join(' · ') }}
             <span class="adj-label"> – tall i økta er justert</span>
           </div>
 
@@ -303,8 +322,7 @@
 
         </div>
 
-        <!-- RPE Logging -->
-        <!-- Logg økt -->
+        <!-- RPE Logging (cardio) -->
         <div class="log-card" v-if="!isSessionDone(selectedSessionKey)">
           <h3>Logg økt</h3>
           <div class="log-fields">
@@ -325,6 +343,97 @@
         <div class="rpe-logged-card" v-else>✅ Fullført denne uka</div>
 
         <!-- Notatfelt -->
+        <div class="notes-card">
+          <h3>📝 Notat (valgfritt)</h3>
+          <textarea v-model="todayNote" placeholder="Hvordan gikk det? Notér noe du vil huske..." rows="3"></textarea>
+          <button class="save-note-btn" @click="saveNote">Lagre notat</button>
+          <span class="note-saved" v-if="noteSaved">✅ Lagret</span>
+        </div>
+
+      </div>
+
+      <!-- Styrkeøkt-visning -->
+      <div v-if="selectedStrengthKey && selectedStrengthDay">
+        <div class="session-card strength">
+
+          <!-- Justeringsindikator -->
+          <div v-if="deloadMode || dagsform !== 'green'"
+               class="dagsform-banner" :class="{ yellow: dagsform === 'yellow', red: dagsform === 'red' }">
+            {{ [deloadMode ? '😴 Deload' : '', dagsform === 'yellow' ? '🟡 Gul dag' : '', dagsform === 'red' ? '🔴 Rød dag' : ''].filter(Boolean).join(' · ') }}
+            <span class="adj-label"> – sett er justert</span>
+          </div>
+
+          <div class="session-header">
+            <h2>{{ selectedStrengthDay.title }}</h2>
+            <div class="header-right">
+              <span class="duration-badge">{{ selectedStrengthDay.duration }}</span>
+              <button class="done-chip" :class="{ done: isStrengthDone(selectedStrengthKey) }"
+                @click="markStrengthDone(selectedStrengthKey)">
+                {{ isStrengthDone(selectedStrengthKey) ? '✓ Fullført' : 'Merk fullført' }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Øvelsestabll med pauseteller -->
+          <div v-if="displayedWorkout?.exercises_raw">
+            <table class="ex-table">
+              <thead><tr><th>Øvelse</th><th>Sett</th><th>Rep</th><th>Pause</th></tr></thead>
+              <tbody>
+                <template v-for="ex in displayedWorkout.exercises_raw" :key="ex.name">
+                  <tr>
+                    <td>{{ ex.name }}<span v-if="ex.note" class="ex-note"> – {{ ex.note }}</span></td>
+                    <td class="td-num">{{ ex.sets }}</td>
+                    <td class="td-num">{{ ex.reps }}</td>
+                    <td class="td-num">
+                      <button class="rest-start-btn"
+                        :class="{ active: restTimer.active && restTimer.exerciseName === ex.name }"
+                        @click="startRestTimer(ex.restSec, ex.name)">
+                        ⏱ {{ formatRestTime(ex.restSec) }}
+                      </button>
+                    </td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+
+            <!-- Rest Timer Bar -->
+            <div v-if="restTimer.active" class="rest-timer-bar">
+              <div class="rest-timer-info">
+                <span class="rest-timer-name">⏱ Pause etter {{ restTimer.exerciseName }}</span>
+                <span class="rest-timer-countdown">{{ formatRestTime(restTimer.remaining) }}</span>
+              </div>
+              <div class="rest-timer-track">
+                <div class="rest-timer-fill"
+                  :style="{ width: Math.round((1 - restTimer.remaining / restTimer.total) * 100) + '%' }">
+                </div>
+              </div>
+              <button class="rest-cancel-btn" @click="cancelRestTimer">✕ Avbryt</button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- RPE Logging (styrke) -->
+        <div class="log-card" v-if="!isStrengthDone(selectedStrengthKey)">
+          <h3>Logg økt</h3>
+          <div class="log-fields">
+            <div v-for="field in logFields" :key="field.key" class="log-field">
+              <label>{{ field.label }}</label>
+              <div class="log-field-row">
+                <input type="number" v-model.number="workoutMetrics[field.key]"
+                       :step="field.step || 1" placeholder="–" class="log-input">
+                <span class="log-unit">{{ field.unit }}</span>
+              </div>
+            </div>
+          </div>
+          <p class="log-rpe-hint">Trykk RPE for å lagre (1 = veldig lett · 10 = maks):</p>
+          <div class="rpe-buttons">
+            <button v-for="n in 10" :key="n" class="rpe-btn" :class="rpeClass(n)" @click="saveWorkoutLog(n)">{{ n }}</button>
+          </div>
+        </div>
+        <div class="rpe-logged-card" v-else>✅ Fullført denne uka</div>
+
+        <!-- Notatfelt styrke -->
         <div class="notes-card">
           <h3>📝 Notat (valgfritt)</h3>
           <textarea v-model="todayNote" placeholder="Hvordan gikk det? Notér noe du vil huske..." rows="3"></textarea>
