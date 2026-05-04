@@ -53,7 +53,7 @@
     <!-- NAVIGATION TABS -->
     <nav class="tab-bar">
       <button :class="{ active: view === 'today' }" @click="view = 'today'">I dag</button>
-      <button :class="{ active: view === 'week' }" @click="view = 'week'">Denne uka</button>
+      <button :class="{ active: view === 'week' }" @click="view = 'week'">Program</button>
       <button :class="{ active: view === 'progress' }" @click="view = 'progress'">Fremgang</button>
       <button :class="{ active: view === 'tests' }" @click="view = 'tests'">Tester</button>
       <button :class="{ active: view === 'equipment' }" @click="view = 'equipment'">Utstyr</button>
@@ -78,9 +78,11 @@
           :disabled="!currentWeek?.sessions?.[dayKey]"
           @click="selectSession(dayKey)"
         >
-          <span class="picker-check" v-if="isSessionDone(dayKey)">✓</span>
-          <span class="picker-title">{{ currentWeek?.sessions?.[dayKey]?.title || dayLabel }}</span>
-          <span class="picker-day">{{ dayLabel }}</span>
+          <div class="picker-header">
+            <span class="picker-title">{{ currentWeek?.sessions?.[dayKey]?.title || '–' }}</span>
+            <span class="picker-check" v-if="isSessionDone(dayKey)">✓</span>
+          </div>
+          <span class="picker-summary">{{ currentWeek?.sessions?.[dayKey]?.summary }}</span>
         </button>
       </div>
 
@@ -333,7 +335,7 @@
       </div>
     </main>
 
-    <!-- ───────────── DENNE UKA ───────────── -->
+    <!-- ───────────── PROGRAM ───────────── -->
     <main v-if="view === 'week'" class="view-week">
 
       <div class="week-nav">
@@ -349,20 +351,85 @@
 
       <div v-if="viewingWeekData?.note" class="week-note">ℹ️ {{ viewingWeekData.note }}</div>
 
-      <div class="sessions-grid">
-        <div
-          v-for="(dayLabel, dayKey) in weekDays"
-          :key="dayKey"
-          class="session-mini-card"
-          :class="[viewingWeekData?.sessions?.[dayKey]?.type, { 'no-session': !viewingWeekData?.sessions?.[dayKey] }]"
-        >
-          <div class="mini-day">{{ dayLabel }}</div>
-          <div v-if="viewingWeekData?.sessions?.[dayKey]">
-            <div class="mini-title">{{ viewingWeekData.sessions[dayKey].title }}</div>
-            <div class="mini-summary">{{ viewingWeekData.sessions[dayKey].summary }}</div>
+      <div class="week-sessions">
+        <template v-for="(_, dayKey) in weekDays" :key="dayKey">
+          <div v-if="viewingWeekData?.sessions?.[dayKey]"
+               class="week-sess-card"
+               :class="[viewingWeekData.sessions[dayKey].type, { done: isSessionDoneForWeek(viewWeek, dayKey) }]">
+
+            <!-- Header -->
+            <div class="week-sess-header">
+              <div class="week-sess-left">
+                <span class="week-sess-title">{{ viewingWeekData.sessions[dayKey].title }}</span>
+                <span class="week-sess-duration">{{ viewingWeekData.sessions[dayKey].duration }}</span>
+              </div>
+              <span class="done-chip-sm" v-if="isSessionDoneForWeek(viewWeek, dayKey)">✓ Fullført</span>
+            </div>
+
+            <p class="week-sess-summary">{{ viewingWeekData.sessions[dayKey].summary }}</p>
+
+            <!-- Workout details -->
+            <div class="week-sess-detail" v-if="viewingWeekWorkouts[dayKey]">
+
+              <!-- Exercises (strength) -->
+              <div v-if="viewingWeekWorkouts[dayKey].exercises" class="week-ex-list">
+                <div v-for="ex in parseExercises(viewingWeekWorkouts[dayKey].exercises)" :key="ex.name" class="week-ex-row">
+                  <span class="week-ex-name">{{ ex.name }}</span>
+                  <span class="week-ex-spec">{{ ex.sets }}×{{ ex.reps ?? ex.time }}</span>
+                  <span v-if="ex.weight" class="week-ex-weight">{{ ex.weight }}</span>
+                </div>
+              </div>
+
+              <!-- OCR circuit -->
+              <div v-if="viewingWeekWorkouts[dayKey].circuit" class="week-circuit">
+                <span v-if="viewingWeekWorkouts[dayKey].rounds" class="week-chip">{{ viewingWeekWorkouts[dayKey].rounds }} runder</span>
+                <div v-for="step in viewingWeekWorkouts[dayKey].circuit" :key="step" class="week-circuit-step">→ {{ step }}</div>
+                <div v-if="viewingWeekWorkouts[dayKey].rest" class="week-rest">⏱ {{ viewingWeekWorkouts[dayKey].rest }}</div>
+              </div>
+
+              <!-- Intervals part1/part2 -->
+              <div v-if="viewingWeekWorkouts[dayKey].part1" class="week-intervals">
+                <div class="week-part">
+                  <span class="week-part-label">Del 1</span>
+                  <template v-if="typeof viewingWeekWorkouts[dayKey].part1 === 'string'">
+                    <span class="week-interval-text">{{ viewingWeekWorkouts[dayKey].part1 }}</span>
+                  </template>
+                  <template v-else>
+                    <span class="week-chip">{{ viewingWeekWorkouts[dayKey].part1.machine }}</span>
+                    <span class="interval-chip">{{ viewingWeekWorkouts[dayKey].part1.sets }}</span>
+                    <span v-if="viewingWeekWorkouts[dayKey].part1.speed" class="interval-chip">{{ viewingWeekWorkouts[dayKey].part1.speed }}</span>
+                    <span v-if="viewingWeekWorkouts[dayKey].part1.incline" class="interval-chip">{{ viewingWeekWorkouts[dayKey].part1.incline }}</span>
+                  </template>
+                </div>
+                <div v-if="viewingWeekWorkouts[dayKey].part2" class="week-part">
+                  <span class="week-part-label">Del 2</span>
+                  <template v-if="typeof viewingWeekWorkouts[dayKey].part2 === 'string'">
+                    <span class="week-interval-text">{{ viewingWeekWorkouts[dayKey].part2 }}</span>
+                  </template>
+                  <template v-else>
+                    <span class="week-chip">{{ viewingWeekWorkouts[dayKey].part2.machine }}</span>
+                    <span class="interval-chip">{{ viewingWeekWorkouts[dayKey].part2.sets }}</span>
+                  </template>
+                </div>
+                <div v-if="viewingWeekWorkouts[dayKey].strides" class="week-part">
+                  <span class="week-part-label">Strides</span>
+                  <span class="week-interval-text">{{ viewingWeekWorkouts[dayKey].strides }}</span>
+                </div>
+              </div>
+
+              <!-- Options -->
+              <div v-if="viewingWeekWorkouts[dayKey].options && !viewingWeekWorkouts[dayKey].circuit" class="week-options">
+                <div v-for="(opt, i) in viewingWeekWorkouts[dayKey].options" :key="i" class="week-option">
+                  <span class="option-letter">{{ ['A','B'][i] }}:</span> {{ opt }}
+                </div>
+              </div>
+
+              <!-- Note -->
+              <div v-if="viewingWeekWorkouts[dayKey].note" class="week-sess-note">ℹ️ {{ viewingWeekWorkouts[dayKey].note }}</div>
+            </div>
+
           </div>
-          <div v-else class="mini-rest">Hviledag</div>
-        </div>
+        </template>
       </div>
 
     </main>

@@ -97,6 +97,17 @@ createApp({
       PROGRAM_DATA.weeks.find(w => w.weekNumber === viewWeek.value)
     );
 
+    const viewingWeekWorkouts = computed(() => {
+      const out = {};
+      const sessions = viewingWeekData.value?.sessions || {};
+      for (const [key, session] of Object.entries(sessions)) {
+        if (!session) continue;
+        const w = resolveWorkout(session, selectedAthlete.value);
+        out[key] = replaceTokensDeep(w, athleteLevels.value);
+      }
+      return out;
+    });
+
     const totalWeeks = computed(() => PROGRAM_DATA.meta.totalWeeks);
 
     const daysToRace = computed(() => {
@@ -130,6 +141,12 @@ createApp({
     function isSessionDone(sessionKey) {
       if (!sessionKey) return false;
       const done = JSON.parse(localStorage.getItem(doneKey(currentWeekNumber.value, selectedAthlete.value)) || '[]');
+      return done.includes(sessionKey);
+    }
+
+    function isSessionDoneForWeek(weekNum, sessionKey) {
+      if (!sessionKey) return false;
+      const done = JSON.parse(localStorage.getItem(doneKey(weekNum, selectedAthlete.value)) || '[]');
       return done.includes(sessionKey);
     }
 
@@ -923,7 +940,7 @@ createApp({
       showStrengthAlternative, deloadMode, shortMode,
       todayNote, noteSaved, newTest, workoutMetrics,
       // computed
-      athletes, currentWeek, currentWeekNumber, viewingWeekData, totalWeeks,
+      athletes, currentWeek, currentWeekNumber, viewingWeekData, viewingWeekWorkouts, totalWeeks,
       daysToRace, selectedSession,
       todayStrengthDay, strengthDayTitle,
       selectedWorkout, displayedWorkout, displayedTitle, displayedDuration,
@@ -946,7 +963,7 @@ createApp({
       // methods
       selectAthlete, selectSession, navigateWeek, weekDates,
       rpeClass, saveWorkoutLog, saveNote, saveTest,
-      isSessionDone, markSessionDone,
+      isSessionDone, isSessionDoneForWeek, markSessionDone,
       testsOfType, myTestsOfType, isPR, athleteName, athleteColor,
       sparkPoints, sparkDots,
       formatDate, formatShortDate,

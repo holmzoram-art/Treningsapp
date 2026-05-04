@@ -197,8 +197,8 @@ main { padding: 16px; max-width: 600px; margin: 0 auto; }
 
 /* ── SESSION PICKER ── */
 .session-picker {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 8px;
   margin-bottom: 14px;
 }
@@ -212,8 +212,8 @@ main { padding: 16px; max-width: 600px; margin: 0 auto; }
   border-radius: var(--radius);
   cursor: pointer;
   transition: all 0.15s;
-  position: relative;
   text-align: left;
+  width: 100%;
 }
 .picker-btn:disabled { opacity: 0.3; cursor: default; }
 .picker-btn.strength { border-left: 3px solid var(--strength); }
@@ -221,7 +221,12 @@ main { padding: 16px; max-width: 600px; margin: 0 auto; }
 .picker-btn.ocr { border-left: 3px solid var(--ocr); }
 .picker-btn.recovery { border-left: 3px solid var(--recovery); }
 .picker-btn.active { background: var(--card2); border-color: var(--accent); }
-.picker-btn.done { opacity: 0.6; }
+.picker-btn.done { border-color: var(--green); background: rgba(76,175,80,0.12); }
+.picker-header { display: flex; justify-content: space-between; width: 100%; align-items: flex-start; gap: 6px; }
+.picker-title { font-size: 0.88rem; font-weight: 600; color: var(--text); }
+.picker-btn.done .picker-title { color: var(--green); }
+.picker-summary { font-size: 0.72rem; color: var(--text2); margin-top: 3px; line-height: 1.3; }
+.picker-check { color: var(--green); font-size: 0.9rem; font-weight: 700; flex-shrink: 0; }
 .picker-btn.done .picker-title::after { content: ' ✓'; color: var(--green); }
 .picker-title { font-size: 0.85rem; font-weight: 600; color: var(--text); }
 .picker-day { font-size: 0.72rem; color: var(--text2); margin-top: 2px; }
@@ -412,20 +417,38 @@ main { padding: 16px; max-width: 600px; margin: 0 auto; }
 .week-note { background: var(--card2); border-radius: var(--radius-sm); padding: 10px 14px; color: var(--text2); font-size: 0.85rem; margin-bottom: 12px; }
 
 .sessions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.session-mini-card {
-  background: var(--card);
-  border-radius: var(--radius);
-  padding: 12px;
-  border-left: 3px solid var(--border);
-}
-.session-mini-card.strength { border-left-color: var(--strength); }
-.session-mini-card.intervals { border-left-color: var(--intervals); }
-.session-mini-card.ocr { border-left-color: var(--ocr); }
-.session-mini-card.recovery { border-left-color: var(--recovery); }
-.session-mini-card.no-session { opacity: 0.4; }
-.mini-day { font-size: 0.75rem; color: var(--text2); font-weight: 600; text-transform: uppercase; margin-bottom: 4px; }
-.mini-title { font-size: 0.9rem; font-weight: 600; margin-bottom: 4px; }
-.mini-summary { font-size: 0.75rem; color: var(--text2); line-height: 1.4; }
+
+.week-sessions { display: flex; flex-direction: column; gap: 12px; }
+.week-sess-card { background: var(--card); border-radius: var(--radius); padding: 14px 16px; border-left: 4px solid var(--border); }
+.week-sess-card.strength  { border-left-color: var(--strength); }
+.week-sess-card.intervals { border-left-color: var(--intervals); }
+.week-sess-card.ocr       { border-left-color: var(--ocr); }
+.week-sess-card.recovery  { border-left-color: var(--recovery); }
+.week-sess-card.done { border-color: var(--green); background: rgba(76,175,80,0.08); }
+.week-sess-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 4px; }
+.week-sess-left { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.week-sess-title { font-size: 1rem; font-weight: 700; }
+.week-sess-card.done .week-sess-title { color: var(--green); }
+.week-sess-duration { font-size: 0.75rem; color: var(--text2); background: var(--card2); padding: 2px 8px; border-radius: 10px; }
+.done-chip-sm { font-size: 0.75rem; font-weight: 700; color: var(--green); border: 1px solid var(--green); padding: 2px 8px; border-radius: 10px; white-space: nowrap; }
+.week-sess-summary { font-size: 0.82rem; color: var(--text2); margin-bottom: 10px; line-height: 1.4; }
+.week-sess-detail { border-top: 1px solid var(--border); padding-top: 10px; }
+.week-ex-list { display: flex; flex-direction: column; gap: 4px; }
+.week-ex-row { display: flex; align-items: center; gap: 8px; font-size: 0.82rem; }
+.week-ex-name { flex: 1; color: var(--text1); }
+.week-ex-spec { font-weight: 600; color: var(--accent); white-space: nowrap; }
+.week-ex-weight { font-size: 0.75rem; color: var(--text2); white-space: nowrap; }
+.week-circuit { display: flex; flex-direction: column; gap: 4px; }
+.week-circuit-step { font-size: 0.82rem; color: var(--text2); padding-left: 4px; }
+.week-rest { font-size: 0.78rem; color: var(--text2); margin-top: 4px; }
+.week-intervals { display: flex; flex-direction: column; gap: 6px; }
+.week-part { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.week-part-label { font-size: 0.72rem; font-weight: 700; color: var(--text2); text-transform: uppercase; min-width: 36px; }
+.week-interval-text { font-size: 0.82rem; color: var(--text2); }
+.week-chip { font-size: 0.75rem; background: var(--card2); border-radius: 6px; padding: 2px 8px; color: var(--text2); white-space: nowrap; }
+.week-options { display: flex; flex-direction: column; gap: 4px; }
+.week-option { font-size: 0.82rem; color: var(--text2); }
+.week-sess-note { font-size: 0.78rem; color: var(--text2); margin-top: 8px; }
 .mini-rest { font-size: 0.82rem; color: var(--text2); }
 
 /* ── PROGRESS VIEW ── */
