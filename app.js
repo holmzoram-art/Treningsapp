@@ -18,6 +18,10 @@ const SESSION_LOG_FIELDS = {
     { key: 'weight_pct',   label: 'Vekt (% av plan)', unit: '%',   integer: true },
     { key: 'duration_min', label: 'Varighet',          unit: 'min', integer: true },
   ],
+  circuit: [
+    { key: 'rounds_done',  label: 'Runder fullført', unit: 'stk', integer: true },
+    { key: 'duration_min', label: 'Varighet',         unit: 'min', integer: true },
+  ],
   recovery: [
     { key: 'duration_min', label: 'Varighet',  unit: 'min', integer: true },
     { key: 'speed_kmh',    label: 'Snittfart', unit: 'km/t', step: 0.1 },
@@ -138,11 +142,14 @@ createApp({
     }
 
     function selectStrengthSession(key) {
-      selectedStrengthKey.value = selectedStrengthKey.value === key ? null : key;
+      const newKey = selectedStrengthKey.value === key ? null : key;
+      selectedStrengthKey.value = newKey;
       selectedSessionKey.value = null;
       deloadMode.value = false;
       shortMode.value = false;
       cancelRestTimer();
+      if (newKey) { prefillStrengthMetrics(); initExerciseSets(newKey); }
+      else workoutMetrics.value = {};
     }
 
     // ── DONE TRACKING ──────────────────────────────────────────────────────
@@ -682,9 +689,13 @@ createApp({
         const carryStep = workout?.circuit?.find(s => /carry/i.test(s));
         if (carryStep) { const cm = carryStep.match(/(\d+\.?\d*)\s*kg/); if (cm) m.carry_kg = +cm[1]; }
       } else if (type === 'strength') {
-        m.weight_pct = 100;
-        const firstEx = workout?.exercises?.[0] ? parseExercise(workout.exercises[0]) : null;
-        if (firstEx?.sets) m.sets_done = firstEx.sets;
+        // program.js strength sessions are circuits — prefill rounds from session data
+        if (session.common?.rounds != null) {
+          m.rounds_done = session.common.rounds;
+        } else {
+          const firstEx = workout?.exercises?.[0] ? parseExercise(workout.exercises[0]) : null;
+          m.rounds_done = firstEx?.sets ?? 3;
+        }
       }
       workoutMetrics.value = m;
     }
@@ -830,7 +841,10 @@ createApp({
 
     const logFields = computed(() => {
       if (selectedStrengthKey.value) return SESSION_LOG_FIELDS.strength;
-      return SESSION_LOG_FIELDS[selectedSession.value?.type] || SESSION_LOG_FIELDS.recovery;
+      const sess = selectedSession.value;
+      // program.js sessions with type='strength' are circuits (exercises as text), not PPL gym
+      if (sess?.type === 'strength') return SESSION_LOG_FIELDS.circuit;
+      return SESSION_LOG_FIELDS[sess?.type] || SESSION_LOG_FIELDS.recovery;
     });
 
     const intervalSpeedLogs = computed(() =>
