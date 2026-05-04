@@ -395,7 +395,28 @@ createApp({
       return raw;
     }
 
-    const selectedWorkout = computed(() => resolveWorkout(selectedSession.value, selectedAthlete.value));
+    const selectedWorkout = computed(() => {
+      const w = resolveWorkout(selectedSession.value, selectedAthlete.value);
+      return replaceTokensDeep(w, athleteLevels.value);
+    });
+
+    // ── LEVEL CALCULATION ──────────────────────────────────────────────────
+    function replaceTokensDeep(obj, levels) {
+      if (!levels || obj === null || obj === undefined) return obj;
+      if (typeof obj === 'string') {
+        return obj
+          .replace(/\{\{threshold\}\}/g, levels.threshold_run_kmh + ' km/t')
+          .replace(/\{\{easy\}\}/g, levels.easy_run_kmh + ' km/t')
+          .replace(/\{\{ocr_run\}\}/g, levels.ocr_run_kmh + ' km/t');
+      }
+      if (Array.isArray(obj)) return obj.map(v => replaceTokensDeep(v, levels));
+      if (typeof obj === 'object') {
+        const out = {};
+        for (const [k, v] of Object.entries(obj)) out[k] = replaceTokensDeep(v, levels);
+        return out;
+      }
+      return obj;
+    }
 
     // ── STRENGTH ALTERNATIVE ───────────────────────────────────────────────
     const STRENGTH_DAYS = { 1: 'monday', 3: 'wednesday', 5: 'friday' };
@@ -488,20 +509,22 @@ createApp({
 
     // ── TESTS ─────────────────────────────────────────────────────────────
     const testTypes = [
-      { id: 'cooper', label: 'Cooper-test (12 min)', unit: 'm' },
-      { id: 'rowing2k', label: '2000m romaskin', unit: 'sek' },
-      { id: 'deadhang', label: 'Maks dead hang', unit: 'sek' },
-      { id: 'squat1rm', label: 'Knebøy 1RM', unit: 'kg' },
-      { id: 'deadlift1rm', label: 'Markløft 1RM', unit: 'kg' },
-      { id: 'bench1rm', label: 'Benkpress 1RM', unit: 'kg' },
+      { id: 'run20min',    label: 'Løpetest 20 min',    unit: 'm',   hint: 'Distanse løpt på 20 min (meter)', higherBetter: true },
+      { id: 'ocr_flytest', label: 'OCR flytest',         unit: 'sek', hint: 'Total tid (sekunder)',             higherBetter: false },
+      { id: 'deadhang',    label: 'Maks dead hang',      unit: 'sek', hint: 'Sekunder',                         higherBetter: true },
+      { id: 'carry',       label: 'Carry-tid',           unit: 'sek', hint: 'Sekunder',                         higherBetter: true },
+      { id: 'cooper',      label: 'Cooper-test (12 min)',unit: 'm',   hint: 'Meter (f.eks. 2800)',               higherBetter: true },
+      { id: 'rowing2k',    label: '2000m romaskin',      unit: 'sek', hint: 'Sekunder (f.eks. 420)',             higherBetter: false },
+      { id: 'squat1rm',    label: 'Knebøy 1RM',          unit: 'kg',  hint: 'Kilo',                              higherBetter: true },
+      { id: 'deadlift1rm', label: 'Markløft 1RM',        unit: 'kg',  hint: 'Kilo',                              higherBetter: true },
+      { id: 'bench1rm',    label: 'Benkpress 1RM',       unit: 'kg',  hint: 'Kilo',                              higherBetter: true },
     ];
 
-    const testPlaceholder = computed(() => {
-      const map = { cooper: 'Meter (f.eks. 2800)', rowing2k: 'Sekunder (f.eks. 420)', deadhang: 'Sekunder', squat1rm: 'Kilo', deadlift1rm: 'Kilo', bench1rm: 'Kilo' };
-      return map[newTest.value.type] || '';
-    });
+    const testPlaceholder = computed(() => testTypes.find(t => t.id === newTest.value.type)?.hint || '');
 
-    const testHistory = computed(() => JSON.parse(localStorage.getItem(STORAGE.tests) || '[]'));
+    // Reactive test history — updated in-memory so computed downstream re-evaluates immediately
+    const testHistoryRef = ref(JSON.parse(localStorage.getItem(STORAGE.tests) || '[]'));
+    const testHistory = computed(() => testHistoryRef.value);
 
     function testsOfType(type) {
       return testHistory.value.filter(t => t.type === type).sort((a, b) => a.date > b.date ? 1 : -1);
@@ -509,8 +532,9 @@ createApp({
 
     function isPR(entry, type) {
       const byAthlete = testsOfType(type).filter(t => t.athlete === entry.athlete);
-      const isHigherBetter = type !== 'rowing2k';
-      const best = isHigherBetter
+      const def = testTypes.find(t => t.id === type);
+      const higherBetter = def ? def.higherBetter : type !== 'rowing2k';
+      const best = higherBetter
         ? Math.max(...byAthlete.map(t => +t.value))
         : Math.min(...byAthlete.map(t => +t.value));
       return +entry.value === best;
@@ -518,13 +542,47 @@ createApp({
 
     function saveTest() {
       if (!newTest.value.value) return;
-      const tests = JSON.parse(localStorage.getItem(STORAGE.tests) || '[]');
-      tests.push({ ...newTest.value, value: +newTest.value.value });
-      localStorage.setItem(STORAGE.tests, JSON.stringify(tests));
+      const entry = { ...newTest.value, value: +newTest.value.value };
+      testHistoryRef.value = [...testHistoryRef.value, entry];
+      localStorage.setItem(STORAGE.tests, JSON.stringify(testHistoryRef.value));
       newTest.value = { athlete: selectedAthlete.value, type: newTest.value.type, value: '', date: today() };
-      // Force reactivity
-      localStorage.setItem(STORAGE.tests + '_ts', Date.now());
     }
+
+    // ── ATHLETE LEVELS (beregnet fra tester) ──────────────────────────────
+    const athleteLevels = computed(() => {
+      const id = selectedAthlete.value;
+      const runTests = testHistory.value.filter(t => t.athlete === id && t.type === 'run20min')
+        .sort((a, b) => a.date > b.date ? 1 : -1);
+      const hangTests = testHistory.value.filter(t => t.athlete === id && t.type === 'deadhang')
+        .sort((a, b) => a.date > b.date ? 1 : -1);
+      if (!runTests.length) return null;
+      const latest = runTests[runTests.length - 1];
+      // 20 min løpetest: meter → km/t = (m/1000) / (20/60) = m * 3 / 1000
+      const threshold = Math.round(latest.value * 3 / 1000 * 10) / 10;
+      return {
+        threshold_run_kmh: threshold,
+        easy_run_kmh:      Math.round(threshold * 0.88 * 10) / 10,
+        ocr_run_kmh:       Math.round(threshold * 0.96 * 10) / 10,
+        max_hang_sec:      hangTests.length ? hangTests[hangTests.length - 1].value : null,
+        last_updated:      latest.date,
+        from_distance_m:   latest.value,
+      };
+    });
+
+    // ── TEST CALENDAR ──────────────────────────────────────────────────────
+    const testCalendar = computed(() => PROGRAM_DATA.meta.testCalendar || []);
+
+    const upcomingTests = computed(() =>
+      testCalendar.value
+        .filter(t => t.weekNumber >= currentWeekNumber.value)
+        .slice(0, 3)
+        .map(t => {
+          const weeksAway = t.weekNumber - currentWeekNumber.value;
+          const startMs = new Date(PROGRAM_DATA.meta.programStart + 'T00:00:00').getTime();
+          const date = new Date(startMs + (t.weekNumber - 1) * 7 * 86400000);
+          return { ...t, weeksAway, dateStr: date.toLocaleDateString('nb-NO', { day: '2-digit', month: '2-digit' }) };
+        })
+    );
 
     // ── TEST REMINDERS (90 dager) ──────────────────────────────────────────
     const testReminders = computed(() => {
@@ -591,6 +649,7 @@ createApp({
       dagsformHint, weekDays, rpeHistory, notesHistory,
       completedSessions, currentStreak, avgRpe,
       testTypes, testPlaceholder, testHistory, testReminders,
+      athleteLevels, upcomingTests, testCalendar,
       equipment, currentAthleteName,
       // exercise parser
       parseExercise, parseExercises, deloadExercises, deloadCircuit,

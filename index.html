@@ -477,6 +477,49 @@
     <main v-if="view === 'tests'" class="view-tests">
       <h2>Kondistester</h2>
 
+      <!-- Beregnede nivåer -->
+      <div v-if="athleteLevels" class="levels-card">
+        <div class="levels-header">
+          <span class="levels-title">📊 Beregnede soner – {{ currentAthleteName }}</span>
+          <span class="levels-date">fra test {{ formatDate(athleteLevels.last_updated) }}</span>
+        </div>
+        <div class="levels-row">
+          <div class="level-stat">
+            <div class="level-val">{{ athleteLevels.easy_run_kmh }} km/t</div>
+            <div class="level-lbl">Rolig løp</div>
+          </div>
+          <div class="level-stat">
+            <div class="level-val">{{ athleteLevels.ocr_run_kmh }} km/t</div>
+            <div class="level-lbl">OCR-fart</div>
+          </div>
+          <div class="level-stat">
+            <div class="level-val">{{ athleteLevels.threshold_run_kmh }} km/t</div>
+            <div class="level-lbl">Terskel</div>
+          </div>
+          <div class="level-stat" v-if="athleteLevels.max_hang_sec">
+            <div class="level-val">{{ athleteLevels.max_hang_sec }} sek</div>
+            <div class="level-lbl">Max hang</div>
+          </div>
+        </div>
+        <p class="levels-note">Brukes automatisk i fase 4–6 øktbeskrivelser ({{threshold}}, {{ocr_run}}, {{easy}})</p>
+      </div>
+      <div v-else class="levels-empty">
+        Registrer en <strong>Løpetest 20 min</strong> nedenfor for å beregne dine løpssoner automatisk.
+      </div>
+
+      <!-- Kommende planlagte tester -->
+      <div v-if="upcomingTests.length" class="upcoming-tests">
+        <h3>Planlagte tester</h3>
+        <div v-for="t in upcomingTests" :key="t.weekNumber" class="upcoming-test-row">
+          <span class="upcoming-week">Uke {{ t.weekNumber }}</span>
+          <span class="upcoming-date">{{ t.dateStr }}</span>
+          <span class="upcoming-label">{{ t.label }}</span>
+          <span class="upcoming-away" :class="{ soon: t.weeksAway <= 1 }">
+            {{ t.weeksAway === 0 ? 'Denne uka!' : t.weeksAway + ' uker' }}
+          </span>
+        </div>
+      </div>
+
       <!-- Påminnelse -->
       <div v-for="reminder in testReminders" :key="reminder.type" class="reminder-card">
         ⚠️ <strong>{{ reminder.label }}</strong>: Sist testet {{ reminder.daysAgo }} dager siden. Tid for en ny test!
@@ -494,12 +537,7 @@
         <div class="form-row">
           <label>Test-type</label>
           <select v-model="newTest.type">
-            <option value="cooper">Cooper-test (12 min, meter)</option>
-            <option value="rowing2k">2000m romaskin (tid, sek)</option>
-            <option value="deadhang">Maks dead hang (sekunder)</option>
-            <option value="squat1rm">Knebøy 1RM (kg)</option>
-            <option value="deadlift1rm">Markløft 1RM (kg)</option>
-            <option value="bench1rm">Benkpress 1RM (kg)</option>
+            <option v-for="t in testTypes" :key="t.id" :value="t.id">{{ t.label }}</option>
           </select>
         </div>
         <div class="form-row">
