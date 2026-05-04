@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Treningsapp">
+  <meta name="theme-color" content="#1a1a2e">
+  <title>Treningsprogram – Onitio</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app" v-cloak>
+
+    <!-- HEADER -->
+    <header class="app-header">
+      <div class="header-content">
+        <h1>Treningsprogram 2026</h1>
+        <span class="race-badge" v-if="daysToRace > 0">🏁 {{ daysToRace }} dager til Holmenkollstafetten</span>
+        <span class="race-badge done" v-else>🏆 Holmenkollstafetten gjennomført!</span>
+      </div>
+    </header>
+
+    <!-- ATHLETE SELECTOR -->
+    <div class="athlete-bar">
+      <button
+        v-for="athlete in athletes"
+        :key="athlete.id"
+        class="athlete-btn"
+        :class="{ active: selectedAthlete === athlete.id }"
+        :style="selectedAthlete === athlete.id ? { background: athlete.color, borderColor: athlete.color } : { borderColor: athlete.color, color: athlete.color }"
+        @click="selectAthlete(athlete.id)"
+      >{{ athlete.name }}</button>
+    </div>
+
+    <!-- DAGSFORM -->
+    <div class="dagsform-bar">
+      <span class="dagsform-label">Dagsform:</span>
+      <button class="df-btn green" :class="{ active: dagsform === 'green' }" @click="dagsform = 'green'">🟢 Grønn</button>
+      <button class="df-btn yellow" :class="{ active: dagsform === 'yellow' }" @click="dagsform = 'yellow'">🟡 Gul</button>
+      <button class="df-btn red" :class="{ active: dagsform === 'red' }" @click="dagsform = 'red'">🔴 Rød</button>
+      <span class="df-hint" v-if="dagsform !== 'green'">{{ dagsformHint }}</span>
+    </div>
+
+    <!-- NAVIGATION TABS -->
+    <nav class="tab-bar">
+      <button :class="{ active: view === 'today' }" @click="view = 'today'">I dag</button>
+      <button :class="{ active: view === 'week' }" @click="view = 'week'">Denne uka</button>
+      <button :class="{ active: view === 'progress' }" @click="view = 'progress'">Fremgang</button>
+      <button :class="{ active: view === 'tests' }" @click="view = 'tests'">Tester</button>
+      <button :class="{ active: view === 'equipment' }" @click="view = 'equipment'">Utstyr</button>
+    </nav>
+
+    <!-- ───────────── I DAG ───────────── -->
+    <main v-if="view === 'today'" class="view-today">
+
+      <div class="week-info">
+        <span>{{ todayLabel }}</span>
+        <span class="phase-badge">Fase {{ currentWeek?.phase }}</span>
+        <span v-if="currentWeek?.isDeload" class="deload-badge">Deload</span>
+      </div>
+
+      <!-- Ingen trening i dag -->
+      <div v-if="!todaySessionKey" class="rest-card">
+        <div class="rest-icon">💤</div>
+        <h2>Hviledag</h2>
+        <p>Neste trening: <strong>{{ nextTrainingDay }}</strong></p>
+      </div>
+
+      <!-- Øktvisning -->
+      <div v-else>
+        <div class="session-card" :class="todaySession?.type">
+
+          <!-- Dagsform-banner -->
+          <div v-if="dagsform === 'yellow'" class="dagsform-banner yellow">
+            🟡 <strong>Gul dag</strong> – {{ todaySession?.dagsform?.yellow }}
+          </div>
+          <div v-if="dagsform === 'red'" class="dagsform-banner red">
+            🔴 <strong>Rød dag</strong> – {{ todaySession?.dagsform?.red }}
+          </div>
+
+          <div class="session-header">
+            <h2>{{ todaySession?.title }}</h2>
+            <span class="duration-badge">{{ todaySession?.duration }}</span>
+          </div>
+          <p class="session-summary">{{ todaySession?.summary }}</p>
+
+          <!-- Fase 3 plassholder -->
+          <div v-if="todayWorkout?.note && !todayWorkout?.exercises && !todayWorkout?.options && !todayWorkout?.circuit" class="placeholder-card">
+            <p>📋 {{ todayWorkout.note }}</p>
+          </div>
+
+          <!-- Felles program -->
+          <div v-else-if="todayWorkout">
+            <div v-if="todayWorkout.exercises" class="exercise-list">
+              <div v-for="ex in todayWorkout.exercises" :key="ex" class="exercise-item">
+                <span class="bullet">▸</span> {{ ex }}
+              </div>
+            </div>
+            <div v-if="todayWorkout.options" class="options-list">
+              <div v-for="(opt, i) in todayWorkout.options" :key="i" class="option-item">
+                <span class="option-letter">{{ ['A','B'][i] }}:</span> {{ opt }}
+              </div>
+            </div>
+            <div v-if="todayWorkout.circuit" class="circuit-list">
+              <div v-if="todayWorkout.rounds" class="rounds-badge">{{ todayWorkout.rounds }} runder</div>
+              <div v-for="step in todayWorkout.circuit" :key="step" class="circuit-step">
+                <span class="arrow">→</span> {{ step }}
+              </div>
+              <div v-if="todayWorkout.rest" class="rest-info">⏱ {{ todayWorkout.rest }}</div>
+            </div>
+            <!-- Intervaller del 1 / del 2 (fase 2) -->
+            <div v-if="todayWorkout.part1 || todayWorkout.part2" class="parts-list">
+              <div v-if="todayWorkout.part1" class="part-block">
+                <div class="part-label">Del 1</div>
+                <div v-if="typeof todayWorkout.part1 === 'string'">{{ todayWorkout.part1 }}</div>
+                <div v-else>
+                  <div><strong>{{ todayWorkout.part1.machine }}</strong></div>
+                  <div>{{ todayWorkout.part1.sets }}
+                    <span v-if="todayWorkout.part1.speed"> @ {{ todayWorkout.part1.speed }}</span>
+                    <span v-if="todayWorkout.part1.incline"> · {{ todayWorkout.part1.incline }}</span>
+                    <span v-if="todayWorkout.part1.rest"> · {{ todayWorkout.part1.rest }}</span>
+                  </div>
+                  <div v-if="todayWorkout.part1.options">
+                    <div v-for="(opt, i) in todayWorkout.part1.options" :key="i" class="option-item">
+                      <span class="option-letter">{{ ['A','B'][i] }}:</span> {{ opt }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div v-if="todayWorkout.part2" class="part-block">
+                <div class="part-label">Del 2 <span class="swap-badge">BYTT maskin</span></div>
+                <div v-if="typeof todayWorkout.part2 === 'string'">{{ todayWorkout.part2 }}</div>
+                <div v-else>
+                  <div v-if="todayWorkout.part2.machine"><strong>{{ todayWorkout.part2.machine }}</strong></div>
+                  <div v-if="todayWorkout.part2.sets">{{ todayWorkout.part2.sets }}</div>
+                  <div v-if="todayWorkout.part2.options">
+                    <div v-for="(opt, i) in todayWorkout.part2.options" :key="i" class="option-item">
+                      <span class="option-letter">{{ ['A','B'][i] }}:</span> {{ opt }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div v-if="todayWorkout.strides" class="part-block strides">
+                <div class="part-label">Strides</div>
+                {{ todayWorkout.strides }}
+              </div>
+            </div>
+            <div v-if="todayWorkout.mobility" class="mobility-list">
+              <div class="part-label">Mobilitet</div>
+              <div v-for="m in todayWorkout.mobility" :key="m" class="exercise-item">
+                <span class="bullet">▸</span> {{ m }}
+              </div>
+            </div>
+            <div v-if="todayWorkout.note" class="session-note">ℹ️ {{ todayWorkout.note }}</div>
+          </div>
+
+          <!-- Bytt økt-knapper -->
+          <div class="switch-buttons">
+            <button class="switch-btn" @click="showStrengthAlternative = !showStrengthAlternative">
+              💪 {{ showStrengthAlternative ? 'Skjul styrkeøkt' : 'Bytt til styrkeøkt' }}
+            </button>
+            <button class="switch-btn deload" @click="deloadMode = !deloadMode">
+              😴 {{ deloadMode ? 'Normal økt' : 'Jeg tar deload i dag' }}
+            </button>
+            <button class="switch-btn short" @click="shortMode = !shortMode">
+              ⚡ {{ shortMode ? 'Full økt' : 'Jeg har bare 20 min' }}
+            </button>
+          </div>
+
+          <!-- Deload-melding -->
+          <div v-if="deloadMode" class="deload-card">
+            <h3>🔄 Deload-versjon</h3>
+            <p>Kjør 50–70% av dagens økt:</p>
+            <ul>
+              <li>Halvér antall sett, runder eller drag</li>
+              <li>Bruk 50% av normal vekt/intensitet</li>
+              <li>Dropp tekniske elementer (hang, burpees)</li>
+              <li>Fokus på å bevege kroppen, ikke presse</li>
+            </ul>
+          </div>
+
+          <!-- Kortøkt -->
+          <div v-if="shortMode" class="short-card">
+            <h3>⚡ 20-minutters versjon</h3>
+            <p>Prioritér kjerneøvelsene:</p>
+            <ul v-if="todaySession?.type === 'strength'">
+              <li>2 sett av de 3 første øvelsene</li>
+              <li>Dropp carry og core</li>
+            </ul>
+            <ul v-else-if="todaySession?.type === 'intervals'">
+              <li>Del 1 kun (dropp del 2)</li>
+              <li>Halvér antall drag</li>
+            </ul>
+            <ul v-else-if="todaySession?.type === 'ocr'">
+              <li>3 runder i stedet for full runde</li>
+              <li>Dropp carry</li>
+            </ul>
+            <ul v-else>
+              <li>15–20 min rolig + 5 min tøying</li>
+            </ul>
+          </div>
+
+          <!-- Styrkeøkt-alternativ -->
+          <div v-if="showStrengthAlternative" class="strength-alt-card">
+            <h3>💪 Styrkeøkt – {{ strengthDayTitle }}</h3>
+            <div v-if="todayStrengthDay">
+              <p class="session-summary">{{ todayStrengthDay.duration }}</p>
+              <div class="exercise-list">
+                <div v-for="ex in todayStrengthDay.exercises" :key="ex.name" class="exercise-item">
+                  <span class="bullet">▸</span> <strong>{{ ex.name }}</strong> {{ ex.sets }}×{{ ex.reps }}
+                  <span v-if="ex.note" class="ex-note"> – {{ ex.note }}</span>
+                </div>
+              </div>
+              <div v-if="todayStrengthDay.finisher" class="session-note">Finisher: {{ todayStrengthDay.finisher }}</div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- RPE Logging -->
+        <div class="rpe-card" v-if="!rpeLogged">
+          <h3>Logg RPE etter økt</h3>
+          <p>Hvor hardt føltes det? (1 = veldig lett · 10 = maks)</p>
+          <div class="rpe-buttons">
+            <button v-for="n in 10" :key="n" class="rpe-btn" :class="rpeClass(n)" @click="logRpe(n)">{{ n }}</button>
+          </div>
+        </div>
+        <div class="rpe-logged-card" v-else>
+          ✅ RPE {{ rpeLogged }} logget for dagens økt
+        </div>
+
+        <!-- Notatfelt -->
+        <div class="notes-card">
+          <h3>📝 Notat (valgfritt)</h3>
+          <textarea v-model="todayNote" placeholder="Hvordan gikk det? Notér noe du vil huske..." rows="3"></textarea>
+          <button class="save-note-btn" @click="saveNote">Lagre notat</button>
+          <span class="note-saved" v-if="noteSaved">✅ Lagret</span>
+        </div>
+
+      </div>
+    </main>
+
+    <!-- ───────────── DENNE UKA ───────────── -->
+    <main v-if="view === 'week'" class="view-week">
+
+      <div class="week-nav">
+        <button @click="navigateWeek(-1)" :disabled="viewWeek <= 1">← Uke {{ viewWeek - 1 }}</button>
+        <div class="week-nav-center">
+          <strong>Uke {{ viewWeek }}</strong>
+          <span class="week-dates">{{ weekDates(viewWeek) }}</span>
+          <span class="phase-badge">Fase {{ viewingWeekData?.phase }}</span>
+          <span v-if="viewingWeekData?.isDeload" class="deload-badge">Deload</span>
+        </div>
+        <button @click="navigateWeek(1)" :disabled="viewWeek >= totalWeeks">Uke {{ viewWeek + 1 }} →</button>
+      </div>
+
+      <div v-if="viewingWeekData?.note" class="week-note">ℹ️ {{ viewingWeekData.note }}</div>
+
+      <div class="sessions-grid">
+        <div
+          v-for="(dayKey, dayLabel) in weekDays"
+          :key="dayKey"
+          class="session-mini-card"
+          :class="[viewingWeekData?.sessions?.[dayKey]?.type, { 'no-session': !viewingWeekData?.sessions?.[dayKey] }]"
+        >
+          <div class="mini-day">{{ dayLabel }}</div>
+          <div v-if="viewingWeekData?.sessions?.[dayKey]">
+            <div class="mini-title">{{ viewingWeekData.sessions[dayKey].title }}</div>
+            <div class="mini-summary">{{ viewingWeekData.sessions[dayKey].summary }}</div>
+          </div>
+          <div v-else class="mini-rest">Hviledag</div>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- ───────────── FREMGANG ───────────── -->
+    <main v-if="view === 'progress'" class="view-progress">
+      <h2>Fremgang – {{ currentAthleteName }}</h2>
+
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-number">{{ completedSessions }}</div>
+          <div class="stat-label">Økter fullført</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">{{ currentStreak }}</div>
+          <div class="stat-label">Dager streak</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">{{ avgRpe || '–' }}</div>
+          <div class="stat-label">Snitt RPE</div>
+        </div>
+      </div>
+
+      <div class="rpe-history" v-if="rpeHistory.length">
+        <h3>RPE historikk</h3>
+        <div class="rpe-chart">
+          <div v-for="entry in rpeHistory.slice(-14)" :key="entry.date" class="rpe-bar-wrap">
+            <div class="rpe-bar" :style="{ height: (entry.rpe * 10) + 'px' }" :class="rpeClass(entry.rpe)"></div>
+            <div class="rpe-bar-label">{{ entry.rpe }}</div>
+            <div class="rpe-bar-date">{{ formatShortDate(entry.date) }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="notes-history" v-if="notesHistory.length">
+        <h3>Siste notater</h3>
+        <div v-for="note in notesHistory.slice(-5).reverse()" :key="note.date" class="note-entry">
+          <span class="note-date">{{ formatDate(note.date) }}</span>
+          <span class="note-text">{{ note.text }}</span>
+        </div>
+      </div>
+
+      <div class="empty-state" v-if="!completedSessions">
+        <p>Start å logg RPE etter øktene dine for å se fremgang her!</p>
+      </div>
+    </main>
+
+    <!-- ───────────── TESTER ───────────── -->
+    <main v-if="view === 'tests'" class="view-tests">
+      <h2>Kondistester</h2>
+
+      <!-- Påminnelse -->
+      <div v-for="reminder in testReminders" :key="reminder.type" class="reminder-card">
+        ⚠️ <strong>{{ reminder.label }}</strong>: Sist testet {{ reminder.daysAgo }} dager siden. Tid for en ny test!
+      </div>
+
+      <!-- Ny test -->
+      <div class="new-test-card">
+        <h3>Registrer ny test</h3>
+        <div class="form-row">
+          <label>Utøver</label>
+          <select v-model="newTest.athlete">
+            <option v-for="a in athletes" :value="a.id">{{ a.name }}</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label>Test-type</label>
+          <select v-model="newTest.type">
+            <option value="cooper">Cooper-test (12 min, meter)</option>
+            <option value="rowing2k">2000m romaskin (tid, sek)</option>
+            <option value="deadhang">Maks dead hang (sekunder)</option>
+            <option value="squat1rm">Knebøy 1RM (kg)</option>
+            <option value="deadlift1rm">Markløft 1RM (kg)</option>
+            <option value="bench1rm">Benkpress 1RM (kg)</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label>Resultat</label>
+          <input type="number" v-model="newTest.value" :placeholder="testPlaceholder">
+        </div>
+        <div class="form-row">
+          <label>Dato</label>
+          <input type="date" v-model="newTest.date">
+        </div>
+        <button class="save-btn" @click="saveTest">Lagre test</button>
+      </div>
+
+      <!-- Historikk -->
+      <div v-if="testHistory.length" class="test-history">
+        <h3>Historikk</h3>
+        <div v-for="type in testTypes" :key="type.id">
+          <div v-if="testsOfType(type.id).length" class="test-type-section">
+            <h4>{{ type.label }}</h4>
+            <div class="test-chart">
+              <div v-for="t in testsOfType(type.id)" :key="t.date + t.athlete" class="test-entry">
+                <span class="test-date">{{ formatDate(t.date) }}</span>
+                <span class="test-athlete" :style="{ color: athleteColor(t.athlete) }">{{ athleteName(t.athlete) }}</span>
+                <span class="test-value">{{ t.value }} {{ type.unit }}</span>
+                <span class="pr-badge" v-if="isPR(t, type.id)">🏆 PR</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- ───────────── UTSTYR ───────────── -->
+    <main v-if="view === 'equipment'" class="view-equipment">
+      <h2>Utstyr på treningsstedet</h2>
+      <div v-for="cat in equipment" :key="cat.category" class="equipment-card">
+        <h3>{{ cat.category }}</h3>
+        <ul>
+          <li v-for="item in cat.items" :key="item">{{ item }}</li>
+        </ul>
+      </div>
+    </main>
+
+  </div>
+
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <script src="data/athletes.js"></script>
+  <script src="data/program.js"></script>
+  <script src="data/strength.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

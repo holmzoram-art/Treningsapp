@@ -1,0 +1,17 @@
+name: Ukentlig treningsmelding til Teams
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'  # Hver mandag kl. 08:00 norsk tid (UTC+2)
+  workflow_dispatch:      # Kan også kjøres manuelt fra GitHub
+
+jobs:
+  send-message:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Send ukentlig Teams-melding
+        env:
+          TEAMS_WEBHOOK: ${{ secrets.TEAMS_WEBHOOK_URL }}
+        run: python3 .github/scripts/send_weekly.py
