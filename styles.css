@@ -169,7 +169,42 @@ main { padding: 16px; max-width: 600px; margin: 0 auto; }
 .rest-card h2 { font-size: 1.4rem; margin-bottom: 8px; }
 .rest-card p { color: var(--text2); }
 
-/* ── SESSION CARD ── */
+/* ── SESSION PICKER ── */
+.session-picker {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.picker-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 10px 12px;
+  background: var(--card);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.15s;
+  position: relative;
+  text-align: left;
+}
+.picker-btn:disabled { opacity: 0.3; cursor: default; }
+.picker-btn.strength { border-left: 3px solid var(--strength); }
+.picker-btn.intervals { border-left: 3px solid var(--intervals); }
+.picker-btn.ocr { border-left: 3px solid var(--ocr); }
+.picker-btn.recovery { border-left: 3px solid var(--recovery); }
+.picker-btn.active { background: var(--card2); border-color: var(--accent); }
+.picker-btn.done { opacity: 0.6; }
+.picker-btn.done .picker-title::after { content: ' ✓'; color: var(--green); }
+.picker-title { font-size: 0.85rem; font-weight: 600; color: var(--text); }
+.picker-day { font-size: 0.72rem; color: var(--text2); margin-top: 2px; }
+.picker-check { position: absolute; top: 6px; right: 8px; color: var(--green); font-size: 0.9rem; }
+
+/* ── DONE BUTTON ── */
+.switch-btn.done-btn { border-color: var(--green); color: var(--green); }
+
+
 .session-card {
   background: var(--card);
   border-radius: var(--radius);

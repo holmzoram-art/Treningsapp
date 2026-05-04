@@ -8,10 +8,10 @@ createApp({
     const dagsform = ref('green');
     const view = ref('today');
     const viewWeek = ref(1);
+    const selectedSessionKey = ref(null);
     const showStrengthAlternative = ref(false);
     const deloadMode = ref(false);
     const shortMode = ref(false);
-    const rpeLogged = ref(null);
     const todayNote = ref('');
     const noteSaved = ref(false);
     const newTest = ref({ athlete: 'sondre', type: 'cooper', value: '', date: today() });
@@ -80,33 +80,49 @@ createApp({
     // ── TODAY'S SESSION ────────────────────────────────────────────────────
     const DAY_MAP = { 1: 'monday', 2: 'tuesday', 4: 'thursday', 5: 'friday' };
     const DAY_NAMES = { monday: 'Mandag', tuesday: 'Tirsdag', thursday: 'Torsdag', friday: 'Fredag' };
-    const NEXT_DAY = { 0: 'Mandag', 1: 'Tirsdag', 2: 'Tirsdag', 3: 'Torsdag', 4: 'Torsdag', 5: 'Fredag', 6: 'Mandag' };
 
-    const todaySessionKey = computed(() => DAY_MAP[new Date().getDay()] || null);
-
-    const todayLabel = computed(() => {
-      const d = new Date();
-      const dateStr = d.toLocaleDateString('nb-NO', { weekday: 'long', day: 'numeric', month: 'long' });
-      return dateStr.charAt(0).toUpperCase() + dateStr.slice(1) + ` · Uke ${currentWeekNumber.value}`;
+    const selectedSession = computed(() => {
+      if (!selectedSessionKey.value || !currentWeek.value) return null;
+      return currentWeek.value.sessions?.[selectedSessionKey.value] || null;
     });
 
-    const nextTrainingDay = computed(() => NEXT_DAY[new Date().getDay()] || 'Mandag');
+    function selectSession(key) {
+      selectedSessionKey.value = key;
+      showStrengthAlternative.value = false;
+      deloadMode.value = false;
+      shortMode.value = false;
+    }
 
-    const todaySession = computed(() => {
-      if (!todaySessionKey.value || !currentWeek.value) return null;
-      return currentWeek.value.sessions?.[todaySessionKey.value] || null;
-    });
+    // ── DONE TRACKING ──────────────────────────────────────────────────────
+    function doneKey(weekNum, athleteId) {
+      return `onitio_done_w${weekNum}_${athleteId}`;
+    }
+
+    function isSessionDone(sessionKey) {
+      if (!sessionKey) return false;
+      const done = JSON.parse(localStorage.getItem(doneKey(currentWeekNumber.value, selectedAthlete.value)) || '[]');
+      return done.includes(sessionKey);
+    }
+
+    function markSessionDone(sessionKey) {
+      if (!sessionKey) return;
+      const key = doneKey(currentWeekNumber.value, selectedAthlete.value);
+      const done = JSON.parse(localStorage.getItem(key) || '[]');
+      if (!done.includes(sessionKey)) done.push(sessionKey);
+      else done.splice(done.indexOf(sessionKey), 1); // toggle off
+      localStorage.setItem(key, JSON.stringify(done));
+    }
 
     // ── WORKOUT RESOLVER ───────────────────────────────────────────────────
     function resolveWorkout(session, athleteId) {
       if (!session) return null;
       const raw = session.athletes?.[athleteId];
       if (raw === null || raw === undefined) return session.common;
-      if (typeof raw === 'string') return session.athletes[raw]; // e.g. kjetil -> geir
+      if (typeof raw === 'string') return session.athletes[raw];
       return raw;
     }
 
-    const todayWorkout = computed(() => resolveWorkout(todaySession.value, selectedAthlete.value));
+    const selectedWorkout = computed(() => resolveWorkout(selectedSession.value, selectedAthlete.value));
 
     // ── STRENGTH ALTERNATIVE ───────────────────────────────────────────────
     const STRENGTH_DAYS = { 1: 'monday', 3: 'wednesday', 5: 'friday' };
@@ -148,16 +164,16 @@ createApp({
     }
 
     function logRpe(n) {
-      rpeLogged.value = n;
+      markSessionDone(selectedSessionKey.value);
       const history = JSON.parse(localStorage.getItem(STORAGE.rpe(selectedAthlete.value)) || '[]');
-      history.push({ date: today(), rpe: n, session: todaySessionKey.value });
+      history.push({ date: today(), rpe: n, session: selectedSessionKey.value });
       localStorage.setItem(STORAGE.rpe(selectedAthlete.value), JSON.stringify(history));
     }
 
     function saveNote() {
       if (!todayNote.value.trim()) return;
       const history = JSON.parse(localStorage.getItem(STORAGE.note(selectedAthlete.value)) || '[]');
-      history.push({ date: today(), text: todayNote.value.trim(), session: todaySessionKey.value });
+      history.push({ date: today(), text: todayNote.value.trim(), session: selectedSessionKey.value });
       localStorage.setItem(STORAGE.note(selectedAthlete.value), JSON.stringify(history));
       noteSaved.value = true;
       setTimeout(() => { noteSaved.value = false; }, 2000);
@@ -172,7 +188,10 @@ createApp({
       return JSON.parse(localStorage.getItem(STORAGE.note(selectedAthlete.value)) || '[]');
     });
 
-    const completedSessions = computed(() => rpeHistory.value.length);
+    const completedSessions = computed(() => {
+      // Count all weeks where at least one session is done
+      return rpeHistory.value.length;
+    });
 
     const currentStreak = computed(() => {
       const history = rpeHistory.value;
@@ -277,6 +296,7 @@ createApp({
       if (savedDagsform) dagsform.value = savedDagsform;
 
       viewWeek.value = currentWeekNumber.value;
+      selectedSessionKey.value = null;
 
       // Register service worker for PWA
       if ('serviceWorker' in navigator) {
@@ -288,20 +308,21 @@ createApp({
 
     return {
       // state
-      selectedAthlete, dagsform, view, viewWeek,
+      selectedAthlete, dagsform, view, viewWeek, selectedSessionKey,
       showStrengthAlternative, deloadMode, shortMode,
-      rpeLogged, todayNote, noteSaved, newTest,
+      todayNote, noteSaved, newTest,
       // computed
-      athletes, currentWeek, viewingWeekData, totalWeeks,
-      daysToRace, todaySessionKey, todayLabel, nextTrainingDay,
-      todaySession, todayWorkout, todayStrengthDay, strengthDayTitle,
+      athletes, currentWeek, currentWeekNumber, viewingWeekData, totalWeeks,
+      daysToRace, selectedSession, selectedWorkout,
+      todayStrengthDay, strengthDayTitle,
       dagsformHint, weekDays, rpeHistory, notesHistory,
       completedSessions, currentStreak, avgRpe,
       testTypes, testPlaceholder, testHistory, testReminders,
       equipment, currentAthleteName,
       // methods
-      selectAthlete, navigateWeek, weekDates,
+      selectAthlete, selectSession, navigateWeek, weekDates,
       rpeClass, logRpe, saveNote, saveTest,
+      isSessionDone, markSessionDone,
       testsOfType, isPR, athleteName, athleteColor,
       formatDate, formatShortDate,
     };

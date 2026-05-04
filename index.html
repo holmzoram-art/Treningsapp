@@ -58,108 +58,127 @@
     <main v-if="view === 'today'" class="view-today">
 
       <div class="week-info">
-        <span>{{ todayLabel }}</span>
+        <span>Uke {{ currentWeekNumber }} · {{ weekDates(currentWeekNumber) }}</span>
         <span class="phase-badge">Fase {{ currentWeek?.phase }}</span>
         <span v-if="currentWeek?.isDeload" class="deload-badge">Deload</span>
       </div>
 
-      <!-- Ingen trening i dag -->
-      <div v-if="!todaySessionKey" class="rest-card">
-        <div class="rest-icon">💤</div>
-        <h2>Hviledag</h2>
-        <p>Neste trening: <strong>{{ nextTrainingDay }}</strong></p>
+      <!-- Økt-velger -->
+      <div class="session-picker">
+        <button
+          v-for="(dayLabel, dayKey) in weekDays"
+          :key="dayKey"
+          class="picker-btn"
+          :class="[currentWeek?.sessions?.[dayKey]?.type, { active: selectedSessionKey === dayKey, done: isSessionDone(dayKey) }]"
+          :disabled="!currentWeek?.sessions?.[dayKey]"
+          @click="selectSession(dayKey)"
+        >
+          <span class="picker-check" v-if="isSessionDone(dayKey)">✓</span>
+          <span class="picker-title">{{ currentWeek?.sessions?.[dayKey]?.title || dayLabel }}</span>
+          <span class="picker-day">{{ dayLabel }}</span>
+        </button>
+      </div>
+
+      <!-- Ingen økt valgt -->
+      <div v-if="!selectedSessionKey" class="rest-card">
+        <div class="rest-icon">👆</div>
+        <h2>Velg en økt</h2>
+        <p>Trykk på en av de 4 øktene over for å se hva du skal gjøre.</p>
       </div>
 
       <!-- Øktvisning -->
-      <div v-else>
-        <div class="session-card" :class="todaySession?.type">
+      <div v-if="selectedSessionKey && selectedSession">
+        <div class="session-card" :class="selectedSession?.type">
 
           <!-- Dagsform-banner -->
           <div v-if="dagsform === 'yellow'" class="dagsform-banner yellow">
-            🟡 <strong>Gul dag</strong> – {{ todaySession?.dagsform?.yellow }}
+            🟡 <strong>Gul dag</strong> – {{ selectedSession?.dagsform?.yellow }}
           </div>
           <div v-if="dagsform === 'red'" class="dagsform-banner red">
-            🔴 <strong>Rød dag</strong> – {{ todaySession?.dagsform?.red }}
+            🔴 <strong>Rød dag</strong> – {{ selectedSession?.dagsform?.red }}
           </div>
 
           <div class="session-header">
-            <h2>{{ todaySession?.title }}</h2>
-            <span class="duration-badge">{{ todaySession?.duration }}</span>
+            <h2>{{ selectedSession?.title }}</h2>
+            <span class="duration-badge">{{ selectedSession?.duration }}</span>
           </div>
-          <p class="session-summary">{{ todaySession?.summary }}</p>
+          <p class="session-summary">{{ selectedSession?.summary }}</p>
 
           <!-- Fase 3 plassholder -->
-          <div v-if="todayWorkout?.note && !todayWorkout?.exercises && !todayWorkout?.options && !todayWorkout?.circuit" class="placeholder-card">
-            <p>📋 {{ todayWorkout.note }}</p>
+          <div v-if="selectedWorkout?.note && !selectedWorkout?.exercises && !selectedWorkout?.options && !selectedWorkout?.circuit" class="placeholder-card">
+            <p>📋 {{ selectedWorkout.note }}</p>
           </div>
 
           <!-- Felles program -->
-          <div v-else-if="todayWorkout">
-            <div v-if="todayWorkout.exercises" class="exercise-list">
-              <div v-for="ex in todayWorkout.exercises" :key="ex" class="exercise-item">
+          <div v-else-if="selectedWorkout">
+            <div v-if="selectedWorkout.exercises" class="exercise-list">
+              <div v-for="ex in selectedWorkout.exercises" :key="ex" class="exercise-item">
                 <span class="bullet">▸</span> {{ ex }}
               </div>
             </div>
-            <div v-if="todayWorkout.options" class="options-list">
-              <div v-for="(opt, i) in todayWorkout.options" :key="i" class="option-item">
+            <div v-if="selectedWorkout.options" class="options-list">
+              <div v-for="(opt, i) in selectedWorkout.options" :key="i" class="option-item">
                 <span class="option-letter">{{ ['A','B'][i] }}:</span> {{ opt }}
               </div>
             </div>
-            <div v-if="todayWorkout.circuit" class="circuit-list">
-              <div v-if="todayWorkout.rounds" class="rounds-badge">{{ todayWorkout.rounds }} runder</div>
-              <div v-for="step in todayWorkout.circuit" :key="step" class="circuit-step">
+            <div v-if="selectedWorkout.circuit" class="circuit-list">
+              <div v-if="selectedWorkout.rounds" class="rounds-badge">{{ selectedWorkout.rounds }} runder</div>
+              <div v-for="step in selectedWorkout.circuit" :key="step" class="circuit-step">
                 <span class="arrow">→</span> {{ step }}
               </div>
-              <div v-if="todayWorkout.rest" class="rest-info">⏱ {{ todayWorkout.rest }}</div>
+              <div v-if="selectedWorkout.rest" class="rest-info">⏱ {{ selectedWorkout.rest }}</div>
             </div>
             <!-- Intervaller del 1 / del 2 (fase 2) -->
-            <div v-if="todayWorkout.part1 || todayWorkout.part2" class="parts-list">
-              <div v-if="todayWorkout.part1" class="part-block">
+            <div v-if="selectedWorkout.part1 || selectedWorkout.part2" class="parts-list">
+              <div v-if="selectedWorkout.part1" class="part-block">
                 <div class="part-label">Del 1</div>
-                <div v-if="typeof todayWorkout.part1 === 'string'">{{ todayWorkout.part1 }}</div>
+                <div v-if="typeof selectedWorkout.part1 === 'string'">{{ selectedWorkout.part1 }}</div>
                 <div v-else>
-                  <div><strong>{{ todayWorkout.part1.machine }}</strong></div>
-                  <div>{{ todayWorkout.part1.sets }}
-                    <span v-if="todayWorkout.part1.speed"> @ {{ todayWorkout.part1.speed }}</span>
-                    <span v-if="todayWorkout.part1.incline"> · {{ todayWorkout.part1.incline }}</span>
-                    <span v-if="todayWorkout.part1.rest"> · {{ todayWorkout.part1.rest }}</span>
+                  <div><strong>{{ selectedWorkout.part1.machine }}</strong></div>
+                  <div>{{ selectedWorkout.part1.sets }}
+                    <span v-if="selectedWorkout.part1.speed"> @ {{ selectedWorkout.part1.speed }}</span>
+                    <span v-if="selectedWorkout.part1.incline"> · {{ selectedWorkout.part1.incline }}</span>
+                    <span v-if="selectedWorkout.part1.rest"> · {{ selectedWorkout.part1.rest }}</span>
                   </div>
-                  <div v-if="todayWorkout.part1.options">
-                    <div v-for="(opt, i) in todayWorkout.part1.options" :key="i" class="option-item">
+                  <div v-if="selectedWorkout.part1.options">
+                    <div v-for="(opt, i) in selectedWorkout.part1.options" :key="i" class="option-item">
                       <span class="option-letter">{{ ['A','B'][i] }}:</span> {{ opt }}
                     </div>
                   </div>
                 </div>
               </div>
-              <div v-if="todayWorkout.part2" class="part-block">
+              <div v-if="selectedWorkout.part2" class="part-block">
                 <div class="part-label">Del 2 <span class="swap-badge">BYTT maskin</span></div>
-                <div v-if="typeof todayWorkout.part2 === 'string'">{{ todayWorkout.part2 }}</div>
+                <div v-if="typeof selectedWorkout.part2 === 'string'">{{ selectedWorkout.part2 }}</div>
                 <div v-else>
-                  <div v-if="todayWorkout.part2.machine"><strong>{{ todayWorkout.part2.machine }}</strong></div>
-                  <div v-if="todayWorkout.part2.sets">{{ todayWorkout.part2.sets }}</div>
-                  <div v-if="todayWorkout.part2.options">
-                    <div v-for="(opt, i) in todayWorkout.part2.options" :key="i" class="option-item">
+                  <div v-if="selectedWorkout.part2.machine"><strong>{{ selectedWorkout.part2.machine }}</strong></div>
+                  <div v-if="selectedWorkout.part2.sets">{{ selectedWorkout.part2.sets }}</div>
+                  <div v-if="selectedWorkout.part2.options">
+                    <div v-for="(opt, i) in selectedWorkout.part2.options" :key="i" class="option-item">
                       <span class="option-letter">{{ ['A','B'][i] }}:</span> {{ opt }}
                     </div>
                   </div>
                 </div>
               </div>
-              <div v-if="todayWorkout.strides" class="part-block strides">
+              <div v-if="selectedWorkout.strides" class="part-block strides">
                 <div class="part-label">Strides</div>
-                {{ todayWorkout.strides }}
+                {{ selectedWorkout.strides }}
               </div>
             </div>
-            <div v-if="todayWorkout.mobility" class="mobility-list">
+            <div v-if="selectedWorkout.mobility" class="mobility-list">
               <div class="part-label">Mobilitet</div>
-              <div v-for="m in todayWorkout.mobility" :key="m" class="exercise-item">
+              <div v-for="m in selectedWorkout.mobility" :key="m" class="exercise-item">
                 <span class="bullet">▸</span> {{ m }}
               </div>
             </div>
-            <div v-if="todayWorkout.note" class="session-note">ℹ️ {{ todayWorkout.note }}</div>
+            <div v-if="selectedWorkout.note" class="session-note">ℹ️ {{ selectedWorkout.note }}</div>
           </div>
 
           <!-- Bytt økt-knapper -->
           <div class="switch-buttons">
+            <button class="switch-btn done-btn" @click="markSessionDone(selectedSessionKey)">
+              {{ isSessionDone(selectedSessionKey) ? '✓ Fullført' : 'Merk som fullført' }}
+            </button>
             <button class="switch-btn" @click="showStrengthAlternative = !showStrengthAlternative">
               💪 {{ showStrengthAlternative ? 'Skjul styrkeøkt' : 'Bytt til styrkeøkt' }}
             </button>
@@ -222,7 +241,7 @@
         </div>
 
         <!-- RPE Logging -->
-        <div class="rpe-card" v-if="!rpeLogged">
+        <div class="rpe-card" v-if="!isSessionDone(selectedSessionKey)">
           <h3>Logg RPE etter økt</h3>
           <p>Hvor hardt føltes det? (1 = veldig lett · 10 = maks)</p>
           <div class="rpe-buttons">
@@ -230,7 +249,7 @@
           </div>
         </div>
         <div class="rpe-logged-card" v-else>
-          ✅ RPE {{ rpeLogged }} logget for dagens økt
+          ✅ Fullført denne uka
         </div>
 
         <!-- Notatfelt -->
