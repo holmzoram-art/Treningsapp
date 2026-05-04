@@ -43,19 +43,21 @@ createApp({
     }
 
     function weekDates(weekNum) {
-      const start = new Date(PROGRAM_DATA.meta.programStart + 'T00:00:00');
-      const monday = new Date(start.getTime() + (weekNum - 1) * 7 * 86400000);
-      const friday = new Date(monday.getTime() + 4 * 86400000);
-      return monday.toLocaleDateString('nb-NO', { day: '2-digit', month: '2-digit' }) + ' – ' +
-             friday.toLocaleDateString('nb-NO', { day: '2-digit', month: '2-digit' });
+      const [sy, sm, sd] = PROGRAM_DATA.meta.programStart.split('-').map(Number);
+      const startMs = Date.UTC(sy, sm - 1, sd);
+      const mondayMs = startMs + (weekNum - 1) * 7 * 86400000;
+      const fridayMs = mondayMs + 4 * 86400000;
+      const fmt = ms => new Date(ms).toLocaleDateString('nb-NO', { day: '2-digit', month: '2-digit', timeZone: 'UTC' });
+      return fmt(mondayMs) + ' – ' + fmt(fridayMs);
     }
 
     // ── CURRENT WEEK CALCULATION ───────────────────────────────────────────
     const currentWeekNumber = computed(() => {
-      const start = new Date(PROGRAM_DATA.meta.programStart + 'T00:00:00');
-      const now = new Date();
-      now.setHours(0, 0, 0, 0);
-      const days = Math.floor((now - start) / 86400000);
+      const [sy, sm, sd] = PROGRAM_DATA.meta.programStart.split('-').map(Number);
+      const startMs = Date.UTC(sy, sm - 1, sd);
+      const [ny, nm, nd] = today().split('-').map(Number);
+      const nowMs = Date.UTC(ny, nm - 1, nd);
+      const days = Math.floor((nowMs - startMs) / 86400000);
       const n = Math.floor(days / 7) + 1;
       return Math.max(1, Math.min(n, PROGRAM_DATA.meta.totalWeeks));
     });
@@ -188,10 +190,11 @@ createApp({
     }
     function adjustWorkout(w, dgForm, isDeload, isShort) {
       if (!w) return w;
-      const strong = isDeload || dgForm === 'red';
-      const mild   = !strong && dgForm === 'yellow';
-      const vf = strong ? 0.5 : mild ? 0.8 : 1;
-      const sd = strong ? -1.0 : mild ? -0.5 : 0;
+      let vf = 1;
+      let sd = 0;
+      if (isDeload)            { vf *= 0.5; sd -= 1.0; }
+      if (dgForm === 'yellow') { vf *= 0.8; sd -= 0.5; }
+      if (dgForm === 'red')    { vf *= 0.5; sd -= 1.0; }
       if (vf === 1 && sd === 0 && !isShort) return w;
       const w2 = { ...w };
       if (w2.rounds != null) w2.rounds = Math.max(1, Math.round(w2.rounds * vf));
@@ -687,17 +690,19 @@ createApp({
     // ── TEST CALENDAR ──────────────────────────────────────────────────────
     const testCalendar = computed(() => PROGRAM_DATA.meta.testCalendar || []);
 
-    const upcomingTests = computed(() =>
-      testCalendar.value
+    const upcomingTests = computed(() => {
+      const [sy, sm, sd] = PROGRAM_DATA.meta.programStart.split('-').map(Number);
+      const startMs = Date.UTC(sy, sm - 1, sd);
+      return testCalendar.value
         .filter(t => t.weekNumber >= currentWeekNumber.value)
         .slice(0, 3)
         .map(t => {
           const weeksAway = t.weekNumber - currentWeekNumber.value;
-          const startMs = new Date(PROGRAM_DATA.meta.programStart + 'T00:00:00').getTime();
-          const date = new Date(startMs + (t.weekNumber - 1) * 7 * 86400000);
-          return { ...t, weeksAway, dateStr: date.toLocaleDateString('nb-NO', { day: '2-digit', month: '2-digit' }) };
-        })
-    );
+          const dateMs = startMs + (t.weekNumber - 1) * 7 * 86400000;
+          const dateStr = new Date(dateMs).toLocaleDateString('nb-NO', { day: '2-digit', month: '2-digit', timeZone: 'UTC' });
+          return { ...t, weeksAway, dateStr };
+        });
+    });
 
     // ── TEST REMINDERS (90 dager) ──────────────────────────────────────────
     const testReminders = computed(() => {
