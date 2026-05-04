@@ -478,8 +478,15 @@
             <option v-for="t in testTypes" :key="t.id" :value="t.id">{{ t.label }}</option>
           </select>
         </div>
+
+        <!-- Beskrivelse av valgt test -->
+        <div v-if="selectedTestType" class="test-desc-card">
+          <div class="test-desc-text">{{ selectedTestType.description }}</div>
+          <div class="test-rpe-target">🎯 RPE-mål: <strong>{{ selectedTestType.targetRpe }}</strong></div>
+        </div>
+
         <div class="form-row">
-          <label>Resultat</label>
+          <label>Resultat ({{ selectedTestType?.unit }})</label>
           <input type="number" v-model="newTest.value" :placeholder="testPlaceholder">
         </div>
         <div class="form-row">

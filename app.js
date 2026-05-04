@@ -606,18 +606,64 @@ createApp({
 
     // ── TESTS ─────────────────────────────────────────────────────────────
     const testTypes = [
-      { id: 'run20min',    label: 'Løpetest 20 min',    unit: 'm',   hint: 'Distanse løpt på 20 min (meter)', higherBetter: true },
-      { id: 'ocr_flytest', label: 'OCR flytest',         unit: 'sek', hint: 'Total tid (sekunder)',             higherBetter: false },
-      { id: 'deadhang',    label: 'Maks dead hang',      unit: 'sek', hint: 'Sekunder',                         higherBetter: true },
-      { id: 'carry',       label: 'Carry-tid',           unit: 'sek', hint: 'Sekunder',                         higherBetter: true },
-      { id: 'cooper',      label: 'Cooper-test (12 min)',unit: 'm',   hint: 'Meter (f.eks. 2800)',               higherBetter: true },
-      { id: 'rowing2k',    label: '2000m romaskin',      unit: 'sek', hint: 'Sekunder (f.eks. 420)',             higherBetter: false },
-      { id: 'squat1rm',    label: 'Knebøy 1RM',          unit: 'kg',  hint: 'Kilo',                              higherBetter: true },
-      { id: 'deadlift1rm', label: 'Markløft 1RM',        unit: 'kg',  hint: 'Kilo',                              higherBetter: true },
-      { id: 'bench1rm',    label: 'Benkpress 1RM',       unit: 'kg',  hint: 'Kilo',                              higherBetter: true },
+      {
+        id: 'run20min', label: 'Løpetest 20 min', unit: 'm', higherBetter: true,
+        hint: 'Distanse løpt på 20 min (meter)',
+        targetRpe: '8–9',
+        description: 'Varm opp 10 min rolig. Løp på mølla (0–1% stigning) i nøyaktig 20 min – så langt du klarer. Registrer meter. Brukes til å beregne sonene dine automatisk.',
+      },
+      {
+        id: 'ocr_flytest', label: 'OCR flytest', unit: 'sek', higherBetter: false,
+        hint: 'Total tid i sekunder',
+        targetRpe: '9',
+        description: 'Gjennomfør en fast OCR-runde med forhåndsbestemt rute og hindringer. Mål total tid fra start til mål i sekunder. Bruk samme rute hver gang.',
+      },
+      {
+        id: 'deadhang', label: 'Maks dead hang', unit: 'sek', higherBetter: true,
+        hint: 'Sekunder',
+        targetRpe: '10',
+        description: 'Heng i pullup-stang med rett kropp og aktive skuldre – ingen kipping. Mål sekunder til du slipper. Gjør to forsøk med 3 min pause, registrer beste.',
+      },
+      {
+        id: 'carry', label: 'Carry-tid', unit: 'sek', higherBetter: true,
+        hint: 'Sekunder',
+        targetRpe: '8–9',
+        description: 'Bær Farmer\'s carry-vekt (se ditt nivå i kg) og gå så lenge du klarer uten å sette ned. Mål sekunder. Alternativt: fast distanse, mål tid.',
+      },
+      {
+        id: 'cooper', label: 'Cooper-test (12 min)', unit: 'm', higherBetter: true,
+        hint: 'Meter (f.eks. 2800)',
+        targetRpe: '8–9',
+        description: 'Varm opp 10 min. Løp utendørs eller på mølla i nøyaktig 12 min – så langt du klarer. Mål total distanse i meter.',
+      },
+      {
+        id: 'rowing2k', label: '2000m romaskin', unit: 'sek', higherBetter: false,
+        hint: 'Sekunder (f.eks. 420)',
+        targetRpe: '9',
+        description: 'Varm opp 5 min rolig roing. Ro 2000m for best mulig tid. Hold igjen de første 500m – legg ut på ~70% og bygg gradvis. Mål tid i sekunder.',
+      },
+      {
+        id: 'squat3rm', label: 'Knebøy 3RM', unit: 'kg', higherBetter: true,
+        hint: 'Kilo',
+        targetRpe: '9',
+        description: 'Varm opp gradvis (50%, 65%, 75%, 85%). Finn høyeste vekt du klarer 3 teknisk rene repetisjoner. Bruk 3–5 minutter pause mellom forsøk. Stopp om teknikken svikter.',
+      },
+      {
+        id: 'deadlift3rm', label: 'Markløft 3RM', unit: 'kg', higherBetter: true,
+        hint: 'Kilo',
+        targetRpe: '9',
+        description: 'Varm opp grundig med lette vekter. Finn høyeste vekt for 3 rene repetisjoner med god rygglinje og benstopp. Stopp umiddelbart om teknikken svikter.',
+      },
+      {
+        id: 'bench3rm', label: 'Benkpress 3RM', unit: 'kg', higherBetter: true,
+        hint: 'Kilo',
+        targetRpe: '9',
+        description: 'Varm opp med lett vekt. Finn høyeste vekt for 3 kontrollerte repetisjoner med full bevegelsesbane – bryst til stangen, full strekk opp. Ha alltid spotter.',
+      },
     ];
 
     const testPlaceholder = computed(() => testTypes.find(t => t.id === newTest.value.type)?.hint || '');
+    const selectedTestType = computed(() => testTypes.find(t => t.id === newTest.value.type) || null);
 
     // Reactive test history — updated in-memory so computed downstream re-evaluates immediately
     const testHistoryRef = ref(JSON.parse(localStorage.getItem(STORAGE.tests) || '[]'));
@@ -769,7 +815,7 @@ createApp({
       selectedWorkout, displayedWorkout, displayedTitle, displayedDuration,
       dagsformHint, weekDays, rpeHistory, notesHistory,
       completedSessions, currentStreak, avgRpe,
-      testTypes, testPlaceholder, testHistory, testReminders,
+      testTypes, testPlaceholder, selectedTestType, testHistory, testReminders,
       athleteLevels, upcomingTests, testCalendar,
       equipment, currentAthleteName,
       // exercise parser
