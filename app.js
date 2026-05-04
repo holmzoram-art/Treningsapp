@@ -720,7 +720,7 @@ createApp({
         const prevSets = prev[ex.name] || [];
         result[ex.name] = Array.from({ length: ex.sets }, (_, i) => ({
           weight: prevSets[i]?.weight ?? 0,
-          reps:   prevSets[i]?.reps   ?? parseInt(ex.reps) || 0,
+          reps:   prevSets[i]?.reps   ?? (parseInt(ex.reps) || 0),
           done:   false,
         }));
       }
