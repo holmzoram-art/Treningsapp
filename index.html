@@ -105,22 +105,36 @@
           <p class="session-summary">{{ selectedSession?.summary }}</p>
 
           <!-- Fase 3 plassholder -->
-          <div v-if="selectedWorkout?.note && !selectedWorkout?.exercises && !selectedWorkout?.options && !selectedWorkout?.circuit" class="placeholder-card">
+          <div v-if="selectedWorkout?.note && !selectedWorkout?.exercises && !selectedWorkout?.options && !selectedWorkout?.circuit && !selectedWorkout?.part1" class="placeholder-card">
             <p>📋 {{ selectedWorkout.note }}</p>
           </div>
 
           <!-- Felles program -->
           <div v-else-if="selectedWorkout">
-            <div v-if="selectedWorkout.exercises" class="exercise-list">
-              <div v-for="ex in selectedWorkout.exercises" :key="ex" class="exercise-item">
-                <span class="bullet">▸</span> {{ ex }}
-              </div>
+
+            <!-- Strukturerte øvelser (styrke) -->
+            <div v-if="selectedWorkout.exercises">
+              <table class="ex-table">
+                <thead><tr><th>Øvelse</th><th>Sett</th><th>Rep / Tid</th><th>Vekt</th></tr></thead>
+                <tbody>
+                  <tr v-for="ex in parseExercises(selectedWorkout.exercises)" :key="ex.name">
+                    <td>{{ ex.name }}<span v-if="ex.note" class="ex-note"> – {{ ex.note }}</span></td>
+                    <td class="td-num">{{ ex.sets ?? '–' }}</td>
+                    <td class="td-num">{{ ex.reps ?? ex.time ?? '–' }}</td>
+                    <td class="td-num">{{ ex.weight ?? '–' }}</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
+
+            <!-- Alternativ A/B (fase 1 løp) -->
             <div v-if="selectedWorkout.options" class="options-list">
               <div v-for="(opt, i) in selectedWorkout.options" :key="i" class="option-item">
                 <span class="option-letter">{{ ['A','B'][i] }}:</span> {{ opt }}
               </div>
             </div>
+
+            <!-- OCR-circuit -->
             <div v-if="selectedWorkout.circuit" class="circuit-list">
               <div v-if="selectedWorkout.rounds" class="rounds-badge">{{ selectedWorkout.rounds }} runder</div>
               <div v-for="step in selectedWorkout.circuit" :key="step" class="circuit-step">
@@ -128,6 +142,7 @@
               </div>
               <div v-if="selectedWorkout.rest" class="rest-info">⏱ {{ selectedWorkout.rest }}</div>
             </div>
+
             <!-- Intervaller del 1 / del 2 (fase 2) -->
             <div v-if="selectedWorkout.part1 || selectedWorkout.part2" class="parts-list">
               <div v-if="selectedWorkout.part1" class="part-block">
@@ -135,10 +150,11 @@
                 <div v-if="typeof selectedWorkout.part1 === 'string'">{{ selectedWorkout.part1 }}</div>
                 <div v-else>
                   <div><strong>{{ selectedWorkout.part1.machine }}</strong></div>
-                  <div>{{ selectedWorkout.part1.sets }}
-                    <span v-if="selectedWorkout.part1.speed"> @ {{ selectedWorkout.part1.speed }}</span>
-                    <span v-if="selectedWorkout.part1.incline"> · {{ selectedWorkout.part1.incline }}</span>
-                    <span v-if="selectedWorkout.part1.rest"> · {{ selectedWorkout.part1.rest }}</span>
+                  <div class="interval-spec">
+                    <span class="interval-chip">{{ selectedWorkout.part1.sets }}</span>
+                    <span v-if="selectedWorkout.part1.speed" class="interval-chip">{{ selectedWorkout.part1.speed }}</span>
+                    <span v-if="selectedWorkout.part1.incline" class="interval-chip">{{ selectedWorkout.part1.incline }}</span>
+                    <span v-if="selectedWorkout.part1.rest" class="interval-chip rest-chip">⏱ {{ selectedWorkout.part1.rest }}</span>
                   </div>
                   <div v-if="selectedWorkout.part1.options">
                     <div v-for="(opt, i) in selectedWorkout.part1.options" :key="i" class="option-item">
@@ -152,7 +168,9 @@
                 <div v-if="typeof selectedWorkout.part2 === 'string'">{{ selectedWorkout.part2 }}</div>
                 <div v-else>
                   <div v-if="selectedWorkout.part2.machine"><strong>{{ selectedWorkout.part2.machine }}</strong></div>
-                  <div v-if="selectedWorkout.part2.sets">{{ selectedWorkout.part2.sets }}</div>
+                  <div v-if="selectedWorkout.part2.sets" class="interval-spec">
+                    <span class="interval-chip">{{ selectedWorkout.part2.sets }}</span>
+                  </div>
                   <div v-if="selectedWorkout.part2.options">
                     <div v-for="(opt, i) in selectedWorkout.part2.options" :key="i" class="option-item">
                       <span class="option-letter">{{ ['A','B'][i] }}:</span> {{ opt }}
@@ -165,6 +183,7 @@
                 {{ selectedWorkout.strides }}
               </div>
             </div>
+
             <div v-if="selectedWorkout.mobility" class="mobility-list">
               <div class="part-label">Mobilitet</div>
               <div v-for="m in selectedWorkout.mobility" :key="m" class="exercise-item">
@@ -172,6 +191,71 @@
               </div>
             </div>
             <div v-if="selectedWorkout.note" class="session-note">ℹ️ {{ selectedWorkout.note }}</div>
+          </div>
+
+          <!-- ── INTERVALLTIMER ── -->
+          <div v-if="showTimer" class="timer-wrap">
+
+            <!-- Konfig-skjerm -->
+            <div v-if="timerState === 'config'" class="timer-config">
+              <div class="timer-config-row">
+                <div class="timer-config-field">
+                  <label>Drag</label>
+                  <input type="number" v-model.number="timerConfig.count" min="1" max="30">
+                </div>
+                <div class="timer-config-field">
+                  <label>Arbeid (sek)</label>
+                  <input type="number" v-model.number="timerConfig.workSec" min="5" max="600">
+                </div>
+                <div class="timer-config-field">
+                  <label>Pause (sek)</label>
+                  <input type="number" v-model.number="timerConfig.restSec" min="5" max="600">
+                </div>
+              </div>
+              <button class="timer-start-btn" @click="startTimer">▶ Start timer</button>
+            </div>
+
+            <!-- Aktiv timer -->
+            <div v-else class="timer-active">
+              <div class="timer-phase-label"
+                :class="{ warmup: timerState==='warmup', work: timerState==='work', rest: timerState==='rest', done: timerState==='done' }">
+                <span v-if="timerState==='warmup'">Gjør deg klar…</span>
+                <span v-else-if="timerState==='work'">ARBEID – drag {{ timerPhase }} / {{ timerConfig.count }}</span>
+                <span v-else-if="timerState==='rest'">PAUSE</span>
+                <span v-else>Ferdig! 🎉</span>
+              </div>
+
+              <div v-if="timerState !== 'done'" class="timer-ring-wrap">
+                <svg class="timer-ring" viewBox="0 0 120 120">
+                  <circle cx="60" cy="60" r="52" class="ring-bg"/>
+                  <circle cx="60" cy="60" r="52" class="ring-fg"
+                    :class="{ warmup: timerState==='warmup', work: timerState==='work', rest: timerState==='rest' }"
+                    :stroke-dashoffset="327 - (327 * timerPct / 100)"
+                    stroke-dasharray="327"/>
+                </svg>
+                <div class="timer-countdown">{{ formatSec(timerSec) }}</div>
+              </div>
+
+              <!-- Resultater -->
+              <div v-if="timerResults.length" class="timer-results">
+                <div v-for="r in timerResults" :key="r.n" class="timer-result-row">
+                  <span class="result-n">Drag {{ r.n }}</span>
+                  <span class="result-time" :class="{ early: r.early }">
+                    {{ formatSec(r.sec) }}{{ r.early ? ' ⚡' : '' }}
+                  </span>
+                </div>
+              </div>
+
+              <div class="timer-btns">
+                <button v-if="timerState==='work'" class="timer-btn early-btn" @click="endIntervalEarly">
+                  ✓ Ferdig nå
+                </button>
+                <button v-if="timerState!=='done'" class="timer-btn pause-btn" @click="pauseTimer">
+                  {{ isPaused ? '▶ Fortsett' : '⏸ Pause' }}
+                </button>
+                <button class="timer-btn reset-btn" @click="resetTimer">↺ Nullstill</button>
+              </div>
+            </div>
           </div>
 
           <!-- Bytt økt-knapper -->
@@ -190,31 +274,55 @@
             </button>
           </div>
 
-          <!-- Deload-melding -->
-          <div v-if="deloadMode" class="deload-card">
+          <!-- Kalkulert deload -->
+          <div v-if="deloadMode && selectedWorkout" class="deload-card">
             <h3>🔄 Deload-versjon</h3>
-            <p>Kjør 50–70% av dagens økt:</p>
-            <ul>
-              <li>Halvér antall sett, runder eller drag</li>
-              <li>Bruk 50% av normal vekt/intensitet</li>
-              <li>Dropp tekniske elementer (hang, burpees)</li>
-              <li>Fokus på å bevege kroppen, ikke presse</li>
-            </ul>
+            <!-- Styrke: vis halverte sett -->
+            <div v-if="selectedWorkout.exercises">
+              <table class="ex-table">
+                <thead><tr><th>Øvelse</th><th>Sett</th><th>Rep / Tid</th><th>Vekt</th></tr></thead>
+                <tbody>
+                  <tr v-for="ex in deloadExercises(selectedWorkout.exercises)" :key="ex.name" class="deload-row">
+                    <td>{{ ex.name }}</td>
+                    <td class="td-num">{{ ex.sets ?? '–' }}</td>
+                    <td class="td-num">{{ ex.reps ?? ex.time ?? '–' }}</td>
+                    <td class="td-num">{{ ex.weight ?? '–' }}</td>
+                  </tr>
+                </tbody>
+              </table>
+              <p class="deload-note">50% intensitet – fokus på bevegelse, ikke maks</p>
+            </div>
+            <!-- OCR circuit: vis halverte runder/burpees/hang -->
+            <div v-else-if="selectedWorkout.circuit">
+              <div class="rounds-badge">{{ deloadCircuit(selectedWorkout.circuit, selectedWorkout.rounds).rounds }} runder</div>
+              <div v-for="step in deloadCircuit(selectedWorkout.circuit, selectedWorkout.rounds).circuit" :key="step" class="circuit-step">
+                <span class="arrow">→</span> {{ step }}
+              </div>
+              <p class="deload-note">Redusert volum – dropp tekniske elementer ved behov</p>
+            </div>
+            <!-- Intervaller: generisk råd -->
+            <div v-else>
+              <ul>
+                <li>Halvér antall drag</li>
+                <li>Senk fart/motstand 20–30%</li>
+                <li>Gå rolig mellom</li>
+              </ul>
+            </div>
           </div>
 
           <!-- Kortøkt -->
           <div v-if="shortMode" class="short-card">
             <h3>⚡ 20-minutters versjon</h3>
             <p>Prioritér kjerneøvelsene:</p>
-            <ul v-if="todaySession?.type === 'strength'">
+            <ul v-if="selectedSession?.type === 'strength'">
               <li>2 sett av de 3 første øvelsene</li>
               <li>Dropp carry og core</li>
             </ul>
-            <ul v-else-if="todaySession?.type === 'intervals'">
+            <ul v-else-if="selectedSession?.type === 'intervals'">
               <li>Del 1 kun (dropp del 2)</li>
               <li>Halvér antall drag</li>
             </ul>
-            <ul v-else-if="todaySession?.type === 'ocr'">
+            <ul v-else-if="selectedSession?.type === 'ocr'">
               <li>3 runder i stedet for full runde</li>
               <li>Dropp carry</li>
             </ul>

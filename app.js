@@ -113,7 +113,167 @@ createApp({
       localStorage.setItem(key, JSON.stringify(done));
     }
 
-    // ── WORKOUT RESOLVER ───────────────────────────────────────────────────
+    // ── EXERCISE PARSER ────────────────────────────────────────────────────
+    function parseExercise(str) {
+      if (!str || typeof str !== 'string') return { name: str, sets: null, reps: null, time: null, note: null };
+      // Match: "Name N×AMOUNT unit (note)"
+      const m = str.match(/^(.*?)\s+(\d+)×([\d–\-\/]+)\s*(sek|min)?\s*(?:\(([^)]+)\))?/);
+      if (!m) return { name: str, sets: null, reps: null, time: null, note: null };
+      const [, rawName, sets, amount, unit, paren] = m;
+      const isTime = !!unit || str.toLowerCase().includes('sek') || str.toLowerCase().includes('min');
+      const weightM = paren?.match(/([\d–\-]+)\s*kg/);
+      return {
+        name: rawName.trim(),
+        sets: parseInt(sets),
+        reps: !isTime ? amount : null,
+        time: isTime ? amount + (unit ? ' ' + unit : ' sek') : null,
+        weight: weightM ? weightM[0] : null,
+        note: paren && !weightM ? paren : (paren && weightM && paren.replace(weightM[0],'').trim() ? paren.replace(weightM[0],'').trim() : null),
+      };
+    }
+
+    function parseExercises(exercises) {
+      if (!exercises) return [];
+      return exercises.map(parseExercise);
+    }
+
+    // ── DELOAD CALCULATOR ──────────────────────────────────────────────────
+    function deloadExercises(exercises) {
+      return parseExercises(exercises).map(ex => ({
+        ...ex,
+        sets: ex.sets ? Math.ceil(ex.sets * 0.5) : null,
+        weight: ex.weight ? ex.weight + ' (50%)' : null,
+        time: ex.time ? ex.time.replace(/(\d+)–(\d+)/, (_, a, b) => `${Math.ceil(+a*0.6)}–${Math.ceil(+b*0.6)}`) : null,
+        deload: true,
+      }));
+    }
+
+    function deloadCircuit(circuit, rounds) {
+      return {
+        rounds: Math.ceil((parseInt(rounds) || 3) * 0.5),
+        circuit: circuit?.map(s => s
+          .replace(/(\d+)\s*burpees/, (_, n) => `${Math.ceil(n*0.5)} burpees`)
+          .replace(/(\d+)–(\d+)\s*sek\s*hang/, (_, a, b) => `${Math.ceil(+a*0.6)}–${Math.ceil(+b*0.6)} sek hang`)
+        ),
+        note: 'Deload: redusert volum og intensitet',
+      };
+    }
+
+    // ── INTERVAL TIMER CONFIG ──────────────────────────────────────────────
+    function extractTimerConfig(workout) {
+      if (!workout) return { count: 8, workSec: 60, restSec: 60 };
+      const toSec = (n, u) => u === 'min' ? n * 60 : n;
+
+      // Phase 2: part1 has sets and rest
+      if (workout.part1?.sets) {
+        const m = workout.part1.sets.match(/(\d+)[×x](\d+)\s*(sek|min)?/);
+        const r = (workout.part1.rest || '').match(/(\d+)\s*(sek|min)/);
+        if (m) return {
+          count: +m[1],
+          workSec: toSec(+m[2], m[3] || 'sek'),
+          restSec: r ? toSec(+r[1], r[2]) : 45,
+        };
+      }
+      // Phase 1: options string "8×2 min @ ... · 1 min pause"
+      const src = workout.options?.[0] || '';
+      const m = src.match(/(\d+)[×x](\d+)\s*(min|sek)/);
+      const r = src.match(/(\d+)\s*(min|sek)\s*pause/);
+      if (m) return {
+        count: +m[1],
+        workSec: toSec(+m[2], m[3]),
+        restSec: r ? toSec(+r[1], r[2]) : 60,
+      };
+      return { count: 8, workSec: 60, restSec: 60 };
+    }
+
+    // ── TIMER STATE ────────────────────────────────────────────────────────
+    const timerState = ref('config'); // config | warmup | work | rest | done
+    const timerPhase = ref(0);        // current interval number (1-based)
+    const timerSec = ref(0);
+    const timerElapsed = ref(0);      // seconds elapsed in current phase
+    const timerResults = ref([]);
+    const timerTick = ref(null);
+    const timerConfig = ref({ count: 8, workSec: 60, restSec: 60 });
+    const timerEditing = ref(false);
+
+    const timerPct = computed(() => {
+      const total = timerState.value === 'work' ? timerConfig.value.workSec
+                  : timerState.value === 'rest' ? timerConfig.value.restSec
+                  : timerState.value === 'warmup' ? 10 : 1;
+      return Math.round((1 - timerSec.value / total) * 100);
+    });
+
+    function formatSec(s) {
+      const m = Math.floor(s / 60), sec = s % 60;
+      return `${m}:${String(sec).padStart(2,'0')}`;
+    }
+
+    function stopTick() { if (timerTick.value) { clearInterval(timerTick.value); timerTick.value = null; } }
+
+    function startTimer() {
+      const cfg = extractTimerConfig(selectedWorkout.value);
+      timerConfig.value = { ...cfg };
+      timerResults.value = [];
+      timerPhase.value = 0;
+      timerState.value = 'warmup';
+      timerSec.value = 10;
+      timerElapsed.value = 0;
+      stopTick();
+      timerTick.value = setInterval(() => {
+        timerSec.value--;
+        timerElapsed.value++;
+        if (timerSec.value <= 0) advanceTimer(false);
+      }, 1000);
+    }
+
+    function advanceTimer(early) {
+      const elapsed = timerConfig.value.workSec - timerSec.value;
+      if (timerState.value === 'warmup') {
+        timerState.value = 'work';
+        timerPhase.value = 1;
+        timerSec.value = timerConfig.value.workSec;
+        timerElapsed.value = 0;
+      } else if (timerState.value === 'work') {
+        timerResults.value.push({
+          n: timerPhase.value,
+          sec: early ? elapsed : timerConfig.value.workSec,
+          early,
+        });
+        if (timerPhase.value >= timerConfig.value.count) {
+          timerState.value = 'done'; stopTick();
+        } else {
+          timerState.value = 'rest';
+          timerSec.value = timerConfig.value.restSec;
+          timerElapsed.value = 0;
+        }
+      } else if (timerState.value === 'rest') {
+        timerPhase.value++;
+        timerState.value = 'work';
+        timerSec.value = timerConfig.value.workSec;
+        timerElapsed.value = 0;
+      }
+    }
+
+    function endIntervalEarly() { advanceTimer(true); }
+
+    function pauseTimer() {
+      if (timerTick.value) { stopTick(); }
+      else {
+        timerTick.value = setInterval(() => {
+          timerSec.value--;
+          if (timerSec.value <= 0) advanceTimer(false);
+        }, 1000);
+      }
+    }
+
+    function resetTimer() { stopTick(); timerState.value = 'config'; timerResults.value = []; }
+
+    const isPaused = computed(() => timerState.value !== 'config' && timerState.value !== 'done' && !timerTick.value);
+
+    const showTimer = computed(() =>
+      selectedSession.value?.type === 'intervals' ||
+      (selectedSession.value?.type === 'ocr' && selectedWorkout.value?.circuit)
+    );
     function resolveWorkout(session, athleteId) {
       if (!session) return null;
       const raw = session.athletes?.[athleteId];
@@ -319,6 +479,12 @@ createApp({
       completedSessions, currentStreak, avgRpe,
       testTypes, testPlaceholder, testHistory, testReminders,
       equipment, currentAthleteName,
+      // exercise parser
+      parseExercise, parseExercises, deloadExercises, deloadCircuit,
+      // timer
+      timerState, timerPhase, timerSec, timerResults, timerConfig, timerEditing,
+      timerPct, isPaused, showTimer,
+      formatSec, startTimer, endIntervalEarly, pauseTimer, resetTimer,
       // methods
       selectAthlete, selectSession, navigateWeek, weekDates,
       rpeClass, logRpe, saveNote, saveTest,
