@@ -234,6 +234,21 @@ body {
 }
 .rest-cancel-btn:hover { color: var(--red); }
 
+/* ── GPS AUTO-FILL ── */
+.gps-autofill-hint {
+  font-size: 0.78rem;
+  color: var(--green);
+  background: rgba(76, 175, 80, 0.1);
+  border: 1px solid rgba(76, 175, 80, 0.3);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  margin-bottom: 10px;
+}
+.log-input.gps-filled {
+  border-color: var(--green);
+  color: var(--green);
+}
+
 /* ── TAB BAR ── */
 .tab-bar {
   display: flex;

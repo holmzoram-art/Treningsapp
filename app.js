@@ -334,8 +334,15 @@ createApp({
     const gpsSpeed = ref(null);
     const gpsDistance = ref(0);
     const gpsPace = ref(null);
+    const gpsSpeedSamples = ref([]);
     let _gpsWatchId = null;
     let _gpsLastPos = null;
+
+    const gpsAvgSpeed = computed(() => {
+      const s = gpsSpeedSamples.value.filter(v => v > 0.5);
+      if (!s.length) return null;
+      return Math.round((s.reduce((a, b) => a + b, 0) / s.length) * 10) / 10;
+    });
 
     function haversineKm(lat1, lon1, lat2, lon2) {
       const R = 6371, toRad = x => x * Math.PI / 180;
@@ -347,6 +354,7 @@ createApp({
     function startGps() {
       if (!navigator.geolocation) return;
       gpsDistance.value = 0; _gpsLastPos = null; gpsActive.value = false;
+      gpsSpeedSamples.value = [];
       _gpsWatchId = navigator.geolocation.watchPosition(
         (pos) => {
           const { latitude: lat, longitude: lng, speed } = pos.coords;
@@ -359,6 +367,7 @@ createApp({
           _gpsLastPos = { lat, lng };
           if (gpsSpeed.value && gpsSpeed.value > 0.5) {
             gpsPace.value = Math.round(3600 / gpsSpeed.value);
+            if (timerState.value === 'work') gpsSpeedSamples.value.push(gpsSpeed.value);
           }
         },
         () => { gpsActive.value = false; },
@@ -521,6 +530,10 @@ createApp({
           if (gpsEnabled.value) stopGps();
           beep(880, 150); setTimeout(() => beep(1100, 150), 180); setTimeout(() => beep(1320, 400), 360);
           speak(`Ferdig! ${timerConfig.value.count} drag gjennomført`);
+          // Auto-fill log with GPS data if available
+          if (gpsAvgSpeed.value) {
+            workoutMetrics.value = { ...workoutMetrics.value, speed_kmh: gpsAvgSpeed.value };
+          }
         } else {
           timerState.value = 'rest';
           timerSec.value = timerConfig.value.restSec;
@@ -1141,7 +1154,7 @@ createApp({
       timerState, timerPhase, timerSec, timerResults, timerConfig, timerEditing,
       timerPct, isPaused, showTimer,
       audioMuted,
-      gpsEnabled, gpsActive, gpsSpeed, gpsDistance, gpsPace,
+      gpsEnabled, gpsActive, gpsSpeed, gpsDistance, gpsPace, gpsAvgSpeed,
       formatSec, formatPace, formatDist,
       startTimer, endIntervalEarly, pauseTimer, resetTimer, toggleGps,
       // methods

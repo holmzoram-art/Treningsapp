@@ -325,12 +325,16 @@
         <!-- RPE Logging (cardio) -->
         <div class="log-card" v-if="!isSessionDone(selectedSessionKey)">
           <h3>Logg økt</h3>
+          <div v-if="gpsAvgSpeed && selectedSession?.type === 'intervals'" class="gps-autofill-hint">
+            📍 GPS-snittfart {{ gpsAvgSpeed }} km/t lagt inn automatisk – juster om nødvendig
+          </div>
           <div class="log-fields">
             <div v-for="field in logFields" :key="field.key" class="log-field">
               <label>{{ field.label }}</label>
               <div class="log-field-row">
                 <input type="number" v-model.number="workoutMetrics[field.key]"
-                       :step="field.step || 1" placeholder="–" class="log-input">
+                       :step="field.step || 1" placeholder="–" class="log-input"
+                       :class="{ 'gps-filled': field.key === 'speed_kmh' && gpsAvgSpeed && selectedSession?.type === 'intervals' }">
                 <span class="log-unit">{{ field.unit }}</span>
               </div>
             </div>
@@ -346,7 +350,7 @@
         <div class="notes-card">
           <h3>📝 Notat (valgfritt)</h3>
           <textarea v-model="todayNote" placeholder="Hvordan gikk det? Notér noe du vil huske..." rows="3"></textarea>
-          <button class="save-note-btn" @click="saveNote">Lagre notat</button>
+          <button class="save-note-btn" @click="saveNote">Lagre økt</button>
           <span class="note-saved" v-if="noteSaved">✅ Lagret</span>
         </div>
 
@@ -437,7 +441,7 @@
         <div class="notes-card">
           <h3>📝 Notat (valgfritt)</h3>
           <textarea v-model="todayNote" placeholder="Hvordan gikk det? Notér noe du vil huske..." rows="3"></textarea>
-          <button class="save-note-btn" @click="saveNote">Lagre notat</button>
+          <button class="save-note-btn" @click="saveNote">Lagre økt</button>
           <span class="note-saved" v-if="noteSaved">✅ Lagret</span>
         </div>
 
