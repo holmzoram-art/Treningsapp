@@ -897,116 +897,229 @@ const PROGRAM_DATA = {
       }
     },
 
-    // ─── FASE 3: Mai–Juli 2026 (Uke 18–24 · Plassholdere) ───────────────────
-
-    {
-      weekNumber: 18, phase: 3, label: "Uke 18", startDate: "2026-05-18", isDeload: false,
-      note: "Fase 3 – Programmet er under utarbeidelse. Oppdateres her når klart.",
-      sessions: {
-        monday:   { title: "Grep & bæring", type: "strength", summary: "Kommer – programmet oppdateres", common: { note: "Programmet for Fase 3 er ikke ferdig ennå. Sjekk inn igjen snart!" }, athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" }, dagsform: { yellow: "", red: "" } },
-        tuesday:  { title: "OCR-Hybrid", type: "ocr", summary: "Kommer", common: { note: "Programmet for Fase 3 er ikke ferdig ennå." }, athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" }, dagsform: { yellow: "", red: "" } },
-        thursday: { title: "Motbakke", type: "intervals", summary: "Kommer", common: { note: "Programmet for Fase 3 er ikke ferdig ennå." }, athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" }, dagsform: { yellow: "", red: "" } },
-        friday:   { title: "Langtur", type: "recovery", summary: "Kommer", common: { note: "Programmet for Fase 3 er ikke ferdig ennå." }, athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" }, dagsform: { yellow: "", red: "" } }
-      }
-    },
-    { weekNumber: 19, phase: 3, label: "Uke 19", startDate: "2026-05-25", isDeload: false, note: "Fase 3 – Under utarbeidelse", sessions: { monday: { title: "Grep & bæring", type: "strength", summary: "Kommer", common: { note: "Programmet for Fase 3 er ikke ferdig ennå." }, athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" }, dagsform: { yellow: "", red: "" } }, tuesday: { title: "OCR-Hybrid", type: "ocr", summary: "Kommer", common: { note: "Under utarbeidelse." }, athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" }, dagsform: { yellow: "", red: "" } }, thursday: { title: "Motbakke", type: "intervals", summary: "Kommer", common: { note: "Under utarbeidelse." }, athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" }, dagsform: { yellow: "", red: "" } }, friday: { title: "Langtur", type: "recovery", summary: "Kommer", common: { note: "Under utarbeidelse." }, athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" }, dagsform: { yellow: "", red: "" } } } },
-    { weekNumber: 20, phase: 3, label: "Uke 20", startDate: "2026-06-01", isDeload: false, note: "Fase 3 – Under utarbeidelse", sessions: { monday: { title: "Grep & bæring", type: "strength", summary: "Kommer", common: { note: "Under utarbeidelse." }, athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" }, dagsform: { yellow: "", red: "" } }, tuesday: { title: "OCR-Hybrid", type: "ocr", summary: "Kommer", common: { note: "Under utarbeidelse." }, athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" }, dagsform: { yellow: "", red: "" } }, thursday: { title: "Motbakke", type: "intervals", summary: "Kommer", common: { note: "Under utarbeidelse." }, athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" }, dagsform: { yellow: "", red: "" } }, friday: { title: "Langtur", type: "recovery", summary: "Kommer", common: { note: "Under utarbeidelse." }, athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" }, dagsform: { yellow: "", red: "" } } } },
-    { weekNumber: 21, phase: 3, label: "Uke 21", startDate: "2026-06-08", isDeload: false, note: "Fase 3 – Under utarbeidelse", sessions: { monday: { title: "Grep & bæring", type: "strength", summary: "Kommer", common: { note: "Under utarbeidelse." }, athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" }, dagsform: { yellow: "", red: "" } }, tuesday: { title: "OCR-Hybrid", type: "ocr", summary: "Kommer", common: { note: "Under utarbeidelse." }, athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" }, dagsform: { yellow: "", red: "" } }, thursday: { title: "Motbakke", type: "intervals", summary: "Kommer", common: { note: "Under utarbeidelse." }, athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" }, dagsform: { yellow: "", red: "" } }, friday: { title: "Langtur", type: "recovery", summary: "Kommer", common: { note: "Under utarbeidelse." }, athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" }, dagsform: { yellow: "", red: "" } } } },
-    { weekNumber: 22, phase: 3, label: "Uke 22", startDate: "2026-06-15", isDeload: false, note: "Fase 3 – Under utarbeidelse", sessions: { monday: { title: "Grep & bæring", type: "strength", summary: "Kommer", common: { note: "Under utarbeidelse." }, athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" }, dagsform: { yellow: "", red: "" } }, tuesday: { title: "OCR-Hybrid", type: "ocr", summary: "Kommer", common: { note: "Under utarbeidelse." }, athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" }, dagsform: { yellow: "", red: "" } }, thursday: { title: "Motbakke", type: "intervals", summary: "Kommer", common: { note: "Under utarbeidelse." }, athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" }, dagsform: { yellow: "", red: "" } }, friday: { title: "Langtur", type: "recovery", summary: "Kommer", common: { note: "Under utarbeidelse." }, athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" }, dagsform: { yellow: "", red: "" } } } },
-    { weekNumber: 23, phase: 3, label: "Uke 23", startDate: "2026-06-22", isDeload: false, note: "Fase 3 – Under utarbeidelse", sessions: { monday: { title: "Grep & bæring", type: "strength", summary: "Kommer", common: { note: "Under utarbeidelse." }, athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" }, dagsform: { yellow: "", red: "" } }, tuesday: { title: "OCR-Hybrid", type: "ocr", summary: "Kommer", common: { note: "Under utarbeidelse." }, athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" }, dagsform: { yellow: "", red: "" } }, thursday: { title: "Motbakke", type: "intervals", summary: "Kommer", common: { note: "Under utarbeidelse." }, athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" }, dagsform: { yellow: "", red: "" } }, friday: { title: "Langtur", type: "recovery", summary: "Kommer", common: { note: "Under utarbeidelse." }, athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" }, dagsform: { yellow: "", red: "" } } } },
-    {
-      weekNumber: 24, phase: 3, label: "Uke 24", startDate: "2026-06-29", isDeload: true, note: "Fase 3 – Deload (Under utarbeidelse)",
-      sessions: {
-        monday:   { title: "Grep & bæring (deload)", type: "strength", summary: "Kommer", common: { note: "Under utarbeidelse." }, athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" }, dagsform: { yellow: "", red: "" } },
-        tuesday:  { title: "OCR (deload)", type: "ocr", summary: "Kommer", common: { note: "Under utarbeidelse." }, athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" }, dagsform: { yellow: "", red: "" } },
-        thursday: { title: "Motbakke (deload)", type: "intervals", summary: "Kommer", common: { note: "Under utarbeidelse." }, athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" }, dagsform: { yellow: "", red: "" } },
-        friday:   { title: "Langtur (deload)", type: "recovery", summary: "Kommer", common: { note: "Under utarbeidelse." }, athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" }, dagsform: { yellow: "", red: "" } }
-      }
-    },
-
-    // ─── FASE 3 fortsetter: Juli–August 2026 (Uke 25–32) ────────────────────
-    // Uke 28: Løpetest 20 min · Uke 32: OCR flytest + deload (Navy Race nærmer seg)
-
-    ...Array.from({ length: 7 }, (_, i) => {
-      const wn = 25 + i;
-      const startMs = new Date('2026-01-12T00:00:00').getTime() + (wn - 1) * 7 * 86400000;
-      const startDate = new Date(startMs).toISOString().split('T')[0];
-      const isDeload = wn === 32;
-      const hasTest = wn === 28;
-      return {
-        weekNumber: wn, phase: 3, label: `Uke ${wn}`, startDate, isDeload,
-        note: hasTest ? '⚡ Testuke: Løpetest 20 min denne uka' : isDeload ? 'Deload + OCR flytest før Navy Race' : 'Fase 3 – Under utarbeidelse',
-        sessions: {
-          monday:   { title: "Grep & bæring",    type: "strength",  summary: "Under utarbeidelse", common: { note: "Fase 3-program oppdateres" }, athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" }, dagsform: { yellow: "", red: "" } },
-          tuesday:  { title: "OCR-Hybrid",       type: "ocr",       summary: "Under utarbeidelse", common: { note: "Fase 3-program oppdateres" }, athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" }, dagsform: { yellow: "", red: "" } },
-          thursday: { title: "Motbakke/terskel", type: "intervals", summary: "Under utarbeidelse", common: { note: "Fase 3-program oppdateres" }, athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" }, dagsform: { yellow: "", red: "" } },
-          friday:   { title: "Langtur",          type: "recovery",  summary: "Under utarbeidelse", common: { note: "Fase 3-program oppdateres" }, athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" }, dagsform: { yellow: "", red: "" } }
-        }
-      };
-    }),
-
-    // ─── FASE 4: Overgang etter Navy Race (Uke 33–36) ───────────────────────
-    // Uke 34: Løpetest 20 min → nye terskelfarter for fase 5
-
-    ...Array.from({ length: 4 }, (_, i) => {
-      const wn = 33 + i;
-      const startMs = new Date('2026-01-12T00:00:00').getTime() + (wn - 1) * 7 * 86400000;
-      const startDate = new Date(startMs).toISOString().split('T')[0];
-      const isDeload = wn === 33;
-      const hasTest = wn === 34;
-      return {
-        weekNumber: wn, phase: 4, label: `Uke ${wn}`, startDate, isDeload,
-        note: hasTest ? '⚡ Testuke: Løpetest 20 min – nye terskelfarter' : isDeload ? 'Deload etter Navy Race' : 'Fase 4 – Overgang: OCR redusert, langtur øker mot 110–120 min',
-        sessions: {
-          monday:   { title: "Styrke",    type: "strength",  summary: "Under utarbeidelse", common: { note: "Fase 4-program oppdateres" }, athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" }, dagsform: { yellow: "", red: "" } },
-          tuesday:  { title: "Terskeløkt @ {{threshold}}", type: "intervals", summary: "Fart basert på siste løpetest", common: { note: "Kjør terskeløkt @ {{threshold}}. Registrer løpetest uke 34 for å beregne din fart." }, athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" }, dagsform: { yellow: "", red: "" } },
-          thursday: { title: "OCR (1×/uke)", type: "ocr", summary: "Under utarbeidelse", common: { note: "Fase 4-program oppdateres" }, athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" }, dagsform: { yellow: "", red: "" } },
-          friday:   { title: "Langtur",   type: "recovery",  summary: "110–120 min", common: { note: "Langtur 110–120 min @ {{easy}}. Fase 4-program oppdateres." }, athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" }, dagsform: { yellow: "", red: "" } }
-        }
-      };
-    }),
-
-    // ─── FASE 5: Halvmaraton-spesifikk (Uke 37–44) ──────────────────────────
-    // Uke 40: Løpetest 20 min for fartskalibrering · Uke 44: Deload
-
-    ...Array.from({ length: 8 }, (_, i) => {
-      const wn = 37 + i;
-      const startMs = new Date('2026-01-12T00:00:00').getTime() + (wn - 1) * 7 * 86400000;
-      const startDate = new Date(startMs).toISOString().split('T')[0];
-      const isDeload = wn === 44;
-      const hasTest = wn === 40;
-      return {
-        weekNumber: wn, phase: 5, label: `Uke ${wn}`, startDate, isDeload,
-        note: hasTest ? '⚡ Testuke: Løpetest 20 min – fartskalibrering HM' : isDeload ? 'Deload etter HM-block' : 'Fase 5 – HM-spesifikk: terskel + progresjon + langtur',
-        sessions: {
-          monday:   { title: "Styrke",             type: "strength",  summary: "Under utarbeidelse", common: { note: "Fase 5-program oppdateres" }, athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" }, dagsform: { yellow: "", red: "" } },
-          tuesday:  { title: "Terskeløkt @ {{threshold}}", type: "intervals", summary: "Terskel basert på siste løpetest", common: { note: "Terskeløkt @ {{threshold}}. Registrer løpetest uke 40 for oppdatert fart." }, athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" }, dagsform: { yellow: "", red: "" } },
-          thursday: { title: "Progresjonsøkt @ {{ocr_run}}", type: "intervals", summary: "Progresjonsøkt", common: { note: "Progresjonsøkt – start på {{easy}}, bygg mot {{ocr_run}} de siste 20 min." }, athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" }, dagsform: { yellow: "", red: "" } },
-          friday:   { title: "Langtur",             type: "recovery",  summary: "120–130 min", common: { note: "Langtur 120–130 min @ {{easy}}. Fase 5-program oppdateres." }, athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" }, dagsform: { yellow: "", red: "" } }
-        }
-      };
-    }),
-
-    // ─── FASE 6: Maratonbase (Uke 45–50) ────────────────────────────────────
-    // Fokus: volum + robusthet · Hang/carry hver 14. dag · Ingen harde tester
-
-    ...Array.from({ length: 6 }, (_, i) => {
-      const wn = 45 + i;
-      const startMs = new Date('2026-01-12T00:00:00').getTime() + (wn - 1) * 7 * 86400000;
-      const startDate = new Date(startMs).toISOString().split('T')[0];
-      const isDeload = wn === 50;
-      const hasHangCarry = (wn % 2 === 1);
-      return {
-        weekNumber: wn, phase: 6, label: `Uke ${wn}`, startDate, isDeload,
-        note: isDeload ? 'Avslutning av maratonbase – deload' : `Fase 6 – Maratonbase: volum + robusthet${hasHangCarry ? ' · Hang/carry denne uka' : ''}`,
-        sessions: {
-          monday:   { title: "Styrke",    type: "strength",  summary: "Under utarbeidelse", common: { note: "Fase 6-program oppdateres" }, athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" }, dagsform: { yellow: "", red: "" } },
-          tuesday:  { title: "Rolig løp @ {{easy}}", type: "recovery", summary: "Rolig basevolum", common: { note: "Rolig løp 60–80 min @ {{easy}}." }, athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" }, dagsform: { yellow: "", red: "" } },
-          thursday: { title: hasHangCarry ? "Funksjonell + hang/carry" : "Funksjonell økt", type: "ocr", summary: "Under utarbeidelse", common: { note: hasHangCarry ? "Funksjonell økt inkl. hang og carry." : "Funksjonell økt uten hang/carry." }, athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" }, dagsform: { yellow: "", red: "" } },
-          friday:   { title: "Langtur",   type: "recovery",  summary: "140–150 min", common: { note: "Langtur 140–150 min @ {{easy}}. Fase 6-program oppdateres." }, athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" }, dagsform: { yellow: "", red: "" } }
-        }
-      };
-    })
-
   ]
 };
+
+// ─── FASE 3 SESJONBYGGERE (brukt av p3Week) ───────────────────────────────────
+
+function _p3ath() { return { sondre: null, knut: null, geir: null, kjetil: "geir" }; }
+
+function _p3Monday(wn) {
+  const isDeload = wn === 24 || wn === 32;
+  const rounds = isDeload ? 2 : wn >= 25 ? 4 : 3;
+  return {
+    title: isDeload ? "Grep & bæring (deload)" : "Grep & bæring",
+    type: "strength", duration: isDeload ? "25–30 min" : "40–45 min",
+    summary: `${rounds} runder – gripstyrke, bæring, core`,
+    common: {
+      exercises: [
+        `Pull-up / TRX-roing ${rounds}×6–8`,
+        `Farmer's carry ${rounds}×40 m @ {{carry}} kg`,
+        `Dead hang ${rounds}×{{hang}} sek`,
+        `Push-press ${rounds}×8–10 (manualer)`,
+        `Sandsekk-squat ${rounds}×8`,
+        `Planke med skuldertrykk ${rounds}×12`
+      ]
+    },
+    athletes: _p3ath(),
+    dagsform: { yellow: `${Math.max(2,rounds-1)} runder, 70% vekt`, red: "1–2 runder, dropp carry og hang" }
+  };
+}
+
+function _p3Tuesday(wn) {
+  const isDeload = wn === 24 || wn === 32;
+  const rounds   = isDeload ? 3 : wn >= 29 ? 6 : wn >= 21 ? 5 : 4;
+  const dist     = wn >= 29 ? 600 : 500;
+  const burpees  = wn >= 29 ? 15  : wn >= 25 ? 12 : 10;
+  const rest     = wn >= 25 ? "2–3 min" : "2 min";
+  return {
+    title: isDeload ? "OCR-Hybrid (deload)" : "OCR-Hybrid",
+    type: "ocr", duration: isDeload ? "30–35 min" : "45–55 min",
+    summary: `${rounds} runder: ${dist}m → ${burpees} burpees → hang → carry`,
+    common: {
+      rounds,
+      circuit: [
+        `${dist} m løp @ {{ocr_run}} · 1–3% stigning`,
+        `${burpees} burpees`,
+        "{{hang}} sek dead hang",
+        "100–150 m farmer's carry @ {{carry}} kg"
+      ],
+      rest: `${rest} pause mellom runder`
+    },
+    athletes: _p3ath(),
+    dagsform: {
+      yellow: `${rounds-1} runder, −0.3 km/t, −10 sek hang`,
+      red: `${Math.max(2,rounds-2)} runder, dropp burpees`
+    }
+  };
+}
+
+function _p3Thursday(wn) {
+  const isDeload = wn === 24 || wn === 32;
+  const isTest   = wn === 28;
+  if (isTest) return {
+    title: "Løpetest 20 min", type: "intervals", duration: "40 min",
+    summary: "Oppvarming 10 min → 20 min maks bærekraftig fart → 10 min rolig ned",
+    common: {
+      part1: { machine: "Mølle eller utendørs", sets: "20 min steady", speed: "Maks bærekraftig fart (test)", incline: "0%" },
+      note: "Registrer distansen i Tester-fanen → sonene oppdateres automatisk"
+    },
+    athletes: _p3ath(),
+    dagsform: { yellow: "Utsett til neste uke", red: "Utsett – kroppen er ikke klar" }
+  };
+  if (isDeload) return {
+    title: "Lett intervall (deload)", type: "intervals", duration: "30 min",
+    summary: "4×2 min @ {{threshold}} · 2 min pause",
+    common: { part1: { machine: "Mølle eller utendørs", sets: "4×2 min", speed: "{{threshold}}", incline: "0%", rest: "2 min pause" } },
+    athletes: _p3ath(),
+    dagsform: { yellow: "3×2 min", red: "Rolig gange 20 min" }
+  };
+  const sets    = wn >= 29 ? "3×4 min" : wn >= 25 ? "2 serier × 4×3 min" : wn >= 21 ? "7×3 min" : "6×3 min";
+  const rest    = wn >= 29 ? "3 min pause" : wn >= 25 ? "2 min / 4 min mellom serier" : "2 min pause";
+  const strides = wn >= 29 ? "4×100 m @ {{strides}} etter intervalldragene · full hvile mellom" : null;
+  return {
+    title: "Terskelintervaller", type: "intervals", duration: "40–50 min",
+    summary: `${sets} @ {{threshold}} · ${rest}${strides ? ' + strides' : ''}`,
+    common: {
+      part1: { machine: "Mølle eller utendørs", sets, speed: "{{threshold}}", incline: "0–1%", rest },
+      ...(strides ? { strides } : {})
+    },
+    athletes: _p3ath(),
+    dagsform: { yellow: "Én serie færre, −0.3 km/t", red: "Halvér drag, rolig tempo" }
+  };
+}
+
+function _p3Friday(wn) {
+  const isDeload = wn === 24 || wn === 32;
+  const isTest   = wn === 28;
+  const min = isDeload || isTest ? 30 : wn >= 29 ? 60 : wn >= 25 ? 55 : wn >= 21 ? 50 : 45;
+  return {
+    title: "Rolig langtur", type: "recovery", duration: `${min}–${min+5} min`,
+    summary: `${min}–${min+5} min @ {{easy}} · aerob base`,
+    common: {
+      options: [
+        `Mølle: ${min}–${min+5} min @ {{easy}} · 2–4% stigning`,
+        `Utendørs: ${min}–${min+5} min @ {{easy}} · lett terreng`
+      ],
+      mobility: ["Hofteåpner 2×45 sek", "Leggstrekk 2×45 sek", "Thorax-rotasjon 2×10"]
+    },
+    athletes: _p3ath(),
+    dagsform: { yellow: `${min-5} min, −0.5 km/t`, red: "20–30 min gange + mobilitet" }
+  };
+}
+
+function _p3Week(wn) {
+  const startMs   = new Date('2026-01-12T00:00:00').getTime() + (wn - 1) * 7 * 86400000;
+  const startDate = new Date(startMs).toISOString().split('T')[0];
+  const isDeload  = wn === 24 || wn === 32;
+  const noteMap   = {
+    21: '⚡ Testuke – Løpetest 20 min (torsdag). Sonene oppdateres automatisk.',
+    24: 'Deload + OCR flytest – jobb teknikk, ikke intensitet',
+    28: '⚡ Testuke – Løpetest 20 min (torsdag). Ny fartskalibrering.',
+    32: 'Deload + OCR flytest · Navy Race 29. august'
+  };
+  return {
+    weekNumber: wn, phase: 3, label: `Uke ${wn}`, startDate, isDeload,
+    note: noteMap[wn] || null,
+    sessions: { monday: _p3Monday(wn), tuesday: _p3Tuesday(wn), thursday: _p3Thursday(wn), friday: _p3Friday(wn) }
+  };
+}
+
+// Legg til fase 3-uker og re-eksporter
+PROGRAM_DATA.weeks.push(
+  // ─── FASE 3: Mai–August 2026 (Uke 18–32) ─────────────────────────────────
+  ...[18,19,20,21,22,23,24,25,26,27,28,29,30,31,32].map(_p3Week),
+
+  // ─── FASE 4: Overgang etter Navy Race (Uke 33–36) ────────────────────────
+  // Uke 34: Løpetest → nye terskelfarter · Langtur øker mot 110–120 min
+  ...Array.from({ length: 4 }, (_, i) => {
+    const wn = 33 + i;
+    const startMs = new Date('2026-01-12T00:00:00').getTime() + (wn - 1) * 7 * 86400000;
+    const startDate = new Date(startMs).toISOString().split('T')[0];
+    const isDeload = wn === 33, isTest = wn === 34;
+    const ath = { sondre: null, knut: null, geir: null, kjetil: "geir" };
+    return {
+      weekNumber: wn, phase: 4, label: `Uke ${wn}`, startDate, isDeload,
+      note: isTest ? '⚡ Testuke 34 – Løpetest 20 min: nye terskelfarter for HM-blokken' : isDeload ? 'Deload etter Navy Race – gjenoppretting' : 'Fase 4 – Overgang: 1×OCR/uke, løpsmengde øker',
+      sessions: {
+        monday:   { title: "Styrke (lett)", type: "strength", duration: "30–35 min", summary: "Vedlikeholdsstyrke – grep og core", common: { exercises: ["Pull-up / TRX-roing 3×6","Dead hang 3×{{hang}} sek","Farmer's carry 2×40 m @ {{carry}} kg","Push-press 3×8","Planke 3×45 sek"] }, athletes: ath, dagsform: { yellow: "2 runder", red: "Dropp, ta hvile" } },
+        tuesday:  { title: isTest ? "Løpetest 20 min" : "Terskeløkt", type: "intervals", duration: isTest ? "40 min" : "45 min",
+          summary: isTest ? "Testdag: 20 min maks bærekraftig fart" : "5×5 min @ {{threshold}} · 2–3 min pause",
+          common: isTest
+            ? { part1: { machine: "Mølle eller utendørs", sets: "20 min steady", speed: "Maks", incline: "0%" }, note: "Registrer distansen i Tester-fanen etter testen" }
+            : { part1: { machine: "Mølle eller utendørs", sets: "5×5 min", speed: "{{threshold}}", incline: "0–1%", rest: "2–3 min pause" } },
+          athletes: ath, dagsform: { yellow: "4×5 min, −0.3 km/t", red: "3×4 min, rolig" }
+        },
+        thursday: { title: "OCR vedlikehold", type: "ocr", duration: "35–40 min", summary: "4 runder: 400m → burpees → hang → carry", common: { rounds: 4, circuit: ["400 m løp @ {{ocr_run}}","10 burpees","{{hang}} sek hang","100 m carry @ {{carry}} kg"], rest: "2 min pause" }, athletes: ath, dagsform: { yellow: "3 runder", red: "2 runder, dropp burpees" } },
+        friday:   { title: "Langtur", type: "recovery", duration: "90–110 min", summary: "90–110 min @ {{easy}} · bygg aerob base", common: { options: ["Mølle: 90–110 min @ {{easy}} · 2–3%","Utendørs: 90–110 min @ {{easy}}"] }, athletes: ath, dagsform: { yellow: "70–80 min", red: "45–60 min rolig" } }
+      }
+    };
+  }),
+
+  // ─── FASE 5: Halvmaraton-spesifikk (Uke 37–44) ───────────────────────────
+  // Terskel + progresjonsøkt + langtur · Uke 40: Løpetest · Uke 44: Deload
+  ...Array.from({ length: 8 }, (_, i) => {
+    const wn = 37 + i;
+    const startMs = new Date('2026-01-12T00:00:00').getTime() + (wn - 1) * 7 * 86400000;
+    const startDate = new Date(startMs).toISOString().split('T')[0];
+    const isDeload = wn === 44, isTest = wn === 40;
+    const ltMin = isDeload ? 70 : wn >= 42 ? 130 : wn >= 40 ? 125 : wn >= 38 ? 120 : 115;
+    const thrSets = isDeload ? "4×5 min" : wn >= 42 ? "2×15 min" : wn >= 39 ? "3×10 min" : "4×8 min";
+    const thrRest = wn >= 39 ? "3 min pause" : "2 min pause";
+    const ath = { sondre: null, knut: null, geir: null, kjetil: "geir" };
+    return {
+      weekNumber: wn, phase: 5, label: `Uke ${wn}`, startDate, isDeload,
+      note: isTest ? '⚡ Testuke 40 – Løpetest 20 min: fartskalibrering for HM' : isDeload ? 'Deload – avslutt HM-blokk, forb. maratonbase' : 'Fase 5 – HM-spesifikk',
+      sessions: {
+        monday:   { title: "Styrke (minimal)", type: "strength", duration: "25–30 min", summary: "Vedlikehold – grep og stabilitet", common: { exercises: ["Dead hang 3×{{hang}} sek","Farmer's carry 2×30 m @ {{carry}} kg","TRX-roing 3×8","Planke 3×45 sek"] }, athletes: ath, dagsform: { yellow: "2 runder", red: "Dropp" } },
+        tuesday:  { title: isTest ? "Løpetest 20 min" : `Terskeløkt (${thrSets})`, type: "intervals", duration: isTest ? "40 min" : "50–55 min",
+          summary: isTest ? "20 min maks bærekraftig fart" : `${thrSets} @ {{threshold}} · ${thrRest}`,
+          common: isTest
+            ? { part1: { machine: "Mølle eller utendørs", sets: "20 min steady", speed: "Maks", incline: "0%" }, note: "Registrer distansen i Tester-fanen" }
+            : { part1: { machine: "Mølle eller utendørs", sets: thrSets, speed: "{{threshold}}", incline: "0%", rest: thrRest } },
+          athletes: ath, dagsform: { yellow: "−1 drag, −0.3 km/t", red: "Halvér drag" }
+        },
+        thursday: { title: "Progresjonsøkt", type: "intervals", duration: "55–60 min",
+          summary: "Start {{easy}}, bygg til {{threshold}} siste 20 min · strides etterpå",
+          common: {
+            part1: { machine: "Mølle eller utendørs", sets: "35–40 min", speed: "Start @ {{easy}} → bygg til {{ocr_run}} halvveis → {{threshold}} siste 20 min", incline: "0–1%" },
+            strides: "4×100 m @ {{strides}} etter progresjonsøkten · full hvile mellom"
+          },
+          athletes: ath, dagsform: { yellow: "Dropp byggfasen, kjør jevn {{easy}}", red: "30 min rolig @ {{easy}}" }
+        },
+        friday:   { title: "Langtur", type: "recovery", duration: `${ltMin}–${ltMin+10} min`,
+          summary: `${ltMin}–${ltMin+10} min @ {{easy}} · lang aerob base`,
+          common: { options: [`Utendørs: ${ltMin}–${ltMin+10} min @ {{easy}} · flatt`,`Mølle: ${ltMin}–${ltMin+10} min @ {{easy}} · 1–2%`] },
+          athletes: ath, dagsform: { yellow: `${ltMin-15} min`, red: `${Math.round(ltMin*0.6)} min rolig` }
+        }
+      }
+    };
+  }),
+
+  // ─── FASE 6: Maratonbase (Uke 45–50) ─────────────────────────────────────
+  // Volum + robusthet · Hang/carry annenhver uke · Ingen harde tester
+  ...Array.from({ length: 6 }, (_, i) => {
+    const wn = 45 + i;
+    const startMs = new Date('2026-01-12T00:00:00').getTime() + (wn - 1) * 7 * 86400000;
+    const startDate = new Date(startMs).toISOString().split('T')[0];
+    const isDeload = wn === 50, hangWeek = wn % 2 === 1;
+    const ltMin = isDeload ? 90 : wn >= 48 ? 150 : wn >= 46 ? 140 : 130;
+    const ath = { sondre: null, knut: null, geir: null, kjetil: "geir" };
+    return {
+      weekNumber: wn, phase: 6, label: `Uke ${wn}`, startDate, isDeload,
+      note: isDeload ? 'Deload – avslutt maratonbase' : `Fase 6 – Maratonbase${hangWeek ? ' · Hang/carry denne uka' : ''}`,
+      sessions: {
+        monday:   hangWeek
+          ? { title: "Grep & robusthet", type: "strength", duration: "35–40 min", summary: "Vedlikehold – grep, carry og stabilitet", common: { exercises: ["Dead hang 3×{{hang}} sek","Farmer's carry 3×40 m @ {{carry}} kg","TRX-roing 3×8","Planke 3×45 sek","Push-press 3×8"] }, athletes: ath, dagsform: { yellow: "2 runder", red: "Dropp" } }
+          : { title: "Lett styrke / mobilitet", type: "strength", duration: "25–30 min", summary: "Core og mobilitet", common: { exercises: ["Planke 3×60 sek","Hofteåpner 3×45 sek","TRX-roing 3×8","Shoulder CARs 3×8"] }, athletes: ath, dagsform: { yellow: "Bare mobilitet", red: "Dropp" } },
+        tuesday:  { title: "Rolig løp", type: "recovery", duration: "60–80 min", summary: "60–80 min @ {{easy}} · bygge volum", common: { options: ["Utendørs: 60–80 min @ {{easy}} · lett terreng","Mølle: 60–80 min @ {{easy}} · 1–2%"] }, athletes: ath, dagsform: { yellow: "50 min", red: "30–40 min gange" } },
+        thursday: { title: "Lett intervall / aerob", type: "intervals", duration: "45–50 min", summary: "6×4 min @ {{ocr_run}} · 2 min pause · rolig base", common: { part1: { machine: "Mølle eller utendørs", sets: "6×4 min", speed: "{{ocr_run}}", incline: "0–1%", rest: "2 min pause" }, note: "Fase 6 – roligere arbeid, ingen maks-innsats" }, athletes: ath, dagsform: { yellow: "4×4 min", red: "Rolig jogg 30 min" } },
+        friday:   { title: "Langtur", type: "recovery", duration: `${ltMin}–${ltMin+10} min`,
+          summary: `${ltMin}–${ltMin+10} min @ {{easy}} · lang aerob tur`,
+          common: { options: [`Utendørs: ${ltMin}–${ltMin+10} min @ {{easy}}`,`Mølle/løyper: ${ltMin}–${ltMin+10} min @ {{easy}} · variert underlag`] },
+          athletes: ath, dagsform: { yellow: `${ltMin-20} min`, red: `${Math.round(ltMin*0.6)} min rolig` }
+        }
+      }
+    };
+  })
+);

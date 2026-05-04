@@ -480,28 +480,38 @@
       <!-- Beregnede nivåer -->
       <div v-if="athleteLevels" class="levels-card">
         <div class="levels-header">
-          <span class="levels-title">📊 Beregnede soner – {{ currentAthleteName }}</span>
-          <span class="levels-date">fra test {{ formatDate(athleteLevels.last_updated) }}</span>
+          <span class="levels-title">📊 {{ athleteLevels.level_label }} – {{ currentAthleteName }}</span>
+          <span class="levels-date" v-if="athleteLevels.last_updated">fra test {{ formatDate(athleteLevels.last_updated) }}</span>
+          <span class="levels-date" v-else>standard nivåprofil</span>
         </div>
         <div class="levels-row">
           <div class="level-stat">
-            <div class="level-val">{{ athleteLevels.easy_run_kmh }} km/t</div>
-            <div class="level-lbl">Rolig løp</div>
+            <div class="level-val">{{ athleteLevels.easy_run_kmh }}</div>
+            <div class="level-lbl">Rolig (km/t)</div>
           </div>
           <div class="level-stat">
-            <div class="level-val">{{ athleteLevels.ocr_run_kmh }} km/t</div>
-            <div class="level-lbl">OCR-fart</div>
+            <div class="level-val">{{ athleteLevels.ocr_run_kmh }}</div>
+            <div class="level-lbl">OCR (km/t)</div>
           </div>
           <div class="level-stat">
-            <div class="level-val">{{ athleteLevels.threshold_run_kmh }} km/t</div>
-            <div class="level-lbl">Terskel</div>
+            <div class="level-val">{{ athleteLevels.threshold_run_kmh }}</div>
+            <div class="level-lbl">Terskel (km/t)</div>
+          </div>
+          <div class="level-stat">
+            <div class="level-val">{{ athleteLevels.strides_kmh }}</div>
+            <div class="level-lbl">Strides (km/t)</div>
           </div>
           <div class="level-stat" v-if="athleteLevels.max_hang_sec">
-            <div class="level-val">{{ athleteLevels.max_hang_sec }} sek</div>
-            <div class="level-lbl">Max hang</div>
+            <div class="level-val">{{ athleteLevels.max_hang_sec }}</div>
+            <div class="level-lbl">Hang (sek)</div>
+          </div>
+          <div class="level-stat" v-if="athleteLevels.carry_kg">
+            <div class="level-val">{{ athleteLevels.carry_kg }}</div>
+            <div class="level-lbl">Carry (kg)</div>
           </div>
         </div>
-        <p class="levels-note">Brukes automatisk i fase 4–6 øktbeskrivelser ({{threshold}}, {{ocr_run}}, {{easy}})</p>
+        <p class="levels-note" v-if="athleteLevels.from_profile">Registrer en Løpetest 20 min for å erstatte med beregnede verdier</p>
+        <p class="levels-note" v-else>Justert fra test · {{threshold}}/{{ocr_run}}/{{easy}}/{{strides}}/{{hang}} sek/{{carry}} kg brukes automatisk i programmet</p>
       </div>
       <div v-else class="levels-empty">
         Registrer en <strong>Løpetest 20 min</strong> nedenfor for å beregne dine løpssoner automatisk.
@@ -585,6 +595,7 @@
 
   <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
   <script src="data/athletes.js"></script>
+  <script src="data/levels.js"></script>
   <script src="data/program.js"></script>
   <script src="data/strength.js"></script>
   <script src="app.js"></script>

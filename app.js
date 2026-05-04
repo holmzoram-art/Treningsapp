@@ -406,8 +406,11 @@ createApp({
       if (typeof obj === 'string') {
         return obj
           .replace(/\{\{threshold\}\}/g, levels.threshold_run_kmh + ' km/t')
-          .replace(/\{\{easy\}\}/g, levels.easy_run_kmh + ' km/t')
-          .replace(/\{\{ocr_run\}\}/g, levels.ocr_run_kmh + ' km/t');
+          .replace(/\{\{easy\}\}/g,      levels.easy_run_kmh      + ' km/t')
+          .replace(/\{\{ocr_run\}\}/g,   levels.ocr_run_kmh       + ' km/t')
+          .replace(/\{\{strides\}\}/g,   levels.strides_kmh       + ' km/t')
+          .replace(/\{\{hang\}\}/g,      String(levels.max_hang_sec ?? 60))
+          .replace(/\{\{carry\}\}/g,     String(levels.carry_kg    ?? 20));
       }
       if (Array.isArray(obj)) return obj.map(v => replaceTokensDeep(v, levels));
       if (typeof obj === 'object') {
@@ -548,23 +551,44 @@ createApp({
       newTest.value = { athlete: selectedAthlete.value, type: newTest.value.type, value: '', date: today() };
     }
 
-    // ── ATHLETE LEVELS (beregnet fra tester) ──────────────────────────────
+    // ── ATHLETE LEVELS (beregnet fra tester, fallback til nivåprofil) ─────────
     const athleteLevels = computed(() => {
       const id = selectedAthlete.value;
       const runTests = testHistory.value.filter(t => t.athlete === id && t.type === 'run20min')
         .sort((a, b) => a.date > b.date ? 1 : -1);
       const hangTests = testHistory.value.filter(t => t.athlete === id && t.type === 'deadhang')
         .sort((a, b) => a.date > b.date ? 1 : -1);
-      if (!runTests.length) return null;
-      const latest = runTests[runTests.length - 1];
-      // 20 min løpetest: meter → km/t = (m/1000) / (20/60) = m * 3 / 1000
+
+      const athlete  = ATHLETES.find(a => a.id === id);
+      const profile  = athlete?.level ? TRAINING_LEVELS[athlete.level] : null;
+
+      if (!runTests.length) {
+        if (!profile) return null;
+        return {
+          threshold_run_kmh: profile.threshold_kmh,
+          easy_run_kmh:      profile.easy_run_kmh,
+          ocr_run_kmh:       profile.ocr_run_kmh,
+          strides_kmh:       profile.strides_kmh,
+          max_hang_sec:      hangTests.length ? hangTests[hangTests.length-1].value : profile.hang_sec,
+          carry_kg:          profile.carry_kg,
+          level_label:       profile.label,
+          last_updated:      null,
+          from_profile:      true,
+        };
+      }
+
+      const latest    = runTests[runTests.length - 1];
       const threshold = Math.round(latest.value * 3 / 1000 * 10) / 10;
       return {
         threshold_run_kmh: threshold,
         easy_run_kmh:      Math.round(threshold * 0.88 * 10) / 10,
         ocr_run_kmh:       Math.round(threshold * 0.96 * 10) / 10,
-        max_hang_sec:      hangTests.length ? hangTests[hangTests.length - 1].value : null,
+        strides_kmh:       Math.round(threshold * 1.15 * 10) / 10,
+        max_hang_sec:      hangTests.length ? hangTests[hangTests.length-1].value : (profile?.hang_sec ?? null),
+        carry_kg:          profile?.carry_kg ?? null,
+        level_label:       'Beregnet fra test',
         last_updated:      latest.date,
+        from_profile:      false,
         from_distance_m:   latest.value,
       };
     });
