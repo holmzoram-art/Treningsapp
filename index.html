@@ -415,7 +415,7 @@
                   <input class="sr-input" type="number" min="0" step="0.5" v-model.number="s.weight" placeholder="0" :disabled="s.done">
                   <input class="sr-input" type="number" min="0" step="1"   v-model.number="s.reps"   placeholder="0" :disabled="s.done">
                   <button class="sr-check" :class="{ checked: s.done }"
-                    @click="s.done = !s.done; if(s.done) startRestTimer(ex.restSec, ex.name)">
+                    @click="s.done = !s.done; s.done && startRestTimer(ex.restSec, ex.name)">
                     {{ s.done ? '✓' : '○' }}
                   </button>
                   <span v-if="s.done && isSetPR(ex.name, s.weight, s.reps)" class="pr-badge-inline">🏆</span>
