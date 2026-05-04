@@ -56,6 +56,7 @@
     <nav class="tab-bar">
       <button :class="{ active: view === 'today' }" @click="view = 'today'">I dag</button>
       <button :class="{ active: view === 'week' }" @click="view = 'week'">Program</button>
+      <button :class="{ active: view === 'history' }" @click="view = 'history'">Historikk</button>
       <button :class="{ active: view === 'progress' }" @click="view = 'progress'">Fremgang</button>
       <button :class="{ active: view === 'tests' }" @click="view = 'tests'">Tester</button>
       <button :class="{ active: view === 'equipment' }" @click="view = 'equipment'">Utstyr</button>
@@ -378,27 +379,56 @@
             </div>
           </div>
 
-          <!-- Øvelsestabll med pauseteller -->
-          <div v-if="displayedWorkout?.exercises_raw">
-            <table class="ex-table">
-              <thead><tr><th>Øvelse</th><th>Sett</th><th>Rep</th><th>Pause</th></tr></thead>
-              <tbody>
-                <template v-for="ex in displayedWorkout.exercises_raw" :key="ex.name">
-                  <tr>
-                    <td>{{ ex.name }}<span v-if="ex.note" class="ex-note"> – {{ ex.note }}</span></td>
-                    <td class="td-num">{{ ex.sets }}</td>
-                    <td class="td-num">{{ ex.reps }}</td>
-                    <td class="td-num">
-                      <button class="rest-start-btn"
-                        :class="{ active: restTimer.active && restTimer.exerciseName === ex.name }"
-                        @click="startRestTimer(ex.restSec, ex.name)">
-                        ⏱ {{ formatRestTime(ex.restSec) }}
-                      </button>
-                    </td>
-                  </tr>
-                </template>
-              </tbody>
-            </table>
+          <!-- Øvelsestabll med per-sett logging (Hevy-inspirert) -->
+          <div v-if="displayedWorkout?.exercises_raw" class="ex-set-list">
+            <div v-for="ex in displayedWorkout.exercises_raw" :key="ex.name" class="ex-block">
+              <div class="ex-block-header">
+                <div class="ex-block-title">
+                  <span class="ex-name">{{ ex.name }}</span>
+                  <span v-if="ex.note" class="ex-note"> – {{ ex.note }}</span>
+                </div>
+                <span class="ex-target">{{ ex.sets }}×{{ ex.reps }}</span>
+              </div>
+
+              <!-- Forrige økt-referanse -->
+              <div v-if="previousExerciseSets[ex.name]?.length" class="ex-prev-ref">
+                Forrige: {{ previousExerciseSets[ex.name].filter(s=>s.done!==false||s.weight).map(s => s.weight + 'kg×' + s.reps).join(', ') }}
+              </div>
+
+              <!-- Sett-rader -->
+              <div class="set-rows">
+                <div class="set-row-header">
+                  <span class="sr-num">#</span>
+                  <span class="sr-prev">Forrige</span>
+                  <span class="sr-weight">Vekt (kg)</span>
+                  <span class="sr-reps">Reps</span>
+                  <span class="sr-done"></span>
+                </div>
+                <div v-for="(s, i) in currentExerciseSets[ex.name]" :key="i"
+                     class="set-row" :class="{ 'set-done': s.done }">
+                  <span class="sr-num">{{ i + 1 }}</span>
+                  <span class="sr-prev">
+                    {{ previousExerciseSets[ex.name]?.[i]
+                       ? previousExerciseSets[ex.name][i].weight + 'kg×' + previousExerciseSets[ex.name][i].reps
+                       : '–' }}
+                  </span>
+                  <input class="sr-input" type="number" min="0" step="0.5" v-model.number="s.weight" placeholder="0" :disabled="s.done">
+                  <input class="sr-input" type="number" min="0" step="1"   v-model.number="s.reps"   placeholder="0" :disabled="s.done">
+                  <button class="sr-check" :class="{ checked: s.done }"
+                    @click="s.done = !s.done; if(s.done) startRestTimer(ex.restSec, ex.name)">
+                    {{ s.done ? '✓' : '○' }}
+                  </button>
+                  <span v-if="s.done && isSetPR(ex.name, s.weight, s.reps)" class="pr-badge-inline">🏆</span>
+                </div>
+              </div>
+
+              <!-- Pause-knapp og timer -->
+              <button class="rest-start-btn"
+                :class="{ active: restTimer.active && restTimer.exerciseName === ex.name }"
+                @click="startRestTimer(ex.restSec, ex.name)">
+                ⏱ Pause {{ formatRestTime(ex.restSec) }}
+              </button>
+            </div>
 
             <!-- Rest Timer Bar -->
             <div v-if="restTimer.active" class="rest-timer-bar">
@@ -545,6 +575,66 @@
         </template>
       </div>
 
+    </main>
+
+    <!-- ───────────── HISTORIKK ───────────── -->
+    <main v-if="view === 'history'" class="view-history">
+      <h2>Historikk – {{ currentAthleteName }}</h2>
+
+      <!-- Type-filter -->
+      <div class="historikk-filter">
+        <button :class="{ active: historikkFilter === 'alle' }"       @click="historikkFilter = 'alle'">Alle</button>
+        <button :class="{ active: historikkFilter === 'strength' }"   @click="historikkFilter = 'strength'">🏋️ Styrke</button>
+        <button :class="{ active: historikkFilter === 'intervals' }"  @click="historikkFilter = 'intervals'">🏃 Intervall</button>
+        <button :class="{ active: historikkFilter === 'ocr' }"        @click="historikkFilter = 'ocr'">🧗 OCR</button>
+      </div>
+
+      <!-- Tom tilstand -->
+      <div v-if="!historikkByWeek.length" class="history-empty">
+        <p>Ingen loggede økter ennå. Logg din første økt fra «I dag»-fanen.</p>
+      </div>
+
+      <!-- Uke-gruppert feed -->
+      <div v-for="week in historikkByWeek" :key="week.weekNumber" class="history-week">
+        <div class="history-week-header">
+          Uke {{ week.weekNumber }} &middot; {{ week.entries.length }} {{ week.entries.length === 1 ? 'økt' : 'økter' }}
+        </div>
+
+        <div v-for="entry in week.entries" :key="entry.date + entry.sessionKey" class="history-card">
+          <div class="hc-left">
+            <span class="hc-icon">{{ entry.icon }}</span>
+          </div>
+          <div class="hc-body">
+            <div class="hc-top">
+              <span class="hc-title">{{ entry.title }}</span>
+              <span class="hc-date">{{ formatShortDate(entry.date) }}</span>
+            </div>
+            <div class="hc-stats">
+              <span v-if="entry.keyMetric" class="hc-stat">{{ entry.keyMetric }}</span>
+              <span v-if="entry.keyMetricLabel" class="hc-stat">{{ entry.keyMetricLabel }}</span>
+              <span class="hc-rpe" :class="'rpe-' + (entry.rpe <= 4 ? 'low' : entry.rpe <= 7 ? 'mid' : 'high')">
+                RPE {{ entry.rpe }}
+              </span>
+            </div>
+            <div v-if="entry.prs.length" class="hc-prs">
+              🏆 3RM-rekord: {{ entry.prs.join(', ') }}
+            </div>
+
+            <!-- Styrke: per-øvelse sett-detaljer -->
+            <details v-if="entry.type === 'strength' && entry.metrics?.exercise_sets" class="hc-sets-detail">
+              <summary>Vis sett</summary>
+              <div v-for="(sets, exName) in entry.metrics.exercise_sets" :key="exName" class="hc-ex-sets">
+                <span class="hc-ex-name">{{ exName }}</span>
+                <span class="hc-set-chips">
+                  <span v-for="(s, i) in sets" :key="i" class="hc-set-chip" :class="{ 'set-chip-done': s.done }">
+                    {{ s.weight }}kg×{{ s.reps }}
+                  </span>
+                </span>
+              </div>
+            </details>
+          </div>
+        </div>
+      </div>
     </main>
 
     <!-- ───────────── FREMGANG ───────────── -->

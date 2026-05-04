@@ -42,6 +42,8 @@ createApp({
     const newTest = ref({ athlete: 'sondre', type: 'cooper', value: '', date: today() });
     const workoutMetrics = ref({});
     const refreshKey = ref(0); // incremented after seeding to force computed re-eval
+    const currentExerciseSets = ref({}); // { [exerciseName]: [{ weight, reps, done }] }
+    const historikkFilter = ref('alle'); // 'alle' | 'strength' | 'intervals' | 'ocr'
 
     // localStorage keys
     const STORAGE = {
@@ -698,6 +700,47 @@ createApp({
       };
     }
 
+    // ── PER-SET LOGGING (Hevy-inspired) ────────────────────────────────────
+
+    const previousExerciseSets = computed(() => {
+      if (!selectedStrengthKey.value) return {};
+      const key = 'strength_' + selectedStrengthKey.value;
+      const prev = [...workoutLogs.value]
+        .reverse()
+        .find(l => l.sessionKey === key && l.metrics?.exercise_sets);
+      return prev?.metrics?.exercise_sets || {};
+    });
+
+    function initExerciseSets(strengthKey) {
+      const sd = STRENGTH_PROGRAM.days[strengthKey];
+      if (!sd) { currentExerciseSets.value = {}; return; }
+      const prev = previousExerciseSets.value;
+      const result = {};
+      for (const ex of sd.exercises) {
+        const prevSets = prev[ex.name] || [];
+        result[ex.name] = Array.from({ length: ex.sets }, (_, i) => ({
+          weight: prevSets[i]?.weight ?? 0,
+          reps:   prevSets[i]?.reps   ?? parseInt(ex.reps) || 0,
+          done:   false,
+        }));
+      }
+      currentExerciseSets.value = result;
+    }
+
+    // Returns true if weight×reps is a new 3RM-record for this exercise (ignores sets with 0 weight)
+    function isSetPR(exerciseName, weight, reps) {
+      if (!weight || !reps) return false;
+      const score = weight * reps;
+      for (const log of workoutLogs.value) {
+        const sets = log.metrics?.exercise_sets?.[exerciseName];
+        if (!sets) continue;
+        for (const s of sets) {
+          if (s.weight && s.reps && s.weight * s.reps >= score) return false;
+        }
+      }
+      return true;
+    }
+
     function saveWorkoutLog(rpe) {
       if (selectedStrengthKey.value) {
         markStrengthDone(selectedStrengthKey.value);
@@ -706,11 +749,19 @@ createApp({
         rpeHist.push({ date: today(), rpe, session: sessionKey });
         localStorage.setItem(STORAGE.rpe(selectedAthlete.value), JSON.stringify(rpeHist));
         const logs = JSON.parse(localStorage.getItem(STORAGE.wlog(selectedAthlete.value)) || '[]');
+        const exSets = currentExerciseSets.value;
+        const setsDone = Object.values(exSets).reduce((t, sets) => t + sets.filter(s => s.done).length, 0);
         logs.push({
           date: today(), weekNumber: currentWeekNumber.value,
-          sessionKey, type: 'strength', rpe, metrics: { ...workoutMetrics.value },
+          sessionKey, type: 'strength', rpe,
+          metrics: {
+            ...workoutMetrics.value,
+            sets_done: setsDone || workoutMetrics.value.sets_done,
+            exercise_sets: JSON.parse(JSON.stringify(exSets)),
+          },
         });
         localStorage.setItem(STORAGE.wlog(selectedAthlete.value), JSON.stringify(logs));
+        refreshKey.value++;
         return;
       }
       markSessionDone(selectedSessionKey.value);
@@ -809,6 +860,103 @@ createApp({
       workoutLogs.value.filter(l => l.type === 'strength' && l.metrics?.sets_done)
         .map(l => ({ date: l.date, value: l.metrics.sets_done }))
     );
+
+    // ── HISTORIKK (Strava-inspired activity feed) ──────────────────────────
+
+    const TYPE_ICON = { intervals: '🏃', ocr: '🧗', strength: '🏋️', recovery: '🚶' };
+    const TYPE_LABEL = { intervals: 'Intervall', ocr: 'OCR', strength: 'Styrke', recovery: 'Rolig' };
+
+    function sessionTitle(log) {
+      if (log.type === 'strength') {
+        const key = log.sessionKey.replace('strength_', '');
+        return STRENGTH_PROGRAM.days[key]?.title || 'Styrkeøkt';
+      }
+      for (const week of PROGRAM_DATA.weeks) {
+        for (const [, sess] of Object.entries(week.sessions || {})) {
+          if (sess && log.sessionKey && Object.keys(week.sessions).some(k => k === log.sessionKey)) {
+            return week.sessions[log.sessionKey]?.title || log.type;
+          }
+        }
+      }
+      return log.type;
+    }
+
+    function sessionTitleFast(log) {
+      if (log.type === 'strength') {
+        const key = log.sessionKey.replace('strength_', '');
+        return STRENGTH_PROGRAM.days[key]?.title || 'Styrkeøkt';
+      }
+      const anyWeek = PROGRAM_DATA.weeks.find(w => w.sessions?.[log.sessionKey]);
+      return anyWeek?.sessions?.[log.sessionKey]?.title || log.sessionKey || log.type;
+    }
+
+    function hasPRInLog(log) {
+      if (!log.metrics?.exercise_sets) return false;
+      for (const [name, sets] of Object.entries(log.metrics.exercise_sets)) {
+        for (const s of sets) {
+          if (!s.weight || !s.reps) continue;
+          const score = s.weight * s.reps;
+          const allLogs = workoutLogs.value.filter(l => l.date < log.date);
+          const prInHistory = allLogs.every(l => {
+            const hist = l.metrics?.exercise_sets?.[name] || [];
+            return hist.every(hs => !hs.weight || !hs.reps || hs.weight * hs.reps < score);
+          });
+          if (prInHistory) return true;
+        }
+      }
+      return false;
+    }
+
+    function prExerciseNames(log) {
+      if (!log.metrics?.exercise_sets) return [];
+      const prs = [];
+      for (const [name, sets] of Object.entries(log.metrics.exercise_sets)) {
+        for (const s of sets) {
+          if (!s.weight || !s.reps) continue;
+          const score = s.weight * s.reps;
+          const allLogs = workoutLogs.value.filter(l => l.date < log.date);
+          const isPrSet = allLogs.every(l => {
+            const hist = l.metrics?.exercise_sets?.[name] || [];
+            return hist.every(hs => !hs.weight || !hs.reps || hs.weight * hs.reps < score);
+          });
+          if (isPrSet && !prs.includes(name)) prs.push(name);
+        }
+      }
+      return prs;
+    }
+
+    const historikkEntries = computed(() => {
+      refreshKey.value;
+      return [...workoutLogs.value]
+        .reverse()
+        .filter(l => historikkFilter.value === 'alle' || l.type === historikkFilter.value)
+        .map(l => {
+          const m = l.metrics || {};
+          let keyMetric = '', keyMetricLabel = '';
+          if (l.type === 'intervals') { keyMetric = m.speed_kmh ? m.speed_kmh + ' km/t' : ''; keyMetricLabel = m.sets_done ? m.sets_done + ' drag' : ''; }
+          else if (l.type === 'ocr')  { keyMetric = m.rounds_done ? m.rounds_done + ' runder' : ''; keyMetricLabel = m.hang_sec ? m.hang_sec + 's hang' : ''; }
+          else if (l.type === 'strength') { keyMetric = m.sets_done ? m.sets_done + ' sett' : ''; keyMetricLabel = m.duration_min ? m.duration_min + ' min' : ''; }
+          else if (l.type === 'recovery') { keyMetric = m.duration_min ? m.duration_min + ' min' : ''; keyMetricLabel = m.speed_kmh ? m.speed_kmh + ' km/t' : ''; }
+          return {
+            ...l,
+            icon: TYPE_ICON[l.type] || '📋',
+            typeLabel: TYPE_LABEL[l.type] || l.type,
+            title: sessionTitleFast(l),
+            keyMetric, keyMetricLabel,
+            prs: prExerciseNames(l),
+          };
+        });
+    });
+
+    const historikkByWeek = computed(() => {
+      const byWeek = {};
+      for (const e of historikkEntries.value) {
+        const wn = e.weekNumber || 0;
+        if (!byWeek[wn]) byWeek[wn] = { weekNumber: wn, entries: [] };
+        byWeek[wn].entries.push(e);
+      }
+      return Object.values(byWeek).sort((a, b) => b.weekNumber - a.weekNumber);
+    });
 
     function sparkPoints(data, w = 280, h = 50) {
       if (!data.length) return '';
@@ -1160,7 +1308,7 @@ createApp({
       cancelRestTimer();
     });
     watch(selectedStrengthKey, (key) => {
-      if (key) prefillStrengthMetrics();
+      if (key) { prefillStrengthMetrics(); initExerciseSets(key); }
       else if (!selectedSessionKey.value) workoutMetrics.value = {};
       cancelRestTimer();
     });
@@ -1171,6 +1319,8 @@ createApp({
       selectedAthlete, dagsform, view, viewWeek, selectedSessionKey, selectedStrengthKey,
       deloadMode, shortMode,
       todayNote, noteSaved, newTest, workoutMetrics,
+      currentExerciseSets, historikkFilter,
+      previousExerciseSets,
       // computed
       athletes, currentWeek, currentWeekNumber, viewingWeekData, viewingWeekWorkouts, totalWeeks,
       daysToRace, selectedSession,
@@ -1182,6 +1332,7 @@ createApp({
       athleteLevels, upcomingTests, testCalendar,
       equipment, currentAthleteName,
       logFields, workoutLogs, intervalSpeedLogs, intervalLogs, hangLogs, ocrRoundsLogs, recoveryLogs, strengthLogs,
+      historikkEntries, historikkByWeek, TYPE_ICON, TYPE_LABEL,
       SESSION_LOG_FIELDS, seedStatus,
       seedHistoricalData,
       // exercise parser
@@ -1200,6 +1351,7 @@ createApp({
       testsOfType, myTestsOfType, isPR, athleteName, athleteColor,
       sparkPoints, sparkDots,
       formatDate, formatShortDate,
+      isSetPR,
       // rest timer
       restTimer, startRestTimer, cancelRestTimer, formatRestTime,
     };
