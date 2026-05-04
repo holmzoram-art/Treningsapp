@@ -159,7 +159,97 @@ createApp({
       };
     }
 
-    // ── INTERVAL TIMER CONFIG ──────────────────────────────────────────────
+    // ── AUDIO ──────────────────────────────────────────────────────────────────
+    const audioMuted = ref(false);
+    let _audioCtx = null;
+
+    function getAudioCtx() {
+      if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      return _audioCtx;
+    }
+
+    function beep(freq = 880, durationMs = 150, vol = 0.4) {
+      if (audioMuted.value) return;
+      try {
+        const ctx = getAudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(vol, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + durationMs / 1000);
+        osc.start(); osc.stop(ctx.currentTime + durationMs / 1000);
+      } catch (e) {}
+    }
+
+    function speak(text) {
+      if (audioMuted.value || !window.speechSynthesis) return;
+      const utt = new SpeechSynthesisUtterance(text);
+      utt.lang = 'nb-NO'; utt.rate = 1.05;
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(utt);
+    }
+
+    // ── GPS ────────────────────────────────────────────────────────────────────
+    const gpsEnabled = ref(false);
+    const gpsActive = ref(false);
+    const gpsSpeed = ref(null);
+    const gpsDistance = ref(0);
+    const gpsPace = ref(null);
+    let _gpsWatchId = null;
+    let _gpsLastPos = null;
+
+    function haversineKm(lat1, lon1, lat2, lon2) {
+      const R = 6371, toRad = x => x * Math.PI / 180;
+      const dLat = toRad(lat2 - lat1), dLon = toRad(lon2 - lon1);
+      const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;
+      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    }
+
+    function startGps() {
+      if (!navigator.geolocation) return;
+      gpsDistance.value = 0; _gpsLastPos = null; gpsActive.value = false;
+      _gpsWatchId = navigator.geolocation.watchPosition(
+        (pos) => {
+          const { latitude: lat, longitude: lng, speed } = pos.coords;
+          gpsActive.value = true;
+          gpsSpeed.value = speed != null ? Math.round(speed * 3.6 * 10) / 10 : null;
+          if (_gpsLastPos) {
+            const d = haversineKm(_gpsLastPos.lat, _gpsLastPos.lng, lat, lng);
+            if (d < 0.3) gpsDistance.value += d;
+          }
+          _gpsLastPos = { lat, lng };
+          if (gpsSpeed.value && gpsSpeed.value > 0.5) {
+            gpsPace.value = Math.round(3600 / gpsSpeed.value);
+          }
+        },
+        () => { gpsActive.value = false; },
+        { enableHighAccuracy: true, maximumAge: 1000, timeout: 15000 }
+      );
+    }
+
+    function stopGps() {
+      if (_gpsWatchId != null) navigator.geolocation.clearWatch(_gpsWatchId);
+      _gpsWatchId = null; gpsActive.value = false;
+    }
+
+    function toggleGps() {
+      gpsEnabled.value = !gpsEnabled.value;
+      if (gpsEnabled.value) startGps();
+      else stopGps();
+    }
+
+    function formatPace(secPerKm) {
+      if (!secPerKm) return '–';
+      return `${Math.floor(secPerKm/60)}:${String(secPerKm%60).padStart(2,'0')} /km`;
+    }
+
+    function formatDist(km) {
+      if (km < 1) return Math.round(km * 1000) + ' m';
+      return km.toFixed(2) + ' km';
+    }
+
+
     function extractTimerConfig(workout) {
       if (!workout) return { count: 8, workSec: 60, restSec: 60 };
       const toSec = (n, u) => u === 'min' ? n * 60 : n;
@@ -218,10 +308,24 @@ createApp({
       timerState.value = 'warmup';
       timerSec.value = 10;
       timerElapsed.value = 0;
+      if (gpsEnabled.value) startGps();
       stopTick();
+      speak('Gjør deg klar');
       timerTick.value = setInterval(() => {
         timerSec.value--;
         timerElapsed.value++;
+        const s = timerSec.value;
+        // 3-2-1 countdown beeps for any phase
+        if (s === 3) beep(660, 120);
+        else if (s === 2) beep(660, 120);
+        else if (s === 1) beep(660, 120);
+        // 10-second warning (work/rest phases only)
+        if (s === 10 && timerState.value !== 'warmup') speak('Ti sekunder');
+        // Halfway through work phase
+        if (timerState.value === 'work') {
+          const half = Math.round(timerConfig.value.workSec / 2);
+          if (s === half && timerConfig.value.workSec >= 20) speak('Halvveis');
+        }
         if (timerSec.value <= 0) advanceTimer(false);
       }, 1000);
     }
@@ -233,6 +337,8 @@ createApp({
         timerPhase.value = 1;
         timerSec.value = timerConfig.value.workSec;
         timerElapsed.value = 0;
+        beep(880, 200); setTimeout(() => beep(1100, 300), 220);
+        speak(`Start`);
       } else if (timerState.value === 'work') {
         timerResults.value.push({
           n: timerPhase.value,
@@ -241,16 +347,23 @@ createApp({
         });
         if (timerPhase.value >= timerConfig.value.count) {
           timerState.value = 'done'; stopTick();
+          if (gpsEnabled.value) stopGps();
+          beep(880, 150); setTimeout(() => beep(1100, 150), 180); setTimeout(() => beep(1320, 400), 360);
+          speak(`Ferdig! ${timerConfig.value.count} drag gjennomført`);
         } else {
           timerState.value = 'rest';
           timerSec.value = timerConfig.value.restSec;
           timerElapsed.value = 0;
+          beep(440, 300);
+          speak('Pause');
         }
       } else if (timerState.value === 'rest') {
         timerPhase.value++;
         timerState.value = 'work';
         timerSec.value = timerConfig.value.workSec;
         timerElapsed.value = 0;
+        beep(880, 200); setTimeout(() => beep(1100, 300), 220);
+        speak(`Drag ${timerPhase.value}`);
       }
     }
 
@@ -266,7 +379,7 @@ createApp({
       }
     }
 
-    function resetTimer() { stopTick(); timerState.value = 'config'; timerResults.value = []; }
+    function resetTimer() { stopTick(); stopGps(); timerState.value = 'config'; timerResults.value = []; }
 
     const isPaused = computed(() => timerState.value !== 'config' && timerState.value !== 'done' && !timerTick.value);
 
@@ -484,7 +597,10 @@ createApp({
       // timer
       timerState, timerPhase, timerSec, timerResults, timerConfig, timerEditing,
       timerPct, isPaused, showTimer,
-      formatSec, startTimer, endIntervalEarly, pauseTimer, resetTimer,
+      audioMuted,
+      gpsEnabled, gpsActive, gpsSpeed, gpsDistance, gpsPace,
+      formatSec, formatPace, formatDist,
+      startTimer, endIntervalEarly, pauseTimer, resetTimer, toggleGps,
       // methods
       selectAthlete, selectSession, navigateWeek, weekDates,
       rpeClass, logRpe, saveNote, saveTest,

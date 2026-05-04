@@ -222,7 +222,12 @@
                   <input type="number" v-model.number="timerConfig.restSec" min="5" max="600">
                 </div>
               </div>
-              <button class="timer-start-btn" @click="startTimer">▶ Start timer</button>
+              <div class="timer-start-row">
+                <button class="timer-start-btn" @click="startTimer">▶ Start timer</button>
+                <button class="mute-btn" :class="{ muted: audioMuted }" @click="audioMuted = !audioMuted" title="Lyd av/på">
+                  {{ audioMuted ? '🔇' : '🔊' }}
+                </button>
+              </div>
             </div>
 
             <!-- Aktiv timer -->
@@ -264,6 +269,32 @@
                   {{ isPaused ? '▶ Fortsett' : '⏸ Pause' }}
                 </button>
                 <button class="timer-btn reset-btn" @click="resetTimer">↺ Nullstill</button>
+                <button class="timer-btn mute-btn" :class="{ muted: audioMuted }" @click="audioMuted = !audioMuted">
+                  {{ audioMuted ? '🔇' : '🔊' }}
+                </button>
+              </div>
+
+              <!-- GPS panel -->
+              <div class="gps-panel">
+                <button v-if="!gpsEnabled" class="gps-toggle-btn" @click="toggleGps">
+                  📍 Aktiver GPS-sporing
+                </button>
+                <div v-else class="gps-stats">
+                  <div class="gps-stat">
+                    <div class="gps-val">{{ gpsSpeed != null ? gpsSpeed + ' km/t' : '–' }}</div>
+                    <div class="gps-lbl">Fart</div>
+                  </div>
+                  <div class="gps-stat">
+                    <div class="gps-val">{{ formatDist(gpsDistance) }}</div>
+                    <div class="gps-lbl">Distanse</div>
+                  </div>
+                  <div class="gps-stat">
+                    <div class="gps-val">{{ formatPace(gpsPace) }}</div>
+                    <div class="gps-lbl">Tempo</div>
+                  </div>
+                  <div class="gps-dot" :class="{ active: gpsActive }">{{ gpsActive ? '● GPS' : '○ Søker…' }}</div>
+                  <button class="gps-off-btn" @click="toggleGps" title="Slå av GPS">✕</button>
+                </div>
               </div>
             </div>
           </div>
