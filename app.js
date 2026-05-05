@@ -47,7 +47,7 @@ createApp({
     const noteSaved = ref(false);
     const newTest = ref({ athlete: 'sondre', type: 'cooper', value: '', carry_weight_kg: 20, date: today() });
     const workoutMetrics = ref({});
-    const refreshKey = ref(0); // incremented after seeding to force computed re-eval
+    const refreshKey = ref(0); // incremented after saving to force computed re-eval of localStorage
     const currentExerciseSets = ref({}); // { [exerciseName]: [{ weight, reps, done }] }
     const historikkFilter = ref('alle'); // 'alle' | 'strength' | 'intervals' | 'ocr'
     const doneVersion = ref(0); // incremented on every done-state change to force template re-eval
@@ -1703,129 +1703,6 @@ createApp({
       return reminders;
     });
 
-    // ── HISTORICAL DATA SEEDING ────────────────────────────────────────────
-    const seedStatus = ref('');
-
-    function extractSeedMetrics(type, workout, session, athleteId, weekNumber) {
-      const m = {};
-      const athlete = ATHLETES.find(a => a.id === athleteId);
-      const profile  = athlete?.level ? TRAINING_LEVELS[athlete.level] : null;
-
-      function mid(str) {
-        if (!str) return null;
-        const r = String(str).match(/(\d+(?:\.\d+)?)(?:[–\-](\d+(?:\.\d+)?))?/);
-        if (!r) return null;
-        const a = parseFloat(r[1]), b = r[2] ? parseFloat(r[2]) : null;
-        return b != null ? Math.round(((a + b) / 2) * 10) / 10 : a;
-      }
-
-      const durM = (session.duration || '').match(/(\d+)(?:–(\d+))?\s*min/);
-      if (durM) m.duration_min = durM[2] ? Math.round((+durM[1] + +durM[2]) / 2) : +durM[1];
-
-      if (type === 'intervals') {
-        if (workout.part1 && typeof workout.part1 === 'object') {
-          const setsM = (workout.part1.sets || '').match(/^(\d+)[×x]/);
-          if (setsM) m.sets_done = +setsM[1];
-          if (workout.part1.speed)   m.speed_kmh   = mid(workout.part1.speed);
-          if (workout.part1.incline) m.incline_pct = mid(workout.part1.incline);
-          // Geir/Kjetil: part1 = romaskin (no speed), speed is in part2.options
-          if (!m.speed_kmh && workout.part2?.options) {
-            const opt = workout.part2.options[0] || '';
-            const sm = opt.match(/(\d+(?:\.\d+)?(?:[–\-]\d+(?:\.\d+)?)?)\s*km\/t/);
-            if (sm) m.speed_kmh = mid(sm[0]);
-          }
-        } else if (workout.options) {
-          const opt = workout.options[0] || '';
-          const setsM = opt.match(/(\d+)[×x]/);
-          if (setsM) m.sets_done = +setsM[1];
-          const inclM = opt.match(/(\d+)(?:–(\d+))?%/);
-          if (inclM) m.incline_pct = inclM[2] ? Math.round((+inclM[1] + +inclM[2]) / 2) : +inclM[1];
-        }
-        if (!m.sets_done) m.sets_done = 8;
-        // Phase 1 has no speed in common data → derive from profile with weekly progression
-        if (!m.speed_kmh && profile) {
-          const pct = 0.88 + Math.min(0.08, (weekNumber - 1) * 0.005);
-          m.speed_kmh = Math.round(profile.threshold_kmh * pct * 10) / 10;
-        }
-
-      } else if (type === 'ocr') {
-        const rounds = workout.rounds;
-        m.rounds_done = rounds != null
-          ? (typeof rounds === 'number' ? rounds : (mid(String(rounds)) ?? 3))
-          : 4;
-        const hangStep = workout.circuit?.find(s => /hang/i.test(s));
-        const hangFromCircuit = hangStep ? mid(hangStep) : null;
-        const baseHang = hangFromCircuit ?? profile?.hang_sec ?? 60;
-        // Hang time improves ~1.5% per week over the program
-        m.hang_sec = Math.round(baseHang * (1 + Math.min(0.25, (weekNumber - 1) * 0.015)));
-        m.carry_kg  = profile?.carry_kg ?? 20;
-
-      } else if (type === 'recovery') {
-        const src = typeof workout.part1 === 'string' ? workout.part1 : (workout.options?.[0] || '');
-        const sm = src.match(/(\d+(?:\.\d+)?(?:[–\-]\d+(?:\.\d+)?)?)\s*km\/t/);
-        if (sm) m.speed_kmh = mid(sm[0]);
-        const im = src.match(/(\d+(?:[–\-]\d+)?)\s*%/);
-        if (im) m.incline_pct = mid(im[0]);
-        if (!m.speed_kmh && profile) m.speed_kmh = profile.easy_run_kmh;
-
-      } else if (type === 'strength') {
-        m.sets_done  = typeof workout.rounds === 'number' ? workout.rounds : 3;
-        m.weight_pct = 100;
-      }
-      return m;
-    }
-
-    function seedHistoricalData() {
-      const athleteIds = ['sondre', 'knut', 'geir', 'kjetil'];
-      const dayOffsets = { monday: 0, tuesday: 1, thursday: 3, friday: 4 };
-      const [sy, sm, sd] = PROGRAM_DATA.meta.programStart.split('-').map(Number);
-      const programStartMs = Date.UTC(sy, sm - 1, sd);
-      const currentWn = currentWeekNumber.value;
-      let totalSeeded = 0;
-
-      for (const athleteId of athleteIds) {
-        const existingLogs = JSON.parse(localStorage.getItem(STORAGE.wlog(athleteId)) || '[]');
-        if (existingLogs.length > 0) continue;
-
-        const logs = [], rpeHist = [];
-
-        for (const week of PROGRAM_DATA.weeks) {
-          if (week.weekNumber >= currentWn) break;
-          const weekStartMs = programStartMs + (week.weekNumber - 1) * 7 * 86400000;
-
-          for (const [dayKey, session] of Object.entries(week.sessions || {})) {
-            if (!session) continue;
-            const offset = dayOffsets[dayKey];
-            if (offset == null) continue;
-            const date = new Date(weekStartMs + offset * 86400000).toISOString().split('T')[0];
-
-            let raw = session.athletes?.[athleteId];
-            let workout = raw === null || raw === undefined ? session.common
-              : typeof raw === 'string' ? session.athletes[raw] : raw;
-            if (!workout) continue;
-
-            const type = session.type || 'recovery';
-            const metrics = extractSeedMetrics(type, workout, session, athleteId, week.weekNumber);
-            const rpeBase = week.isDeload ? 5 : { intervals: 7, ocr: 7, strength: 6, recovery: 5 }[type] ?? 6;
-            const rpe = Math.min(9, Math.max(4, rpeBase + ((week.weekNumber + Object.keys(dayOffsets).indexOf(dayKey)) % 3) - 1));
-
-            logs.push({ date, weekNumber: week.weekNumber, sessionKey: dayKey, type, rpe, metrics });
-            rpeHist.push({ date, rpe, session: dayKey });
-            totalSeeded++;
-          }
-        }
-
-        localStorage.setItem(STORAGE.wlog(athleteId), JSON.stringify(logs));
-        localStorage.setItem(STORAGE.rpe(athleteId), JSON.stringify(rpeHist));
-      }
-
-      refreshKey.value++;
-      seedStatus.value = totalSeeded > 0
-        ? `✅ ${totalSeeded} logger lagt inn for alle utøvere`
-        : '⚠️ Alle utøvere har allerede data – ingen endringer';
-      setTimeout(() => { seedStatus.value = ''; }, 5000);
-    }
-
     // ── ATHLETES ───────────────────────────────────────────────────────────
     const athletes = ATHLETES;
 
@@ -1900,8 +1777,7 @@ createApp({
       equipment, currentAthleteName,
       logFields, activityCards, circuitStepCards, workoutLogs, intervalSpeedLogs, intervalLoadLogs, intervalLogs, hangLogs, ocrRoundsLogs, recoveryLogs, strengthLogs, exerciseProgressLogs,
       historikkEntries, historikkByWeek, weeklyReport, TYPE_ICON, TYPE_LABEL,
-      SESSION_LOG_FIELDS, seedStatus,
-      seedHistoricalData,
+      SESSION_LOG_FIELDS,
       // exercise parser
       parseExercise, parseExercises, deloadExercises, deloadCircuit, fmtVal,
       // timer
