@@ -181,7 +181,7 @@
                     <input class="sr-input" type="number" min="0" step="0.5" v-model.number="s.weight" placeholder="0" :disabled="s.done">
                     <input class="sr-input" type="number" min="0" step="1"   v-model.number="s.reps"   placeholder="0" :disabled="s.done || (ex.tags?.includes('timed') && workTimer.active && workTimer.exName === ex.name && workTimer.setIdx === i)">
                     <button class="sr-check"
-                      :class="{ checked: s.done, timing: ex.tags?.includes('timed') && !s.done && workTimer.active && workTimer.exName === ex.name && workTimer.setIdx === i }"
+                      :class="{ checked: s.done, timing: ex.tags?.includes('timed') && !s.done && workTimer.active && workTimer.phase === 'work' && workTimer.exName === ex.name && workTimer.setIdx === i, 'timing-prep': ex.tags?.includes('timed') && !s.done && workTimer.active && workTimer.phase === 'prep' && workTimer.exName === ex.name && workTimer.setIdx === i }"
                       @click="s.done ? s.done = false : (ex.tags?.includes('timed') ? (workTimer.active && workTimer.exName === ex.name && workTimer.setIdx === i ? cancelWorkTimer() : startWorkTimer(s.reps || parseInt(ex.time || '') || 30, ex.name, i, ex.restSec)) : (s.done = true, startRestTimer(ex.restSec, ex.name)))">
                       {{ s.done ? '✓' : (ex.tags?.includes('timed') && workTimer.active && workTimer.exName === ex.name && workTimer.setIdx === i ? workTimer.remaining + 's' : (ex.tags?.includes('timed') ? '▶' : '○')) }}
                     </button>
@@ -282,7 +282,7 @@
                         placeholder="–" class="csc-input csc-input-text">
                       <span v-if="f.unit" class="csc-unit">{{ f.unit }}</span>
                       <button v-if="f.isTimed" class="inline-timer-btn"
-                        :class="{ timing: workTimer.active && workTimer.exName === f.key }"
+                        :class="{ timing: workTimer.active && workTimer.phase === 'work' && workTimer.exName === f.key, 'timing-prep': workTimer.active && workTimer.phase === 'prep' && workTimer.exName === f.key }"
                         @click="workTimer.active && workTimer.exName === f.key ? cancelWorkTimer() : startWorkTimer(workoutMetrics[f.key] || f.defaultVal || 60, f.key, -1, 0)">
                         {{ workTimer.active && workTimer.exName === f.key ? workTimer.remaining + 's' : '▶' }}
                       </button>
@@ -546,7 +546,7 @@
                   <input class="sr-input" type="number" min="0" step="0.5" v-model.number="s.weight" placeholder="0" :disabled="s.done">
                   <input class="sr-input" type="number" min="0" step="1"   v-model.number="s.reps"   placeholder="0" :disabled="s.done || (ex.tags?.includes('timed') && workTimer.active && workTimer.exName === ex.name && workTimer.setIdx === i)">
                   <button class="sr-check"
-                    :class="{ checked: s.done, timing: ex.tags?.includes('timed') && !s.done && workTimer.active && workTimer.exName === ex.name && workTimer.setIdx === i }"
+                    :class="{ checked: s.done, timing: ex.tags?.includes('timed') && !s.done && workTimer.active && workTimer.phase === 'work' && workTimer.exName === ex.name && workTimer.setIdx === i, 'timing-prep': ex.tags?.includes('timed') && !s.done && workTimer.active && workTimer.phase === 'prep' && workTimer.exName === ex.name && workTimer.setIdx === i }"
                     @click="s.done ? s.done = false : (ex.tags?.includes('timed') ? (workTimer.active && workTimer.exName === ex.name && workTimer.setIdx === i ? cancelWorkTimer() : startWorkTimer(s.reps || parseInt(ex.time || '') || 30, ex.name, i, ex.restSec)) : (s.done = true, startRestTimer(ex.restSec, ex.name)))">
                     {{ s.done ? '✓' : (ex.tags?.includes('timed') && workTimer.active && workTimer.exName === ex.name && workTimer.setIdx === i ? workTimer.remaining + 's' : (ex.tags?.includes('timed') ? '▶' : '○')) }}
                   </button>

@@ -501,34 +501,60 @@ createApp({
     let _restInterval = null;
 
     // ── WORK TIMER (nedtelling under tidsbaserte øvelser) ─────────────────
-    const workTimer = ref({ active: false, remaining: 0, total: 0, setIdx: null, exName: null, tickId: null });
+    const PREP_SECS = 10;
+    const workTimer = ref({ active: false, phase: 'prep', remaining: 0, total: 0, setIdx: null, exName: null, tickId: null });
 
     function startWorkTimer(seconds, exName, setIdx, restSec) {
       cancelWorkTimer();
       const secs = Math.max(1, Math.round(+seconds || 30));
+      let phase = 'prep';
+      let remaining = PREP_SECS;
+
+      beep(440, 80); setTimeout(() => beep(440, 80), 120);   // "klar deg" – to korte pip
+
+      workTimer.value = { active: true, phase: 'prep', remaining: PREP_SECS, total: PREP_SECS, setIdx, exName, tickId: null };
+
       const tickId = setInterval(() => {
-        workTimer.value.remaining--;
-        const r = workTimer.value.remaining;
-        if (r === 3) beep(660, 120);
-        else if (r === 2) beep(660, 120);
-        else if (r === 1) beep(660, 120);
-        if (r <= 0) {
-          clearInterval(workTimer.value.tickId);
-          workTimer.value.active = false;
-          const sets = currentExerciseSets.value[exName];
-          if (sets?.[setIdx]) {
-            sets[setIdx].done = true;
-            if (restSec > 0) startRestTimer(restSec, exName);
+        remaining--;
+
+        if (phase === 'prep') {
+          workTimer.value.remaining = remaining;
+          if (remaining === 3) beep(660, 120);
+          else if (remaining === 2) beep(660, 120);
+          else if (remaining === 1) beep(660, 120);
+          if (remaining <= 0) {
+            phase = 'work';
+            remaining = secs;
+            beep(880, 80); setTimeout(() => beep(1100, 200), 100);   // "start!" – stigende
+            workTimer.value = { active: true, phase: 'work', remaining: secs, total: secs, setIdx, exName, tickId };
           }
-          beep(880, 200); setTimeout(() => beep(1100, 300), 220);
+        } else {
+          workTimer.value.remaining = remaining;
+          const half = Math.ceil(secs / 2);
+          if (remaining === half)           { beep(880, 100); setTimeout(() => beep(880, 100), 150); }  // halvveis
+          if (remaining === 10 && secs > 15)  beep(660, 200);                                            // 10 sek igjen
+          if (remaining === 3) beep(660, 120);
+          else if (remaining === 2) beep(660, 120);
+          else if (remaining === 1) beep(660, 120);
+          if (remaining <= 0) {
+            clearInterval(tickId);
+            workTimer.value.active = false;
+            const sets = currentExerciseSets.value[exName];
+            if (sets?.[setIdx]) {
+              sets[setIdx].done = true;
+              if (restSec > 0) startRestTimer(restSec, exName);
+            }
+            beep(880, 200); setTimeout(() => beep(1100, 300), 220);
+          }
         }
       }, 1000);
-      workTimer.value = { active: true, remaining: secs, total: secs, setIdx, exName, tickId };
+
+      workTimer.value.tickId = tickId;
     }
 
     function cancelWorkTimer() {
       if (workTimer.value.tickId) clearInterval(workTimer.value.tickId);
-      workTimer.value = { active: false, remaining: 0, total: 0, setIdx: null, exName: null, tickId: null };
+      workTimer.value = { active: false, phase: 'prep', remaining: 0, total: 0, setIdx: null, exName: null, tickId: null };
     }
 
     function formatRestTime(sec) {
