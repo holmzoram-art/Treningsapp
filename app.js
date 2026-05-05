@@ -139,6 +139,24 @@ createApp({
       deloadMode.value = false;
       shortMode.value = false;
       cancelRestTimer();
+      // Circuit strength sessions get per-set logging too
+      if (selectedSession.value?.type === 'strength') {
+        const exercises = parseExercises(selectedWorkout.value?.exercises || [])
+          .filter(ex => ex.sets && ex.name);
+        const prev = previousExerciseSets.value;
+        const result = {};
+        for (const ex of exercises) {
+          const prevSets = prev[ex.name] || [];
+          result[ex.name] = Array.from({ length: ex.sets }, (_, i) => ({
+            weight: prevSets[i]?.weight ?? 0,
+            reps:   prevSets[i]?.reps   ?? (typeof ex.reps === 'number' ? ex.reps : 0),
+            done:   false,
+          }));
+        }
+        currentExerciseSets.value = result;
+      } else {
+        currentExerciseSets.value = {};
+      }
     }
 
     function selectStrengthSession(key) {
@@ -595,7 +613,15 @@ createApp({
         }
         return { exercises_raw: exs };
       }
-      return adjustWorkout(selectedWorkout.value, dagsform.value, deloadMode.value, shortMode.value);
+      const workout = adjustWorkout(selectedWorkout.value, dagsform.value, deloadMode.value, shortMode.value);
+      // Circuit/program.js strength sessions: build exercises_raw so per-set UI can be used
+      if (selectedSession.value?.type === 'strength' && workout?.exercises?.length) {
+        const parsed = parseExercises(workout.exercises)
+          .filter(ex => ex.sets && ex.name)
+          .map(ex => ({ ...ex, restSec: ex.restSec ?? 60 }));
+        if (parsed.length) return { ...workout, exercises_raw: parsed };
+      }
+      return workout;
     });
 
     const displayedTitle = computed(() =>
@@ -714,8 +740,10 @@ createApp({
     // ── PER-SET LOGGING (Hevy-inspired) ────────────────────────────────────
 
     const previousExerciseSets = computed(() => {
-      if (!selectedStrengthKey.value) return {};
-      const key = 'strength_' + selectedStrengthKey.value;
+      const key = selectedStrengthKey.value
+        ? 'strength_' + selectedStrengthKey.value
+        : selectedSessionKey.value;
+      if (!key) return {};
       const prev = [...workoutLogs.value]
         .reverse()
         .find(l => l.sessionKey === key && l.metrics?.exercise_sets);
@@ -780,11 +808,18 @@ createApp({
       rpeHist.push({ date: today(), rpe, session: selectedSessionKey.value });
       localStorage.setItem(STORAGE.rpe(selectedAthlete.value), JSON.stringify(rpeHist));
       const logs = JSON.parse(localStorage.getItem(STORAGE.wlog(selectedAthlete.value)) || '[]');
+      const exSetsCardio = currentExerciseSets.value;
+      const hasExSets = Object.keys(exSetsCardio).length > 0;
+      const cardioMetrics = { ...workoutMetrics.value };
+      if (hasExSets) {
+        cardioMetrics.exercise_sets = JSON.parse(JSON.stringify(exSetsCardio));
+        cardioMetrics.sets_done = Object.values(exSetsCardio).reduce((t, s) => t + s.filter(x => x.done).length, 0);
+      }
       logs.push({
         date: today(), weekNumber: currentWeekNumber.value,
         sessionKey: selectedSessionKey.value,
         type: selectedSession.value?.type || 'unknown',
-        rpe, metrics: { ...workoutMetrics.value },
+        rpe, metrics: cardioMetrics,
       });
       localStorage.setItem(STORAGE.wlog(selectedAthlete.value), JSON.stringify(logs));
     }

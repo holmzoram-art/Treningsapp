@@ -143,8 +143,68 @@
           <!-- Øktinnhold -->
           <div v-else-if="displayedWorkout">
 
-            <!-- Strukturerte øvelser (styrke) -->
-            <div v-if="displayedWorkout.exercises">
+            <!-- Strukturerte øvelser (styrke/sirkel) – per-sett logging -->
+            <div v-if="displayedWorkout.exercises_raw" class="ex-set-list">
+              <div v-for="ex in displayedWorkout.exercises_raw" :key="ex.name" class="ex-block">
+                <div class="ex-block-header">
+                  <div class="ex-block-title">
+                    <span class="ex-name">{{ ex.name }}</span>
+                    <span v-if="ex.note" class="ex-note"> – {{ ex.note }}</span>
+                  </div>
+                  <span class="ex-target">{{ ex.sets }}×{{ ex.reps }}</span>
+                </div>
+                <div v-if="previousExerciseSets[ex.name]?.length" class="ex-prev-ref">
+                  Forrige: {{ previousExerciseSets[ex.name].map(s => s.weight ? s.weight + 'kg×' + s.reps : s.reps).join(', ') }}
+                </div>
+                <div class="set-rows">
+                  <div class="set-row-header">
+                    <span class="sr-num">#</span>
+                    <span class="sr-prev">Forrige</span>
+                    <span class="sr-weight">Vekt (kg)</span>
+                    <span class="sr-reps">Reps</span>
+                    <span class="sr-done"></span>
+                  </div>
+                  <div v-for="(s, i) in currentExerciseSets[ex.name]" :key="i"
+                       class="set-row" :class="{ 'set-done': s.done }">
+                    <span class="sr-num">{{ i + 1 }}</span>
+                    <span class="sr-prev">
+                      {{ previousExerciseSets[ex.name]?.[i]
+                         ? (previousExerciseSets[ex.name][i].weight ? previousExerciseSets[ex.name][i].weight + 'kg×' + previousExerciseSets[ex.name][i].reps : previousExerciseSets[ex.name][i].reps)
+                         : '–' }}
+                    </span>
+                    <input class="sr-input" type="number" min="0" step="0.5" v-model.number="s.weight" placeholder="0" :disabled="s.done">
+                    <input class="sr-input" type="number" min="0" step="1"   v-model.number="s.reps"   placeholder="0" :disabled="s.done">
+                    <button class="sr-check" :class="{ checked: s.done }"
+                      @click="s.done = !s.done; s.done && startRestTimer(ex.restSec, ex.name)">
+                      {{ s.done ? '✓' : '○' }}
+                    </button>
+                    <span v-if="s.done && isSetPR(ex.name, s.weight, s.reps)" class="pr-badge-inline">🏆</span>
+                  </div>
+                </div>
+                <button class="rest-start-btn"
+                  :class="{ active: restTimer.active && restTimer.exerciseName === ex.name }"
+                  @click="startRestTimer(ex.restSec, ex.name)">
+                  ⏱ Pause {{ formatRestTime(ex.restSec) }}
+                </button>
+              </div>
+
+              <!-- Rest Timer Bar -->
+              <div v-if="restTimer.active" class="rest-timer-bar">
+                <div class="rest-timer-info">
+                  <span class="rest-timer-name">⏱ Pause etter {{ restTimer.exerciseName }}</span>
+                  <span class="rest-timer-countdown">{{ formatRestTime(restTimer.remaining) }}</span>
+                </div>
+                <div class="rest-timer-track">
+                  <div class="rest-timer-fill"
+                    :style="{ width: Math.round((1 - restTimer.remaining / restTimer.total) * 100) + '%' }">
+                  </div>
+                </div>
+                <button class="rest-cancel-btn" @click="cancelRestTimer">✕ Avbryt</button>
+              </div>
+            </div>
+
+            <!-- Strukturerte øvelser (les kun, ingen per-sett) -->
+            <div v-else-if="displayedWorkout.exercises">
               <table class="ex-table">
                 <thead><tr><th>Øvelse</th><th>Sett</th><th>Rep / Tid</th><th>Vekt</th></tr></thead>
                 <tbody>
@@ -325,11 +385,11 @@
 
         <!-- RPE Logging (cardio) -->
         <div class="log-card" v-if="!isSessionDone(selectedSessionKey)">
-          <h3>Logg økt</h3>
           <div v-if="gpsAvgSpeed && selectedSession?.type === 'intervals'" class="gps-autofill-hint">
             📍 GPS-snittfart {{ gpsAvgSpeed }} km/t lagt inn automatisk – juster om nødvendig
           </div>
-          <div class="log-fields">
+          <!-- Fields only for non-strength sessions (intervals/ocr/recovery); strength uses per-set logging -->
+          <div v-if="selectedSession?.type !== 'strength'" class="log-fields">
             <div v-for="field in logFields" :key="field.key" class="log-field">
               <label>{{ field.label }}</label>
               <div class="log-field-row">
@@ -340,7 +400,7 @@
               </div>
             </div>
           </div>
-          <p class="log-rpe-hint">Trykk RPE for å lagre (1 = veldig lett · 10 = maks):</p>
+          <p class="log-rpe-hint">Hvordan var økta? Trykk RPE for å lagre (1 = veldig lett · 10 = maks):</p>
           <div class="rpe-buttons">
             <button v-for="n in 10" :key="n" class="rpe-btn" :class="rpeClass(n)" @click="saveWorkoutLog(n)">{{ n }}</button>
           </div>
