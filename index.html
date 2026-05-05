@@ -788,11 +788,11 @@
       <div v-if="intervalSpeedLogs.length" class="graph-card">
         <div class="graph-title">⚡ Intervall-fart <span class="graph-unit">km/t</span></div>
         <svg class="sparkline-axis" viewBox="0 0 320 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-          <line x1="40" x2="316" y1="8"  y2="8"  class="graph-grid-line"/>
-          <line x1="40" x2="316" y1="34" y2="34" class="graph-grid-line"/>
+          <line x1="40" x2="316" y1="10" y2="10" class="graph-grid-line"/>
+          <line x1="40" x2="316" y1="35" y2="35" class="graph-grid-line"/>
           <line x1="40" x2="316" y1="60" y2="60" class="graph-grid-line"/>
-          <text x="36" y="12" class="graph-axis-text" text-anchor="end">{{ fmtVal(Math.max(...intervalSpeedLogs.map(l=>l.value))) }}</text>
-          <text x="36" y="38" class="graph-axis-text" text-anchor="end">{{ fmtVal((Math.min(...intervalSpeedLogs.map(l=>l.value))+Math.max(...intervalSpeedLogs.map(l=>l.value)))/2) }}</text>
+          <text x="36" y="14" class="graph-axis-text" text-anchor="end">{{ fmtVal(Math.max(...intervalSpeedLogs.map(l=>l.value))) }}</text>
+          <text x="36" y="39" class="graph-axis-text" text-anchor="end">{{ fmtVal((Math.min(...intervalSpeedLogs.map(l=>l.value))+Math.max(...intervalSpeedLogs.map(l=>l.value)))/2) }}</text>
           <text x="36" y="64" class="graph-axis-text" text-anchor="end">{{ fmtVal(Math.min(...intervalSpeedLogs.map(l=>l.value))) }}</text>
           <text x="40"  y="76" class="graph-axis-text">{{ formatShortDate(intervalSpeedLogs[0].date) }}</text>
           <text x="316" y="76" class="graph-axis-text" text-anchor="end">{{ formatShortDate(intervalSpeedLogs.at(-1).date) }}</text>
@@ -805,11 +805,11 @@
       <div v-if="hangLogs.length" class="graph-card">
         <div class="graph-title">🤸 Dead hang <span class="graph-unit">sek</span></div>
         <svg class="sparkline-axis" viewBox="0 0 320 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-          <line x1="40" x2="316" y1="8"  y2="8"  class="graph-grid-line"/>
-          <line x1="40" x2="316" y1="34" y2="34" class="graph-grid-line"/>
+          <line x1="40" x2="316" y1="10" y2="10" class="graph-grid-line"/>
+          <line x1="40" x2="316" y1="35" y2="35" class="graph-grid-line"/>
           <line x1="40" x2="316" y1="60" y2="60" class="graph-grid-line"/>
-          <text x="36" y="12" class="graph-axis-text" text-anchor="end">{{ fmtVal(Math.max(...hangLogs.map(l=>l.value))) }}</text>
-          <text x="36" y="38" class="graph-axis-text" text-anchor="end">{{ fmtVal((Math.min(...hangLogs.map(l=>l.value))+Math.max(...hangLogs.map(l=>l.value)))/2) }}</text>
+          <text x="36" y="14" class="graph-axis-text" text-anchor="end">{{ fmtVal(Math.max(...hangLogs.map(l=>l.value))) }}</text>
+          <text x="36" y="39" class="graph-axis-text" text-anchor="end">{{ fmtVal((Math.min(...hangLogs.map(l=>l.value))+Math.max(...hangLogs.map(l=>l.value)))/2) }}</text>
           <text x="36" y="64" class="graph-axis-text" text-anchor="end">{{ fmtVal(Math.min(...hangLogs.map(l=>l.value))) }}</text>
           <text x="40"  y="76" class="graph-axis-text">{{ formatShortDate(hangLogs[0].date) }}</text>
           <text x="316" y="76" class="graph-axis-text" text-anchor="end">{{ formatShortDate(hangLogs.at(-1).date) }}</text>
@@ -822,11 +822,11 @@
       <div v-if="ocrRoundsLogs.length" class="graph-card">
         <div class="graph-title">🔄 OCR-runder <span class="graph-unit">runder</span></div>
         <svg class="sparkline-axis" viewBox="0 0 320 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-          <line x1="40" x2="316" y1="8"  y2="8"  class="graph-grid-line"/>
-          <line x1="40" x2="316" y1="34" y2="34" class="graph-grid-line"/>
+          <line x1="40" x2="316" y1="10" y2="10" class="graph-grid-line"/>
+          <line x1="40" x2="316" y1="35" y2="35" class="graph-grid-line"/>
           <line x1="40" x2="316" y1="60" y2="60" class="graph-grid-line"/>
-          <text x="36" y="12" class="graph-axis-text" text-anchor="end">{{ fmtVal(Math.max(...ocrRoundsLogs.map(l=>l.value))) }}</text>
-          <text x="36" y="38" class="graph-axis-text" text-anchor="end">{{ fmtVal((Math.min(...ocrRoundsLogs.map(l=>l.value))+Math.max(...ocrRoundsLogs.map(l=>l.value)))/2) }}</text>
+          <text x="36" y="14" class="graph-axis-text" text-anchor="end">{{ fmtVal(Math.max(...ocrRoundsLogs.map(l=>l.value))) }}</text>
+          <text x="36" y="39" class="graph-axis-text" text-anchor="end">{{ fmtVal((Math.min(...ocrRoundsLogs.map(l=>l.value))+Math.max(...ocrRoundsLogs.map(l=>l.value)))/2) }}</text>
           <text x="36" y="64" class="graph-axis-text" text-anchor="end">{{ fmtVal(Math.min(...ocrRoundsLogs.map(l=>l.value))) }}</text>
           <text x="40"  y="76" class="graph-axis-text">{{ formatShortDate(ocrRoundsLogs[0].date) }}</text>
           <text x="316" y="76" class="graph-axis-text" text-anchor="end">{{ formatShortDate(ocrRoundsLogs.at(-1).date) }}</text>
@@ -844,11 +844,11 @@
             <span class="graph-subtitle">{{ ex.entries.at(-1).weight }}kg × {{ ex.entries.at(-1).reps }}</span>
           </div>
           <svg class="sparkline-axis" viewBox="0 0 320 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-            <line x1="40" x2="316" y1="8"  y2="8"  class="graph-grid-line"/>
-            <line x1="40" x2="316" y1="34" y2="34" class="graph-grid-line"/>
+            <line x1="40" x2="316" y1="10" y2="10" class="graph-grid-line"/>
+            <line x1="40" x2="316" y1="35" y2="35" class="graph-grid-line"/>
             <line x1="40" x2="316" y1="60" y2="60" class="graph-grid-line"/>
-            <text x="36" y="12" class="graph-axis-text" text-anchor="end">{{ fmtVal(Math.max(...ex.entries.map(e=>e.weight))) }}</text>
-            <text x="36" y="38" class="graph-axis-text" text-anchor="end">{{ fmtVal((Math.min(...ex.entries.map(e=>e.weight))+Math.max(...ex.entries.map(e=>e.weight)))/2) }}</text>
+            <text x="36" y="14" class="graph-axis-text" text-anchor="end">{{ fmtVal(Math.max(...ex.entries.map(e=>e.weight))) }}</text>
+            <text x="36" y="39" class="graph-axis-text" text-anchor="end">{{ fmtVal((Math.min(...ex.entries.map(e=>e.weight))+Math.max(...ex.entries.map(e=>e.weight)))/2) }}</text>
             <text x="36" y="64" class="graph-axis-text" text-anchor="end">{{ fmtVal(Math.min(...ex.entries.map(e=>e.weight))) }}</text>
             <text x="40"  y="76" class="graph-axis-text">{{ formatShortDate(ex.entries[0].date) }}</text>
             <text x="316" y="76" class="graph-axis-text" text-anchor="end">{{ formatShortDate(ex.entries.at(-1).date) }}</text>

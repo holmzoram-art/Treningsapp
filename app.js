@@ -1292,24 +1292,30 @@ createApp({
     }
 
     // SVG coordinate system: viewBox "0 0 320 80"
-    // Graph area: x 40–316 (drawW=276), y 8–60 (drawH=52). Grid lines at y=8,34,60.
-    function sparkPoints(data, drawW = 276, drawH = 52, xOff = 40, yOff = 8) {
+    // Graph area: x 40–316 (drawW=276), y 10–60 (drawH=50). Grid lines at y=10,35,60.
+    // Y scale: adds 10% padding below min so small variations don't fill the full height.
+    function graphScale(vals) {
+      const max = Math.max(...vals);
+      const dataMin = Math.min(...vals);
+      const padding = (max - dataMin) * 0.15 || max * 0.05 || 1;
+      const min = dataMin - padding;
+      return { min, max, range: max - min || 1 };
+    }
+    function sparkPoints(data, drawW = 276, drawH = 50, xOff = 40, yOff = 10) {
       if (!data.length) return '';
-      const vals = data.map(d => d.value);
-      const min = Math.min(...vals), max = Math.max(...vals), range = max - min || 1;
+      const { min, range } = graphScale(data.map(d => d.value));
       return data.map((d, i) => {
         const x = xOff + (data.length === 1 ? drawW / 2 : (i / (data.length - 1)) * drawW);
-        const y = yOff + 4 + (drawH - 8) * (1 - (d.value - min) / range);
+        const y = yOff + drawH * (1 - (d.value - min) / range);
         return `${x.toFixed(1)},${y.toFixed(1)}`;
       }).join(' ');
     }
-    function sparkDots(data, drawW = 276, drawH = 52, xOff = 40, yOff = 8) {
+    function sparkDots(data, drawW = 276, drawH = 50, xOff = 40, yOff = 10) {
       if (!data.length) return [];
-      const vals = data.map(d => d.value);
-      const min = Math.min(...vals), max = Math.max(...vals), range = max - min || 1;
+      const { min, range } = graphScale(data.map(d => d.value));
       return data.map((d, i) => {
         const x = xOff + (data.length === 1 ? drawW / 2 : (i / (data.length - 1)) * drawW);
-        const y = yOff + 4 + (drawH - 8) * (1 - (d.value - min) / range);
+        const y = yOff + drawH * (1 - (d.value - min) / range);
         return { x: +x.toFixed(1), y: +y.toFixed(1), value: d.value, date: d.date };
       });
     }
