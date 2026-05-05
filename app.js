@@ -840,7 +840,6 @@ createApp({
       if (!circuit?.length) return [];
       return circuit.map((step, i) => parseCircuitStep(step, i));
     });
-    });
 
     const displayedTitle = computed(() =>
       selectedStrengthDay.value?.title || selectedSession.value?.title
