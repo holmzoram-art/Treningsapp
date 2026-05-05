@@ -910,7 +910,7 @@ main { padding: 16px; max-width: 600px; margin: 0 auto; }
 
 .set-row-header {
   display: grid;
-  grid-template-columns: 24px 1fr 70px 55px 36px;
+  grid-template-columns: 24px 1fr 70px 55px 36px 28px;
   gap: 6px;
   font-size: 0.72rem;
   color: var(--text2);
@@ -921,7 +921,7 @@ main { padding: 16px; max-width: 600px; margin: 0 auto; }
 
 .set-row {
   display: grid;
-  grid-template-columns: 24px 1fr 70px 55px 36px;
+  grid-template-columns: 24px 1fr 70px 55px 36px 28px;
   gap: 6px;
   align-items: center;
   padding: 4px 2px;
@@ -964,6 +964,39 @@ main { padding: 16px; max-width: 600px; margin: 0 auto; }
   justify-content: center;
 }
 .sr-check.checked { background: var(--green); border-color: var(--green); color: #fff; }
+
+.sr-remove {
+  background: transparent;
+  border: none;
+  color: var(--text2);
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.sr-remove:hover:not(:disabled) { background: rgba(244,67,54,0.15); color: var(--red); }
+.sr-remove:disabled { opacity: 0.2; cursor: not-allowed; }
+
+.add-set-btn {
+  margin-top: 8px;
+  background: transparent;
+  border: 1.5px dashed var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text2);
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 6px 14px;
+  cursor: pointer;
+  width: 100%;
+  transition: all 0.15s;
+}
+.add-set-btn:hover { border-color: var(--accent); color: var(--accent); }
 
 .pr-badge-inline {
   font-size: 0.85rem;

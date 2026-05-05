@@ -463,6 +463,7 @@
                   <span class="sr-weight">Vekt (kg)</span>
                   <span class="sr-reps">Reps</span>
                   <span class="sr-done"></span>
+                  <span class="sr-del"></span>
                 </div>
                 <div v-for="(s, i) in currentExerciseSets[ex.name]" :key="i"
                      class="set-row" :class="{ 'set-done': s.done }">
@@ -478,9 +479,16 @@
                     @click="s.done = !s.done; s.done && startRestTimer(ex.restSec, ex.name)">
                     {{ s.done ? '✓' : '○' }}
                   </button>
+                  <button class="sr-remove"
+                    :disabled="currentExerciseSets[ex.name].length <= 1"
+                    @click="currentExerciseSets[ex.name].splice(i, 1)">×</button>
                   <span v-if="s.done && isSetPR(ex.name, s.weight, s.reps)" class="pr-badge-inline">🏆</span>
                 </div>
               </div>
+              <button class="add-set-btn"
+                @click="currentExerciseSets[ex.name].push({ weight: currentExerciseSets[ex.name].at(-1)?.weight ?? 0, reps: currentExerciseSets[ex.name].at(-1)?.reps ?? 0, done: false })">
+                + Sett
+              </button>
 
               <!-- Pause-knapp og timer -->
               <button class="rest-start-btn"
