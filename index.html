@@ -362,6 +362,32 @@
             <div v-if="displayedWorkout.note" class="session-note">ℹ️ {{ displayedWorkout.note }}</div>
           </div>
 
+          <!-- OUTDOOR GPS + KART -->
+          <div v-if="isOutdoor" class="outdoor-gps-panel">
+            <button v-if="!gpsEnabled" class="gps-toggle-btn" @click="toggleGps">
+              📍 Aktiver GPS-sporing
+            </button>
+            <div v-show="gpsEnabled">
+              <div class="gps-stats">
+                <div class="gps-stat">
+                  <div class="gps-val">{{ gpsSpeed != null ? gpsSpeed + ' km/t' : '–' }}</div>
+                  <div class="gps-lbl">Fart</div>
+                </div>
+                <div class="gps-stat">
+                  <div class="gps-val">{{ formatDist(gpsDistance) }}</div>
+                  <div class="gps-lbl">Distanse</div>
+                </div>
+                <div class="gps-stat">
+                  <div class="gps-val">{{ formatPace(gpsPace) }}</div>
+                  <div class="gps-lbl">Tempo</div>
+                </div>
+                <div class="gps-dot" :class="{ active: gpsActive }">{{ gpsActive ? '● GPS' : '○ Søker…' }}</div>
+                <button class="gps-off-btn" @click="toggleGps" title="Slå av GPS">✕</button>
+              </div>
+              <div id="gps-map" class="gps-map"></div>
+            </div>
+          </div>
+
           <!-- ── INTERVALLTIMER ── -->
           <div v-if="showTimer" class="timer-wrap">
 
@@ -431,29 +457,6 @@
                 <button class="timer-btn mute-btn" :class="{ muted: audioMuted }" @click="audioMuted = !audioMuted">
                   {{ audioMuted ? '🔇' : '🔊' }}
                 </button>
-              </div>
-
-              <!-- GPS panel -->
-              <div class="gps-panel">
-                <button v-if="!gpsEnabled" class="gps-toggle-btn" @click="toggleGps">
-                  📍 Aktiver GPS-sporing
-                </button>
-                <div v-else class="gps-stats">
-                  <div class="gps-stat">
-                    <div class="gps-val">{{ gpsSpeed != null ? gpsSpeed + ' km/t' : '–' }}</div>
-                    <div class="gps-lbl">Fart</div>
-                  </div>
-                  <div class="gps-stat">
-                    <div class="gps-val">{{ formatDist(gpsDistance) }}</div>
-                    <div class="gps-lbl">Distanse</div>
-                  </div>
-                  <div class="gps-stat">
-                    <div class="gps-val">{{ formatPace(gpsPace) }}</div>
-                    <div class="gps-lbl">Tempo</div>
-                  </div>
-                  <div class="gps-dot" :class="{ active: gpsActive }">{{ gpsActive ? '● GPS' : '○ Søker…' }}</div>
-                  <button class="gps-off-btn" @click="toggleGps" title="Slå av GPS">✕</button>
-                </div>
               </div>
             </div>
           </div>
@@ -1104,6 +1107,7 @@
   </div>
 
   <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <script src="config.js"></script>
   <script src="data/athletes.js"></script>
   <script src="data/levels.js"></script>
   <script src="data/program.js"></script>

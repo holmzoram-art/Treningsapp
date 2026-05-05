@@ -1,4 +1,4 @@
-const { createApp, ref, computed, watch, onMounted } = Vue;
+const { createApp, ref, computed, watch, onMounted, nextTick } = Vue;
 
 const SESSION_LOG_FIELDS = {
   intervals: [
@@ -478,8 +478,51 @@ createApp({
     const gpsDistance = ref(0);
     const gpsPace = ref(null);
     const gpsSpeedSamples = ref([]);
+    const mapsApiReady = ref(false);
     let _gpsWatchId = null;
     let _gpsLastPos = null;
+    let _mapObj = null;
+    let _mapPolyline = null;
+    let _mapMarker = null;
+    let _mapInitialized = false;
+
+    window.__mapsReady = () => { mapsApiReady.value = true; };
+
+    function loadMapsScript() {
+      if (window.google?.maps || document.getElementById('gmap-script')) return;
+      const s = document.createElement('script');
+      s.id = 'gmap-script';
+      s.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&callback=__mapsReady`;
+      s.async = true;
+      document.head.appendChild(s);
+    }
+
+    function initMap(lat, lng) {
+      if (_mapInitialized || !window.google?.maps) return;
+      const el = document.getElementById('gps-map');
+      if (!el) return;
+      _mapObj = new google.maps.Map(el, {
+        center: { lat, lng }, zoom: 16,
+        mapTypeId: 'roadmap', disableDefaultUI: true,
+        zoomControl: true, gestureHandling: 'greedy',
+      });
+      _mapMarker = new google.maps.Marker({
+        position: { lat, lng }, map: _mapObj,
+        icon: { path: google.maps.SymbolPath.CIRCLE, scale: 8, fillColor: '#2196F3', fillOpacity: 1, strokeColor: '#fff', strokeWeight: 2 },
+      });
+      _mapPolyline = new google.maps.Polyline({
+        path: [], geodesic: true, strokeColor: '#2196F3', strokeOpacity: 0.9, strokeWeight: 4, map: _mapObj,
+      });
+      _mapInitialized = true;
+    }
+
+    function updateMap(lat, lng) {
+      if (!_mapObj || !_mapMarker || !_mapPolyline) return;
+      const pos = { lat, lng };
+      _mapMarker.setPosition(pos);
+      _mapObj.panTo(pos);
+      _mapPolyline.getPath().push(new google.maps.LatLng(lat, lng));
+    }
 
     const gpsAvgSpeed = computed(() => {
       const s = gpsSpeedSamples.value.filter(v => v > 0.5);
@@ -498,6 +541,7 @@ createApp({
       if (!navigator.geolocation) return;
       gpsDistance.value = 0; _gpsLastPos = null; gpsActive.value = false;
       gpsSpeedSamples.value = [];
+      _mapInitialized = false; _mapObj = null; _mapPolyline = null; _mapMarker = null;
       _gpsWatchId = navigator.geolocation.watchPosition(
         (pos) => {
           const { latitude: lat, longitude: lng, speed } = pos.coords;
@@ -512,6 +556,8 @@ createApp({
             gpsPace.value = Math.round(3600 / gpsSpeed.value);
             if (timerState.value === 'work') gpsSpeedSamples.value.push(gpsSpeed.value);
           }
+          if (!_mapInitialized) nextTick(() => initMap(lat, lng));
+          else updateMap(lat, lng);
         },
         () => { gpsActive.value = false; },
         { enableHighAccuracy: true, maximumAge: 1000, timeout: 15000 }
@@ -1763,6 +1809,7 @@ createApp({
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('sw.js').catch(() => {});
       }
+      loadMapsScript();
     });
 
     watch(dagsform, (v) => localStorage.setItem(STORAGE.dagsform, v));
@@ -1807,7 +1854,7 @@ createApp({
       timerState, timerPhase, timerSec, timerResults, timerConfig, timerEditing,
       timerPct, isPaused, showTimer,
       audioMuted,
-      gpsEnabled, gpsActive, gpsSpeed, gpsDistance, gpsPace, gpsAvgSpeed,
+      gpsEnabled, gpsActive, gpsSpeed, gpsDistance, gpsPace, gpsAvgSpeed, mapsApiReady,
       formatSec, formatPace, formatDist,
       startTimer, endIntervalEarly, pauseTimer, resetTimer, toggleGps,
       // methods
