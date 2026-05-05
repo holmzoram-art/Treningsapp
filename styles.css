@@ -1172,3 +1172,70 @@ main { padding: 16px; max-width: 600px; margin: 0 auto; }
   border: 1px solid var(--border);
 }
 .hc-set-chip.set-chip-done { border-color: var(--green); color: var(--green); }
+
+/* ── Circuit step cards (OCR) ──────────────────────────────────────────── */
+.circuit-step-cards { display: flex; flex-direction: column; gap: 8px; }
+
+.circuit-step-card {
+  background: var(--card2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.csc-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.csc-arrow {
+  color: var(--accent);
+  font-size: 0.95rem;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.csc-desc {
+  font-size: 0.82rem;
+  color: var(--text2);
+  line-height: 1.4;
+}
+
+.csc-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+}
+
+.csc-field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 80px;
+}
+.csc-label {
+  font-size: 0.72rem;
+  color: var(--text2);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.csc-input-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.csc-input {
+  width: 64px;
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 0.95rem;
+  font-weight: 600;
+  padding: 4px 6px;
+  text-align: right;
+}
+.csc-input:focus { border-color: var(--accent); outline: none; }
+.csc-input-text { width: 100px; text-align: left; font-weight: 400; }
+.csc-unit { font-size: 0.78rem; color: var(--text2); white-space: nowrap; }

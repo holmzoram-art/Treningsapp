@@ -262,32 +262,43 @@
               </div>
             </div>
 
-            <!-- OCR-circuit -->
-            <div v-if="displayedWorkout.circuit" class="circuit-list">
+            <!-- OCR-circuit: per-steg loggkort -->
+            <div v-if="circuitStepCards.length" class="circuit-step-cards">
               <div v-if="displayedWorkout.rounds" class="rounds-badge">{{ displayedWorkout.rounds }} runder</div>
-              <div v-for="(step, i) in displayedWorkout.circuit" :key="step" class="circuit-step">
+              <div v-for="(card, i) in circuitStepCards" :key="i" class="circuit-step-card">
+                <div class="csc-header">
+                  <span class="csc-arrow">→</span>
+                  <span class="csc-desc">{{ card.stepText }}</span>
+                </div>
+                <div class="csc-fields">
+                  <div v-for="f in card.fields" :key="f.key" class="csc-field">
+                    <label class="csc-label">{{ f.label }}</label>
+                    <div class="csc-input-row">
+                      <input v-if="f.unit !== ''"
+                        type="number" v-model.number="workoutMetrics[f.key]"
+                        :step="f.step || 1" placeholder="–" class="csc-input">
+                      <input v-else
+                        type="text" v-model="workoutMetrics[f.key]"
+                        placeholder="–" class="csc-input csc-input-text">
+                      <span v-if="f.unit" class="csc-unit">{{ f.unit }}</span>
+                      <button v-if="f.isTimed" class="inline-timer-btn"
+                        :class="{ timing: workTimer.active && workTimer.exName === f.key }"
+                        @click="workTimer.active && workTimer.exName === f.key ? cancelWorkTimer() : startWorkTimer(workoutMetrics[f.key] || f.defaultVal || 60, f.key, -1, 0)">
+                        {{ workTimer.active && workTimer.exName === f.key ? workTimer.remaining + 's' : '▶' }}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div v-if="displayedWorkout.rest" class="rest-info">⏱ {{ displayedWorkout.rest }}</div>
+            </div>
+
+            <!-- Fallback: vis circuit som tekst hvis ingen kort -->
+            <div v-else-if="displayedWorkout.circuit" class="circuit-list">
+              <div v-if="displayedWorkout.rounds" class="rounds-badge">{{ displayedWorkout.rounds }} runder</div>
+              <div v-for="step in displayedWorkout.circuit" :key="step" class="circuit-step">
                 <span class="arrow">→</span>
                 <span class="step-desc">{{ step }}</span>
-                <span v-if="/burpee/i.test(step)" class="inline-metric">
-                  <input type="number" v-model.number="workoutMetrics.burpees_done" class="inline-metric-input" min="0" placeholder="–">
-                  <span class="inline-metric-unit">gjort</span>
-                </span>
-                <span v-else-if="/hang/i.test(step)" class="inline-metric">
-                  <input type="number" v-model.number="workoutMetrics.hang_sec" class="inline-metric-input" min="0" placeholder="–">
-                  <span class="inline-metric-unit">sek</span>
-                  <button class="inline-timer-btn"
-                    :class="{ timing: workTimer.active && workTimer.exName === 'ocr_hang' }"
-                    @click="workTimer.active && workTimer.exName === 'ocr_hang' ? cancelWorkTimer() : startWorkTimer(workoutMetrics.hang_sec || 45, 'ocr_hang', -1, 0)">
-                    {{ workTimer.active && workTimer.exName === 'ocr_hang' ? workTimer.remaining + 's' : '▶' }}
-                  </button>
-                </span>
-                <span v-else-if="/carry/i.test(step)" class="inline-metric">
-                  <input type="number" v-model.number="workoutMetrics.carry_kg" class="inline-metric-input" min="0" step="0.5" placeholder="–">
-                  <span class="inline-metric-unit">kg</span>
-                </span>
-                <span v-else class="inline-metric">
-                  <input type="text" v-model="workoutMetrics['step_note_' + i]" class="inline-metric-input inline-metric-text" placeholder="faktisk">
-                </span>
               </div>
               <div v-if="displayedWorkout.rest" class="rest-info">⏱ {{ displayedWorkout.rest }}</div>
             </div>

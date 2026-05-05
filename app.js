@@ -769,6 +769,53 @@ createApp({
       return cards;
     });
 
+    // ── PER-STEP LOGGING (OCR circuit) ────────────────────────────────────
+    function parseCircuitStep(stepText, idx) {
+      const t = stepText;
+      const p = 'cs' + idx + '_';
+      const mid = (a, b) => b != null ? Math.round(((+a + +b) / 2) * 10) / 10 : +a;
+      const distM = t.match(/(\d+)(?:–(\d+))?\s*m(?!\w)/i);
+      const inclM = t.match(/(\d+(?:\.\d+)?)(?:–(\d+(?:\.\d+)?))?\s*%/);
+      const spdM  = t.match(/(\d+(?:\.\d+)?)(?:–(\d+(?:\.\d+)?))?\s*km\/?t/i);
+      const sekM  = t.match(/(\d+)(?:–(\d+))?\s*sek/i);
+      const kgM   = t.match(/(\d+(?:\.\d+)?)(?:–(\d+(?:\.\d+)?))?\s*kg/);
+      const fields = [];
+      if (/hang/i.test(t)) {
+        fields.push({ key: p+'sek', label: 'Hang', unit: 'sek', step: 5,
+          defaultVal: sekM ? mid(sekM[1], sekM[2]) : 60, isTimed: true });
+      } else if (/carry/i.test(t)) {
+        if (distM) fields.push({ key: p+'dist', label: 'Distanse', unit: 'm', step: 10, defaultVal: mid(distM[1], distM[2]) });
+        else if (sekM) fields.push({ key: p+'sek', label: 'Tid', unit: 'sek', step: 5, defaultVal: mid(sekM[1], sekM[2]) });
+        fields.push({ key: p+'kg', label: 'Vekt', unit: 'kg', step: 2.5, defaultVal: kgM ? mid(kgM[1], kgM[2]) : null });
+      } else if (distM && (inclM || spdM)) {
+        fields.push({ key: p+'dist', label: 'Distanse', unit: 'm', step: 50, defaultVal: mid(distM[1], distM[2]) });
+        if (inclM) fields.push({ key: p+'incl', label: 'Stigning', unit: '%',    step: 0.5, defaultVal: mid(inclM[1], inclM[2]) });
+        if (spdM)  fields.push({ key: p+'spd',  label: 'Fart',     unit: 'km/t', step: 0.1, defaultVal: mid(spdM[1], spdM[2]) });
+      } else {
+        // Count-based: "10 burpees", "10 burpees + 10 goblet squats", etc.
+        const parts = t.split(/\s*\+\s*/);
+        for (const [j, part] of parts.entries()) {
+          const cM = part.trim().match(/^(\d+)\s+(.+)/);
+          if (cM) {
+            const raw = cM[2].trim();
+            const label = raw.charAt(0).toUpperCase() + raw.slice(1);
+            fields.push({ key: p+'reps'+j, label, unit: 'stk', integer: true, defaultVal: +cM[1] });
+            const kgPartM = part.match(/\((\d+(?:\.\d+)?)\s*kg\)/);
+            if (kgPartM) fields.push({ key: p+'kg'+j, label: 'Vekt', unit: 'kg', step: 2.5, defaultVal: +kgPartM[1] });
+          }
+        }
+        if (!fields.length) fields.push({ key: p+'note', label: t, unit: '', defaultVal: null });
+      }
+      return { stepText: t, fields };
+    }
+
+    const circuitStepCards = computed(() => {
+      const circuit = displayedWorkout.value?.circuit;
+      if (!circuit?.length) return [];
+      return circuit.map((step, i) => parseCircuitStep(step, i));
+    });
+    });
+
     const displayedTitle = computed(() =>
       selectedStrengthDay.value?.title || selectedSession.value?.title
     );
@@ -855,12 +902,14 @@ createApp({
         if (inclM) m.incline_pct = inclM[2] ? Math.round((+inclM[1] + +inclM[2]) / 2) : +inclM[1];
       } else if (type === 'ocr') {
         if (workout?.rounds) m.rounds_done = workout.rounds;
-        const hangStep = workout?.circuit?.find(s => /hang/i.test(s));
-        if (hangStep) { const hm = hangStep.match(/(\d+)(?:–(\d+))?/); if (hm) m.hang_sec = hm[2] ? Math.round((+hm[1] + +hm[2]) / 2) : +hm[1]; }
-        const carryStep = workout?.circuit?.find(s => /carry/i.test(s));
-        if (carryStep) { const cm = carryStep.match(/(\d+\.?\d*)\s*kg/); if (cm) m.carry_kg = +cm[1]; }
-        const burpeeStep = workout?.circuit?.find(s => /burpee/i.test(s));
-        if (burpeeStep) { const bm = burpeeStep.match(/(\d+)/); if (bm) m.burpees_done = +bm[1]; }
+        // Prefill per-step fields from circuit
+        if (workout?.circuit) {
+          workout.circuit.forEach((step, i) => {
+            parseCircuitStep(step, i).fields.forEach(f => {
+              if (f.defaultVal != null) m[f.key] = f.defaultVal;
+            });
+          });
+        }
       } else if (type === 'strength') {
         // program.js strength sessions are circuits — prefill rounds from session data
         if (session.common?.rounds != null) {
@@ -983,6 +1032,17 @@ createApp({
         if (sets != null) cardioMetrics.sets_done = sets;
         const incl = cardioMetrics.p1_incl ?? cardioMetrics.opt0_incl;
         if (incl != null) cardioMetrics.incline_pct = incl;
+      }
+      // Compute backward-compat fields from circuit step cards (for Fremgang graphs)
+      if (circuitStepCards.value.length) {
+        const circuit = displayedWorkout.value?.circuit || [];
+        circuit.forEach((step, i) => {
+          const p = 'cs' + i + '_';
+          if (/hang/i.test(step)   && cardioMetrics[p+'sek']  != null) cardioMetrics.hang_sec     = cardioMetrics[p+'sek'];
+          if (/carry/i.test(step)  && cardioMetrics[p+'kg']   != null) cardioMetrics.carry_kg      = cardioMetrics[p+'kg'];
+          if (/carry/i.test(step)  && cardioMetrics[p+'dist'] != null) cardioMetrics.carry_dist_m  = cardioMetrics[p+'dist'];
+          if (/burpee/i.test(step) && cardioMetrics[p+'reps0']!= null) cardioMetrics.burpees_done  = cardioMetrics[p+'reps0'];
+        });
       }
       if (hasExSets) {
         cardioMetrics.exercise_sets = JSON.parse(JSON.stringify(exSetsCardio));
@@ -1558,7 +1618,7 @@ createApp({
       testTypes, testPlaceholder, selectedTestType, testHistory, testReminders,
       athleteLevels, upcomingTests, testCalendar,
       equipment, currentAthleteName,
-      logFields, activityCards, workoutLogs, intervalSpeedLogs, intervalLogs, hangLogs, ocrRoundsLogs, recoveryLogs, strengthLogs,
+      logFields, activityCards, circuitStepCards, workoutLogs, intervalSpeedLogs, intervalLogs, hangLogs, ocrRoundsLogs, recoveryLogs, strengthLogs,
       historikkEntries, historikkByWeek, TYPE_ICON, TYPE_LABEL,
       SESSION_LOG_FIELDS, seedStatus,
       seedHistoricalData,
