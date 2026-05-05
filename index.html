@@ -76,39 +76,47 @@
         <span v-if="currentWeek?.isDeload" class="deload-badge">Deload</span>
       </div>
 
-      <!-- Økt-velger -->
-      <div class="session-picker">
-        <button
-          v-for="(dayLabel, dayKey) in weekDays"
-          :key="dayKey"
-          class="picker-btn"
-          :class="[currentWeek?.sessions?.[dayKey]?.type, { active: selectedSessionKey === dayKey, done: isSessionDone(dayKey) }]"
-          :disabled="!currentWeek?.sessions?.[dayKey]"
-          @click="selectSession(dayKey)"
-        >
-          <div class="picker-header">
-            <span class="picker-title">{{ currentWeek?.sessions?.[dayKey]?.title || '–' }}</span>
-            <span class="picker-check" v-if="isSessionDone(dayKey)">✓</span>
-          </div>
-          <span class="picker-summary">{{ currentWeek?.sessions?.[dayKey]?.summary }}</span>
-        </button>
-      </div>
-
-      <!-- Styrkeøkt-velger -->
-      <div class="strength-picker-wrap">
-        <div class="strength-picker-label">Styrkeøkt:</div>
-        <div class="strength-picker">
+      <!-- Økt-velger: skjules når en økt er valgt -->
+      <template v-if="!selectedSessionKey && !selectedStrengthKey">
+        <div class="session-picker">
           <button
-            v-for="(day, key) in { monday: 'Pull + Bein', wednesday: 'Push + Bein', friday: 'Helkropp' }"
-            :key="key"
-            class="strength-picker-btn"
-            :class="{ active: selectedStrengthKey === key, done: isStrengthDone(key) }"
-            @click="selectStrengthSession(key)"
+            v-for="(dayLabel, dayKey) in weekDays"
+            :key="dayKey"
+            class="picker-btn"
+            :class="[currentWeek?.sessions?.[dayKey]?.type, { active: selectedSessionKey === dayKey, done: isSessionDone(dayKey) }]"
+            :disabled="!currentWeek?.sessions?.[dayKey]"
+            @click="selectSession(dayKey)"
           >
-            <span class="sp-title">{{ day }}</span>
-            <span class="sp-check" v-if="isStrengthDone(key)">✓</span>
+            <div class="picker-header">
+              <span class="picker-title">{{ currentWeek?.sessions?.[dayKey]?.title || '–' }}</span>
+              <span class="picker-check" v-if="isSessionDone(dayKey)">✓</span>
+            </div>
+            <span class="picker-summary">{{ currentWeek?.sessions?.[dayKey]?.summary }}</span>
           </button>
         </div>
+
+        <!-- Styrkeøkt-velger -->
+        <div class="strength-picker-wrap">
+          <div class="strength-picker-label">Styrkeøkt:</div>
+          <div class="strength-picker">
+            <button
+              v-for="(day, key) in { monday: 'Pull + Bein', wednesday: 'Push + Bein', friday: 'Helkropp' }"
+              :key="key"
+              class="strength-picker-btn"
+              :class="{ active: selectedStrengthKey === key, done: isStrengthDone(key) }"
+              @click="selectStrengthSession(key)"
+            >
+              <span class="sp-title">{{ day }}</span>
+              <span class="sp-check" v-if="isStrengthDone(key)">✓</span>
+            </button>
+          </div>
+        </div>
+      </template>
+
+      <!-- Tilbakeknapp når økt er valgt -->
+      <div v-else class="session-back-bar">
+        <button class="back-btn" @click="selectedSessionKey = null; selectedStrengthKey = null">← Tilbake</button>
+        <span class="back-session-title">{{ displayedTitle }}</span>
       </div>
 
       <!-- Ingen økt valgt -->
@@ -728,27 +736,22 @@
           Uke {{ week.weekNumber }} &middot; {{ week.entries.length }} {{ week.entries.length === 1 ? 'økt' : 'økter' }}
         </div>
 
-        <div v-for="entry in week.entries" :key="entry.date + entry.sessionKey" class="history-card">
-          <div class="hc-left">
+        <details v-for="entry in week.entries" :key="entry.date + entry.sessionKey" class="history-card">
+          <summary class="hc-summary">
             <span class="hc-icon">{{ entry.icon }}</span>
-          </div>
-          <div class="hc-body">
-            <div class="hc-top">
+            <div class="hc-summary-body">
               <span class="hc-title">{{ entry.title }}</span>
               <span class="hc-date">{{ formatShortDate(entry.date) }}</span>
             </div>
+            <span class="hc-rpe" :class="'rpe-' + (entry.rpe <= 4 ? 'low' : entry.rpe <= 7 ? 'mid' : 'high')">RPE {{ entry.rpe }}</span>
+          </summary>
+          <div class="hc-body">
             <div class="hc-stats">
               <span v-if="entry.keyMetric" class="hc-stat">{{ entry.keyMetric }}</span>
               <span v-if="entry.keyMetricLabel" class="hc-stat">{{ entry.keyMetricLabel }}</span>
-              <span class="hc-rpe" :class="'rpe-' + (entry.rpe <= 4 ? 'low' : entry.rpe <= 7 ? 'mid' : 'high')">
-                RPE {{ entry.rpe }}
-              </span>
+              <span v-if="entry.metrics?.duration_min" class="hc-stat">{{ entry.metrics.duration_min }} min</span>
             </div>
-            <div v-if="entry.prs.length" class="hc-prs">
-              🏆 3RM-rekord: {{ entry.prs.join(', ') }}
-            </div>
-
-            <!-- Styrke: per-øvelse sett-detaljer -->
+            <div v-if="entry.prs.length" class="hc-prs">🏆 3RM-rekord: {{ entry.prs.join(', ') }}</div>
             <details v-if="entry.type === 'strength' && entry.metrics?.exercise_sets" class="hc-sets-detail">
               <summary>Vis sett</summary>
               <div v-for="(sets, exName) in entry.metrics.exercise_sets" :key="exName" class="hc-ex-sets">
@@ -761,7 +764,7 @@
               </div>
             </details>
           </div>
-        </div>
+        </details>
       </div>
     </main>
 
@@ -800,7 +803,7 @@
           &nbsp;·&nbsp;Beste: <strong>{{ Math.max(...intervalLoadLogs.map(l=>l.value)) }}</strong>
           &nbsp;·&nbsp;{{ intervalLoadLogs.at(-1).sets }} drag @ {{ intervalLoadLogs.at(-1).speed }} km/t
         </div>
-        <svg class="sparkline-bar" viewBox="0 0 300 90" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <svg class="sparkline-bar" viewBox="0 0 300 90" xmlns="http://www.w3.org/2000/svg">
           <line x1="16" x2="284" y1="73" y2="73" class="graph-grid-line"/>
           <line x1="16" x2="284" y1="8"  y2="8"  class="graph-grid-line" opacity="0.4"/>
           <g v-for="(b, i) in barChart(intervalLoadLogs)" :key="i">
@@ -821,7 +824,7 @@
       <!-- Dead hang -->
       <div v-if="hangLogs.length" class="graph-card">
         <div class="graph-title">🤸 Dead hang <span class="graph-unit">sek</span></div>
-        <svg class="sparkline-axis" viewBox="0 0 320 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <svg class="sparkline-axis" viewBox="0 0 320 80" xmlns="http://www.w3.org/2000/svg">
           <line x1="40" x2="316" y1="10" y2="10" class="graph-grid-line"/>
           <line x1="40" x2="316" y1="35" y2="35" class="graph-grid-line"/>
           <line x1="40" x2="316" y1="60" y2="60" class="graph-grid-line"/>
@@ -838,7 +841,7 @@
       <!-- OCR-runder -->
       <div v-if="ocrRoundsLogs.length" class="graph-card">
         <div class="graph-title">🔄 OCR-runder <span class="graph-unit">runder</span></div>
-        <svg class="sparkline-axis" viewBox="0 0 320 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <svg class="sparkline-axis" viewBox="0 0 320 80" xmlns="http://www.w3.org/2000/svg">
           <line x1="40" x2="316" y1="10" y2="10" class="graph-grid-line"/>
           <line x1="40" x2="316" y1="35" y2="35" class="graph-grid-line"/>
           <line x1="40" x2="316" y1="60" y2="60" class="graph-grid-line"/>
@@ -860,7 +863,7 @@
             {{ ex.name }}
             <span class="graph-subtitle">{{ ex.entries.at(-1).weight }}kg × {{ ex.entries.at(-1).reps }}</span>
           </div>
-          <svg class="sparkline-axis" viewBox="0 0 320 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+          <svg class="sparkline-axis" viewBox="0 0 320 80" xmlns="http://www.w3.org/2000/svg">
             <line x1="40" x2="316" y1="10" y2="10" class="graph-grid-line"/>
             <line x1="40" x2="316" y1="35" y2="35" class="graph-grid-line"/>
             <line x1="40" x2="316" y1="60" y2="60" class="graph-grid-line"/>
