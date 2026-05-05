@@ -1089,7 +1089,7 @@ createApp({
 
     function saveWorkoutLog(rpe) {
       if (selectedStrengthKey.value) {
-        markStrengthDone(selectedStrengthKey.value);
+        if (!editingLog.value) markStrengthDone(selectedStrengthKey.value);
         const sessionKey = 'strength_' + selectedStrengthKey.value;
         const rpeHist = JSON.parse(localStorage.getItem(STORAGE.rpe(selectedAthlete.value)) || '[]');
         rpeHist.push({ date: today(), rpe, session: sessionKey });
@@ -1113,7 +1113,7 @@ createApp({
         refreshKey.value++;
         return;
       }
-      markSessionDone(selectedSessionKey.value);
+      if (!editingLog.value) markSessionDone(selectedSessionKey.value);
       const rpeHist = JSON.parse(localStorage.getItem(STORAGE.rpe(selectedAthlete.value)) || '[]');
       rpeHist.push({ date: today(), rpe, session: selectedSessionKey.value });
       localStorage.setItem(STORAGE.rpe(selectedAthlete.value), JSON.stringify(rpeHist));
