@@ -50,6 +50,7 @@
       <div v-if="selectedSessionKey" class="adjust-row">
         <button class="adj-btn deload" :class="{ active: deloadMode }" @click="deloadMode = !deloadMode">😴 Deload</button>
         <button class="adj-btn short" :class="{ active: shortMode }" @click="shortMode = !shortMode">⚡ 20 min</button>
+        <button class="adj-btn outdoor" :class="{ active: isOutdoor }" @click="isOutdoor = !isOutdoor">🌤️ Ute</button>
       </div>
       <div v-if="selectedStrengthKey" class="adjust-row">
         <button class="adj-btn deload" :class="{ active: deloadMode }" @click="deloadMode = !deloadMode">😴 Deload</button>
@@ -460,8 +461,8 @@
 
         </div>
 
-        <!-- RPE Logging (cardio) -->
-        <div class="log-card" v-if="!isSessionDone(selectedSessionKey)">
+        <!-- RPE + lagre (cardio) -->
+        <div class="log-card" v-if="!isSessionDone(selectedSessionKey) || editingLog">
           <div v-if="gpsAvgSpeed && selectedSession?.type === 'intervals'" class="gps-autofill-hint">
             📍 GPS-snittfart {{ gpsAvgSpeed }} km/t lagt inn automatisk – juster om nødvendig
           </div>
@@ -478,19 +479,22 @@
               </div>
             </div>
           </div>
-          <p class="log-rpe-hint">Hvordan var økta? Trykk RPE for å lagre (1 = veldig lett · 10 = maks):</p>
+          <p class="log-rpe-hint">Velg RPE (1 = veldig lett · 10 = maks):</p>
           <div class="rpe-buttons">
-            <button v-for="n in 10" :key="n" class="rpe-btn" :class="rpeClass(n)" @click="saveWorkoutLog(n)">{{ n }}</button>
+            <button v-for="n in 10" :key="n" class="rpe-btn"
+              :class="[rpeClass(n), { 'rpe-selected': selectedRpe === n }]"
+              @click="selectedRpe = n">{{ n }}</button>
           </div>
+          <div class="notes-inline">
+            <textarea v-model="todayNote" placeholder="Notat (valgfritt)..." rows="2"></textarea>
+          </div>
+          <button class="save-workout-btn" :disabled="!selectedRpe" @click="saveWorkoutAndNote">
+            {{ selectedRpe ? (editingLog ? '💾 Oppdater økt (RPE ' + selectedRpe + ')' : '💾 Lagre økt (RPE ' + selectedRpe + ')') : 'Velg RPE for å lagre' }}
+          </button>
         </div>
-        <div class="rpe-logged-card" v-else>✅ Fullført denne uka</div>
-
-        <!-- Notatfelt -->
-        <div class="notes-card">
-          <h3>📝 Notat (valgfritt)</h3>
-          <textarea v-model="todayNote" placeholder="Hvordan gikk det? Notér noe du vil huske..." rows="3"></textarea>
-          <button class="save-note-btn" @click="saveNote">Lagre økt</button>
-          <span class="note-saved" v-if="noteSaved">✅ Lagret</span>
+        <div class="rpe-logged-card" v-else>
+          <span>✅ Fullført denne uka<span v-if="lastLoggedRpe"> · RPE {{ lastLoggedRpe }}</span></span>
+          <button class="edit-log-btn" @click="startEditLog">✏️ Rediger</button>
         </div>
 
       </div>
@@ -594,21 +598,24 @@
 
         </div>
 
-        <!-- RPE Logging (styrke) -->
-        <div class="log-card" v-if="!isStrengthDone(selectedStrengthKey)">
-          <p class="log-rpe-hint">Hvordan var økta? Trykk RPE for å lagre (1 = veldig lett · 10 = maks):</p>
+        <!-- RPE + lagre (styrke) -->
+        <div class="log-card" v-if="!isStrengthDone(selectedStrengthKey) || editingLog">
+          <p class="log-rpe-hint">Velg RPE (1 = veldig lett · 10 = maks):</p>
           <div class="rpe-buttons">
-            <button v-for="n in 10" :key="n" class="rpe-btn" :class="rpeClass(n)" @click="saveWorkoutLog(n)">{{ n }}</button>
+            <button v-for="n in 10" :key="n" class="rpe-btn"
+              :class="[rpeClass(n), { 'rpe-selected': selectedRpe === n }]"
+              @click="selectedRpe = n">{{ n }}</button>
           </div>
+          <div class="notes-inline">
+            <textarea v-model="todayNote" placeholder="Notat (valgfritt)..." rows="2"></textarea>
+          </div>
+          <button class="save-workout-btn" :disabled="!selectedRpe" @click="saveWorkoutAndNote">
+            {{ selectedRpe ? (editingLog ? '💾 Oppdater økt (RPE ' + selectedRpe + ')' : '💾 Lagre økt (RPE ' + selectedRpe + ')') : 'Velg RPE for å lagre' }}
+          </button>
         </div>
-        <div class="rpe-logged-card" v-else>✅ Fullført denne uka</div>
-
-        <!-- Notatfelt styrke -->
-        <div class="notes-card">
-          <h3>📝 Notat (valgfritt)</h3>
-          <textarea v-model="todayNote" placeholder="Hvordan gikk det? Notér noe du vil huske..." rows="3"></textarea>
-          <button class="save-note-btn" @click="saveNote">Lagre økt</button>
-          <span class="note-saved" v-if="noteSaved">✅ Lagret</span>
+        <div class="rpe-logged-card" v-else>
+          <span>✅ Fullført denne uka<span v-if="lastLoggedRpe"> · RPE {{ lastLoggedRpe }}</span></span>
+          <button class="edit-log-btn" @click="startEditLog">✏️ Rediger</button>
         </div>
 
       </div>
@@ -902,15 +909,9 @@
       </div>
 
       <div class="empty-state" v-if="!completedSessions && !workoutLogs.length">
-        <p>Logg RPE og øktdata etter trening for å se fremgang her, eller last inn historisk data under.</p>
+        <p>Logg RPE og øktdata etter trening for å se fremgang her.</p>
       </div>
 
-      <div class="seed-section">
-        <button class="seed-btn" @click="seedHistoricalData">
-          📊 Last inn historisk treningsdata (uke 1–{{ currentWeekNumber - 1 }})
-        </button>
-        <span v-if="seedStatus" class="seed-status">{{ seedStatus }}</span>
-      </div>
     </main>
 
     <!-- ───────────── TESTER ───────────── -->
@@ -987,6 +988,9 @@
 
         <!-- Beskrivelse av valgt test -->
         <div v-if="selectedTestType" class="test-desc-card">
+          <div class="test-effect-badge" :class="selectedTestType.effect.startsWith('✅') ? 'effect-live' : 'effect-log'">
+            {{ selectedTestType.effect }}
+          </div>
           <div class="test-desc-text">{{ selectedTestType.description }}</div>
           <div class="test-rpe-target">🎯 RPE-mål: <strong>{{ selectedTestType.targetRpe }}</strong></div>
         </div>
@@ -994,6 +998,11 @@
         <div class="form-row">
           <label>Resultat ({{ selectedTestType?.unit }})</label>
           <input type="number" v-model="newTest.value" :placeholder="testPlaceholder">
+        </div>
+        <!-- Extra weight field for carry test -->
+        <div v-if="newTest.type === 'carry'" class="form-row">
+          <label>Vekt brukt (kg)</label>
+          <input type="number" v-model.number="newTest.carry_weight_kg" placeholder="f.eks. 20" step="2.5">
         </div>
         <div class="form-row">
           <label>Dato</label>
@@ -1011,7 +1020,7 @@
             <div class="test-chart">
               <div v-for="t in myTestsOfType(type.id)" :key="t.date + t.athlete" class="test-entry">
                 <span class="test-date">{{ formatDate(t.date) }}</span>
-                <span class="test-value">{{ t.value }} {{ type.unit }}</span>
+                <span class="test-value">{{ t.value }} {{ type.unit }}<span v-if="type.id === 'carry' && t.carry_weight_kg"> @ {{ t.carry_weight_kg }} kg</span></span>
                 <span class="pr-badge" v-if="isPR(t, type.id)">🏆 PR</span>
                 <button class="test-delete-btn" @click="deleteTest(type.id, t.date)" title="Slett oppføring">×</button>
               </div>

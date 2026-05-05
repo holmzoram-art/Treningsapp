@@ -152,8 +152,10 @@ body {
 }
 .adj-btn.deload { border-color: var(--yellow); }
 .adj-btn.short  { border-color: var(--green); }
-.adj-btn.deload.active { background: var(--yellow); color: #000; }
-.adj-btn.short.active  { background: var(--green); color: #fff; }
+.adj-btn.outdoor { border-color: #29b6f6; }
+.adj-btn.deload.active  { background: var(--yellow); color: #000; }
+.adj-btn.short.active   { background: var(--green); color: #fff; }
+.adj-btn.outdoor.active { background: #29b6f6; color: #fff; }
 
 /* ── STRENGTH PICKER ── */
 .strength-picker-wrap {
@@ -543,20 +545,28 @@ main { padding: 16px; max-width: 600px; margin: 0 auto; }
 .rpe-btn.low { border-color: var(--green); color: var(--green); }
 .rpe-btn.mid { border-color: var(--yellow); color: var(--yellow); }
 .rpe-btn.high { border-color: var(--red); color: var(--red); }
-.rpe-logged-card { color: var(--green); font-size: 0.9rem; }
+.rpe-btn.rpe-selected { background: var(--accent); border-color: var(--accent); color: #fff; transform: scale(1.15); }
+.rpe-btn.low.rpe-selected  { background: var(--green);  border-color: var(--green); }
+.rpe-btn.mid.rpe-selected  { background: var(--yellow); border-color: var(--yellow); color: #222; }
+.rpe-btn.high.rpe-selected { background: var(--red);    border-color: var(--red); }
+.rpe-logged-card { color: var(--green); font-size: 0.9rem; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.edit-log-btn { background: none; border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text2); font-size: 0.8rem; padding: 4px 10px; cursor: pointer; white-space: nowrap; }
+.edit-log-btn:hover { border-color: var(--accent); color: var(--accent); }
 
-/* ── NOTES CARD ── */
-.notes-card {
-  background: var(--card);
-  border-radius: var(--radius);
-  padding: 14px 16px;
-  margin-bottom: 12px;
+.notes-inline { margin-top: 10px; }
+.notes-inline textarea {
+  width: 100%; background: var(--card2); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); color: var(--text1); padding: 8px 10px;
+  font-size: 0.85rem; resize: none; font-family: inherit; box-sizing: border-box;
 }
-.notes-card h3 { margin-bottom: 8px; font-size: 0.95rem; }
-.notes-card textarea {
-  width: 100%;
-  background: var(--card2);
-  border: 1px solid var(--border);
+.save-workout-btn {
+  margin-top: 10px; width: 100%; padding: 11px 16px;
+  background: var(--accent); border: none; border-radius: var(--radius-sm);
+  color: #fff; font-weight: 700; font-size: 0.92rem; cursor: pointer;
+  transition: opacity 0.15s;
+}
+.save-workout-btn:disabled { opacity: 0.4; cursor: default; }
+.note-saved { color: var(--green); font-size: 0.82rem; margin-left: 8px; }
   border-radius: var(--radius-sm);
   color: var(--text);
   font-size: 0.88rem;
@@ -564,19 +574,6 @@ main { padding: 16px; max-width: 600px; margin: 0 auto; }
   resize: vertical;
   font-family: inherit;
 }
-.save-note-btn {
-  margin-top: 8px;
-  padding: 7px 16px;
-  background: var(--accent);
-  border: none;
-  border-radius: var(--radius-sm);
-  color: #fff;
-  font-weight: 600;
-  cursor: pointer;
-  font-size: 0.85rem;
-}
-.note-saved { color: var(--green); font-size: 0.82rem; margin-left: 8px; }
-
 /* ── WEEK VIEW ── */
 .week-nav {
   display: flex;
@@ -741,6 +738,9 @@ main { padding: 16px; max-width: 600px; margin: 0 auto; }
 .save-btn { background: var(--accent); border: none; border-radius: var(--radius-sm); color: #fff; padding: 9px 20px; font-weight: 600; cursor: pointer; }
 
 .test-desc-card { background: rgba(33,150,243,0.08); border: 1px solid rgba(33,150,243,0.25); border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 12px; }
+.test-effect-badge { font-size: 0.82rem; font-weight: 600; padding: 4px 10px; border-radius: 20px; display: inline-block; margin-bottom: 8px; }
+.test-effect-badge.effect-live { background: rgba(76,175,80,0.18); color: #81c784; border: 1px solid rgba(76,175,80,0.3); }
+.test-effect-badge.effect-log  { background: rgba(255,152,0,0.15);  color: #ffb74d; border: 1px solid rgba(255,152,0,0.25); }
 .test-desc-text { font-size: 0.85rem; color: var(--text1); line-height: 1.5; margin-bottom: 8px; }
 .test-rpe-target { font-size: 0.82rem; color: var(--text2); }
 .test-rpe-target strong { color: #90caf9; }

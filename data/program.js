@@ -359,7 +359,13 @@ const PROGRAM_DATA = {
             },
             kjetil: "geir"
           },
-          dagsform: { yellow: "Senk fart 0.5 km/t eller stigning 1–2%. Behold antall drag.", red: "Halvér antall drag. Ro/løp rolig mellom." }
+          dagsform: { yellow: "Senk fart 0.5 km/t eller stigning 1–2%. Behold antall drag.", red: "Halvér antall drag. Ro/løp rolig mellom." },
+          outdoor: {
+            sondre: { part1: { machine: "Utendørs", sets: "12×45 sek", speed: "12.0–12.5 km/t", incline: "flatt", rest: "45 sek gange" } },
+            knut:   { part1: { machine: "Utendørs", sets: "8×60 sek", speed: "7.0 km/t", incline: "flatt", rest: "60 sek gange" } },
+            geir:   { part1: { machine: "Utendørs", sets: "10×45 sek hard / 30 sek rolig jogg", speed: "6.5–7.0 km/t hard · 4.5–5.0 km/t rolig", incline: "flatt", rest: "Integrert" } },
+            kjetil: "geir"
+          }
         },
         thursday: {
           title: "OCR-Hybrid", type: "ocr", duration: "40–45 min",
@@ -940,6 +946,16 @@ function _p3Tuesday(wn) {
       rounds,
       circuit: [
         `${dist} m løp @ {{ocr_run}} · 1–3% stigning`,
+        `${burpees} burpees`,
+        "{{hang}} sek dead hang",
+        "100–150 m farmer's carry @ {{carry}} kg"
+      ],
+      rest: `${rest} pause mellom runder`
+    },
+    outdoor: {
+      rounds,
+      circuit: [
+        `${dist} m løp @ {{ocr_run}} · flatt utendørs`,
         `${burpees} burpees`,
         "{{hang}} sek dead hang",
         "100–150 m farmer's carry @ {{carry}} kg"

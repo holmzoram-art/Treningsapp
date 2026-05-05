@@ -42,18 +42,23 @@ createApp({
     const selectedStrengthKey = ref(null); // 'monday' | 'wednesday' | 'friday' | null
     const deloadMode = ref(false);
     const shortMode = ref(false);
+    const isOutdoor = ref(false);
     const todayNote = ref('');
     const noteSaved = ref(false);
-    const newTest = ref({ athlete: 'sondre', type: 'cooper', value: '', date: today() });
+    const newTest = ref({ athlete: 'sondre', type: 'cooper', value: '', carry_weight_kg: 20, date: today() });
     const workoutMetrics = ref({});
     const refreshKey = ref(0); // incremented after seeding to force computed re-eval
     const currentExerciseSets = ref({}); // { [exerciseName]: [{ weight, reps, done }] }
     const historikkFilter = ref('alle'); // 'alle' | 'strength' | 'intervals' | 'ocr'
+    const doneVersion = ref(0); // incremented on every done-state change to force template re-eval
+    const selectedRpe = ref(null);
+    const editingLog = ref(false);
 
     // localStorage keys
     const STORAGE = {
       athlete: 'onitio_athlete',
       dagsform: 'onitio_dagsform',
+      outdoor: 'onitio_outdoor',
       rpe: (id) => `onitio_rpe_${id}`,
       note: (id) => `onitio_note_${id}`,
       tests: 'onitio_tests',
@@ -167,6 +172,8 @@ createApp({
       shortMode.value = false;
       cancelRestTimer();
       cancelWorkTimer();
+      selectedRpe.value = null;
+      editingLog.value = false;
       if (selectedSession.value?.type === 'strength') {
         const exercises = parseExercises(selectedWorkout.value?.exercises || [])
           .filter(ex => ex.sets && ex.name);
@@ -175,7 +182,7 @@ createApp({
         for (const ex of exercises) {
           const prevSets = prev[ex.name] || [];
           result[ex.name] = Array.from({ length: ex.sets }, (_, i) => ({
-            weight: prevSets[i]?.weight ?? (parseInt(ex.weight) || 0),
+            weight: prevSets[i]?.weight ?? (parseInt(ex.weight) || getExerciseDefaultWeight(ex.name, selectedAthlete.value)),
             reps:   prevSets[i]?.reps   ?? (ex.time ? (parseInt(ex.time) || 0) : (parseInt(ex.reps) || 0)),
             done:   false,
           }));
@@ -204,12 +211,14 @@ createApp({
     }
 
     function isSessionDone(sessionKey) {
+      doneVersion.value; // reactive dependency
       if (!sessionKey) return false;
       const done = JSON.parse(localStorage.getItem(doneKey(currentWeekNumber.value, selectedAthlete.value)) || '[]');
       return done.includes(sessionKey);
     }
 
     function isStrengthDone(strengthKey) {
+      doneVersion.value;
       if (!strengthKey) return false;
       const done = JSON.parse(localStorage.getItem(doneKey(currentWeekNumber.value, selectedAthlete.value)) || '[]');
       return done.includes('strength_' + strengthKey);
@@ -228,6 +237,7 @@ createApp({
       if (!done.includes(sessionKey)) done.push(sessionKey);
       else done.splice(done.indexOf(sessionKey), 1);
       localStorage.setItem(key, JSON.stringify(done));
+      doneVersion.value++;
     }
 
     function markStrengthDone(strengthKey) {
@@ -238,6 +248,18 @@ createApp({
       if (!done.includes(sk)) done.push(sk);
       else done.splice(done.indexOf(sk), 1);
       localStorage.setItem(key, JSON.stringify(done));
+      doneVersion.value++;
+    }
+
+    // ── EXERCISE DEFAULT WEIGHTS ───────────────────────────────────────────
+    function getExerciseDefaultWeight(exName, athleteId) {
+      const athlete = ATHLETES.find(a => a.id === athleteId);
+      const d = athlete?.strengthDefaults || {};
+      const n = (exName || '').toLowerCase();
+      if (n.includes('hip thrust'))  return d.hip_thrust_kg ?? 0;
+      if (n.includes('carry'))       return d.carry_kg      ?? 0;
+      if (n.includes('goblet'))      return d.goblet_kg     ?? 0;
+      return 0;
     }
 
     // ── EXERCISE PARSER ────────────────────────────────────────────────────
@@ -857,6 +879,18 @@ createApp({
     });
     function resolveWorkout(session, athleteId) {
       if (!session) return null;
+      if (isOutdoor.value && session.outdoor) {
+        const src = session.outdoor;
+        // Athlete-map format (e.g. {sondre:{...}, knut:{...}}) vs direct workout object
+        const isAthleteMap = src.sondre !== undefined || src.knut !== undefined || src.geir !== undefined;
+        if (isAthleteMap) {
+          const raw = src[athleteId];
+          if (raw === null || raw === undefined) return session.common;
+          if (typeof raw === 'string') return src[raw];
+          return raw;
+        }
+        return src;
+      }
       const raw = session.athletes?.[athleteId];
       if (raw === null || raw === undefined) return session.common;
       if (typeof raw === 'string') return session.athletes[raw];
@@ -979,10 +1013,19 @@ createApp({
         ? 'strength_' + selectedStrengthKey.value
         : selectedSessionKey.value;
       if (!key) return {};
-      const prev = [...workoutLogs.value]
-        .reverse()
-        .find(l => l.sessionKey === key && l.metrics?.exercise_sets);
-      return prev?.metrics?.exercise_sets || {};
+      const relevant = [...workoutLogs.value].reverse().filter(l => l.sessionKey === key && l.metrics?.exercise_sets);
+      // Prefer a green/yellow day log — skip deload and red dagsform so reduced weights don't overwrite the baseline
+      const baseline = relevant.find(l => !l.deloadMode && l.dagsform !== 'red') ?? relevant[0];
+      return baseline?.metrics?.exercise_sets || {};
+    });
+
+    const lastLoggedRpe = computed(() => {
+      const key = selectedStrengthKey.value
+        ? 'strength_' + selectedStrengthKey.value
+        : selectedSessionKey.value;
+      if (!key) return null;
+      const last = [...workoutLogs.value].reverse().find(l => l.sessionKey === key);
+      return last?.rpe || null;
     });
 
     function initExerciseSets(strengthKey) {
@@ -1015,6 +1058,35 @@ createApp({
       return true;
     }
 
+    function startEditLog() {
+      const key = selectedStrengthKey.value
+        ? 'strength_' + selectedStrengthKey.value
+        : selectedSessionKey.value;
+      const logs = JSON.parse(localStorage.getItem(STORAGE.wlog(selectedAthlete.value)) || '[]');
+      const last = [...logs].reverse().find(l => l.sessionKey === key);
+      if (last) {
+        selectedRpe.value = last.rpe || null;
+        workoutMetrics.value = { ...last.metrics };
+        // Restore per-set data if present
+        if (last.metrics?.exercise_sets) {
+          const restored = {};
+          for (const [name, sets] of Object.entries(last.metrics.exercise_sets)) {
+            restored[name] = sets.map(s => ({ ...s }));
+          }
+          currentExerciseSets.value = restored;
+        }
+      }
+      editingLog.value = true;
+    }
+
+    function saveWorkoutAndNote() {
+      if (!selectedRpe.value) return;
+      saveWorkoutLog(selectedRpe.value);
+      saveNote();
+      selectedRpe.value = null;
+      editingLog.value = false;
+    }
+
     function saveWorkoutLog(rpe) {
       if (selectedStrengthKey.value) {
         markStrengthDone(selectedStrengthKey.value);
@@ -1025,15 +1097,18 @@ createApp({
         const logs = JSON.parse(localStorage.getItem(STORAGE.wlog(selectedAthlete.value)) || '[]');
         const exSets = currentExerciseSets.value;
         const setsDone = Object.values(exSets).reduce((t, sets) => t + sets.filter(s => s.done).length, 0);
-        logs.push({
+        const newEntry = {
           date: today(), weekNumber: currentWeekNumber.value,
           sessionKey, type: 'strength', rpe,
+          dagsform: dagsform.value, deloadMode: deloadMode.value,
           metrics: {
             ...workoutMetrics.value,
             sets_done: setsDone || workoutMetrics.value.sets_done,
             exercise_sets: JSON.parse(JSON.stringify(exSets)),
           },
-        });
+        };
+        const existingIdx = editingLog.value ? logs.map((l,i)=>[l,i]).filter(([l])=>l.sessionKey===sessionKey).at(-1)?.[1] : -1;
+        if (existingIdx >= 0) logs[existingIdx] = newEntry; else logs.push(newEntry);
         localStorage.setItem(STORAGE.wlog(selectedAthlete.value), JSON.stringify(logs));
         refreshKey.value++;
         return;
@@ -1072,20 +1147,27 @@ createApp({
         cardioMetrics.exercise_sets = JSON.parse(JSON.stringify(exSetsCardio));
         cardioMetrics.sets_done = Object.values(exSetsCardio).reduce((t, s) => t + s.filter(x => x.done).length, 0);
       }
-      logs.push({
+      const newEntry = {
         date: today(), weekNumber: currentWeekNumber.value,
         sessionKey: selectedSessionKey.value,
         type: selectedSession.value?.type || 'unknown',
+        dagsform: dagsform.value, deloadMode: deloadMode.value,
         rpe, metrics: cardioMetrics,
-      });
+      };
+      const sk = selectedSessionKey.value;
+      const existingIdx = editingLog.value ? logs.map((l,i)=>[l,i]).filter(([l])=>l.sessionKey===sk).at(-1)?.[1] : -1;
+      if (existingIdx >= 0) logs[existingIdx] = newEntry; else logs.push(newEntry);
       localStorage.setItem(STORAGE.wlog(selectedAthlete.value), JSON.stringify(logs));
+      refreshKey.value++;
     }
 
     function saveNote() {
-      if (!todayNote.value.trim()) return;
-      const history = JSON.parse(localStorage.getItem(STORAGE.note(selectedAthlete.value)) || '[]');
-      history.push({ date: today(), text: todayNote.value.trim(), session: selectedSessionKey.value || ('strength_' + selectedStrengthKey.value) });
-      localStorage.setItem(STORAGE.note(selectedAthlete.value), JSON.stringify(history));
+      if (todayNote.value.trim()) {
+        const history = JSON.parse(localStorage.getItem(STORAGE.note(selectedAthlete.value)) || '[]');
+        history.push({ date: today(), text: todayNote.value.trim(), session: selectedSessionKey.value || ('strength_' + selectedStrengthKey.value) });
+        localStorage.setItem(STORAGE.note(selectedAthlete.value), JSON.stringify(history));
+        todayNote.value = '';
+      }
       noteSaved.value = true;
       setTimeout(() => { noteSaved.value = false; }, 2000);
     }
@@ -1427,54 +1509,63 @@ createApp({
         id: 'run20min', label: 'Løpetest 20 min', unit: 'm', higherBetter: true,
         hint: 'Distanse løpt på 20 min (meter)',
         targetRpe: '8–9',
+        effect: '✅ Oppdaterer alle intervall- og løpefarter automatisk',
         description: 'Varm opp 10 min rolig. Løp på mølla (0–1% stigning) i nøyaktig 20 min – så langt du klarer. Registrer meter. Brukes til å beregne sonene dine automatisk.',
+      },
+      {
+        id: 'cooper', label: 'Cooper (12 min)', unit: 'm', higherBetter: true,
+        hint: 'Distanse løpt på 12 min (meter)',
+        targetRpe: '9',
+        effect: '✅ Oppdaterer treningssoner (brukes om Løpetest 20 min mangler)',
+        description: 'Løp så langt du klarer på 12 minutter – utendørs eller på mølle. Jevn ut tempoet underveis. Registrer meter. Brukes som reserve-terskel om 20 min-test ikke er utført.',
       },
       {
         id: 'ocr_flytest', label: 'OCR flytest', unit: 'sek', higherBetter: false,
         hint: 'Total tid i sekunder',
         targetRpe: '9',
+        effect: '📊 Kun historikk/fremgang — ingen live effekt',
         description: 'Gjennomfør en fast OCR-runde med forhåndsbestemt rute og hindringer. Mål total tid fra start til mål i sekunder. Bruk samme rute hver gang.',
       },
       {
         id: 'deadhang', label: 'Maks dead hang', unit: 'sek', higherBetter: true,
         hint: 'Sekunder',
-        targetRpe: '10',
+        targetRpe: '9',
+        effect: '✅ Oppdaterer hang-mål i OCR-øktene',
         description: 'Heng i pullup-stang med rett kropp og aktive skuldre – ingen kipping. Mål sekunder til du slipper. Gjør to forsøk med 3 min pause, registrer beste.',
       },
       {
-        id: 'carry', label: 'Carry-tid', unit: 'sek', higherBetter: true,
-        hint: 'Sekunder',
+        id: 'carry', label: 'Carry-test', unit: 'sek', higherBetter: true,
+        hint: 'Sekunder holdt',
         targetRpe: '8–9',
-        description: 'Bær Farmer\'s carry-vekt (se ditt nivå i kg) og gå så lenge du klarer uten å sette ned. Mål sekunder. Alternativt: fast distanse, mål tid.',
+        effect: '✅ Oppdaterer anbefalt carry-vekt i øktene',
+        description: 'Velg en fast testvekt (f.eks. 20 kg) og gå/stå med Farmer\'s carry så lenge du klarer uten å sette ned. Mål sekunder. Testresultatet bestemmer hvilken vekt du anbefales i øktene.',
       },
       {
-        id: 'cooper', label: 'Cooper-test (12 min)', unit: 'm', higherBetter: true,
-        hint: 'Meter (f.eks. 2800)',
-        targetRpe: '8–9',
-        description: 'Varm opp 10 min. Løp utendørs eller på mølla i nøyaktig 12 min – så langt du klarer. Mål total distanse i meter.',
-      },
-      {
-        id: 'rowing2k', label: '2000m romaskin', unit: 'sek', higherBetter: false,
-        hint: 'Sekunder (f.eks. 420)',
+        id: 'rowing2k', label: 'Roing 2000m', unit: 'sek', higherBetter: false,
+        hint: 'Tid i sekunder (t.eks. 420 = 7:00)',
         targetRpe: '9',
-        description: 'Varm opp 5 min rolig roing. Ro 2000m for best mulig tid. Hold igjen de første 500m – legg ut på ~70% og bygg gradvis. Mål tid i sekunder.',
+        effect: '📊 Kun historikk/fremgang — ingen live effekt',
+        description: 'Ro 2000 meter på romaskin så raskt du klarer. Varm opp 5–10 min rolig. Registrer total tid i sekunder. Hold igjen de første 500m, press på de siste 500m.',
       },
       {
         id: 'squat3rm', label: 'Knebøy 3RM', unit: 'kg', higherBetter: true,
         hint: 'Kilo',
         targetRpe: '9',
-        description: 'Varm opp gradvis (50%, 65%, 75%, 85%). Finn høyeste vekt du klarer 3 teknisk rene repetisjoner. Bruk 3–5 minutter pause mellom forsøk. Stopp om teknikken svikter.',
+        effect: '📊 Kun historikk/fremgang + PR-varsling',
+        description: 'Varm opp gradvis (50%×5, 70%×3, 85%×2). Finn høyeste vekt for 3 rene reps med dyp nok knebøy. Ha alltid spotter.',
       },
       {
         id: 'deadlift3rm', label: 'Markløft 3RM', unit: 'kg', higherBetter: true,
         hint: 'Kilo',
         targetRpe: '9',
+        effect: '📊 Kun historikk/fremgang + PR-varsling',
         description: 'Varm opp grundig med lette vekter. Finn høyeste vekt for 3 rene repetisjoner med god rygglinje og benstopp. Stopp umiddelbart om teknikken svikter.',
       },
       {
         id: 'bench3rm', label: 'Benkpress 3RM', unit: 'kg', higherBetter: true,
         hint: 'Kilo',
         targetRpe: '9',
+        effect: '📊 Kun historikk/fremgang + PR-varsling',
         description: 'Varm opp med lett vekt. Finn høyeste vekt for 3 kontrollerte repetisjoner med full bevegelsesbane – bryst til stangen, full strekk opp. Ha alltid spotter.',
       },
     ];
@@ -1507,9 +1598,10 @@ createApp({
     function saveTest() {
       if (!newTest.value.value) return;
       const entry = { ...newTest.value, value: +newTest.value.value };
+      if (entry.type !== 'carry') delete entry.carry_weight_kg;
       testHistoryRef.value = [...testHistoryRef.value, entry];
       localStorage.setItem(STORAGE.tests, JSON.stringify(testHistoryRef.value));
-      newTest.value = { athlete: selectedAthlete.value, type: newTest.value.type, value: '', date: today() };
+      newTest.value = { athlete: selectedAthlete.value, type: newTest.value.type, value: '', carry_weight_kg: 20, date: today() };
     }
 
     function deleteTest(type, date) {
@@ -1524,6 +1616,16 @@ createApp({
       const runTests    = sorted('run20min');
       const cooperTests = sorted('cooper');
       const hangTests   = sorted('deadhang');
+      const carryTests  = sorted('carry');
+
+      // Derive carry_kg from carry test: if hold ≥ 60s use test weight, else scale proportionally
+      function deriveCarryKg(carryTest) {
+        if (!carryTest?.carry_weight_kg) return null;
+        const target = 60;
+        const ratio = Math.min(1, carryTest.value / target);
+        return Math.max(10, Math.round(carryTest.carry_weight_kg * ratio / 2.5) * 2.5);
+      }
+      const carryKgFromTest = carryTests.length ? deriveCarryKg(carryTests[carryTests.length - 1]) : null;
 
       const athlete = ATHLETES.find(a => a.id === id);
       const profile = athlete?.level ? TRAINING_LEVELS[athlete.level] : null;
@@ -1549,7 +1651,7 @@ createApp({
           ocr_run_kmh:       profile.ocr_run_kmh,
           strides_kmh:       profile.strides_kmh,
           max_hang_sec:      hangTests.length ? hangTests[hangTests.length-1].value : profile.hang_sec,
-          carry_kg:          profile.carry_kg,
+          carry_kg:          carryKgFromTest ?? profile.carry_kg,
           level_label:       profile.label,
           last_updated:      null,
           from_profile:      true,
@@ -1563,7 +1665,7 @@ createApp({
         ocr_run_kmh:       Math.round(threshold * 0.96 * 10) / 10,
         strides_kmh:       Math.round(threshold * 1.15 * 10) / 10,
         max_hang_sec:      hangTests.length ? hangTests[hangTests.length-1].value : (profile?.hang_sec ?? null),
-        carry_kg:          profile?.carry_kg ?? null,
+        carry_kg:          carryKgFromTest ?? (profile?.carry_kg ?? null),
         level_label:       'Beregnet fra ' + testLabel,
         last_updated:      testDate,
         from_profile:      false,
@@ -1752,6 +1854,9 @@ createApp({
       const savedDagsform = localStorage.getItem(STORAGE.dagsform);
       if (savedDagsform) dagsform.value = savedDagsform;
 
+      const savedOutdoor = localStorage.getItem(STORAGE.outdoor);
+      if (savedOutdoor !== null) isOutdoor.value = JSON.parse(savedOutdoor);
+
       viewWeek.value = currentWeekNumber.value;
       selectedSessionKey.value = null;
 
@@ -1762,6 +1867,7 @@ createApp({
     });
 
     watch(dagsform, (v) => localStorage.setItem(STORAGE.dagsform, v));
+    watch(isOutdoor, (v) => localStorage.setItem(STORAGE.outdoor, JSON.stringify(v)));
     watch(selectedSessionKey, (key) => {
       if (key) prefillMetrics(selectedSession.value, selectedWorkout.value);
       else workoutMetrics.value = {};
@@ -1777,10 +1883,10 @@ createApp({
     return {
       // state
       selectedAthlete, dagsform, view, viewWeek, selectedSessionKey, selectedStrengthKey,
-      deloadMode, shortMode,
+      deloadMode, shortMode, isOutdoor,
       todayNote, noteSaved, newTest, workoutMetrics,
-      currentExerciseSets, historikkFilter,
-      previousExerciseSets,
+      currentExerciseSets, historikkFilter, doneVersion, selectedRpe, editingLog,
+      previousExerciseSets, lastLoggedRpe,
       // computed
       athletes, currentWeek, currentWeekNumber, viewingWeekData, viewingWeekWorkouts, totalWeeks,
       events, newEvent, upcomingEvents, addEvent, removeEvent,
@@ -1807,7 +1913,7 @@ createApp({
       startTimer, endIntervalEarly, pauseTimer, resetTimer, toggleGps,
       // methods
       selectAthlete, selectSession, selectStrengthSession, navigateWeek, weekDates,
-      rpeClass, saveWorkoutLog, saveNote, saveTest, deleteTest,
+      rpeClass, saveWorkoutLog, saveWorkoutAndNote, saveNote, saveTest, deleteTest, startEditLog,
       isSessionDone, isSessionDoneForWeek, isStrengthDone, markSessionDone, markStrengthDone,
       testsOfType, myTestsOfType, isPR, athleteName, athleteColor,
       sparkPoints, sparkDots, barChart, rpeColor,
