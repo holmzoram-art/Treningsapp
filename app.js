@@ -1143,24 +1143,25 @@ createApp({
       return SESSION_LOG_FIELDS[sess?.type] || SESSION_LOG_FIELDS.recovery;
     });
 
+    const sortByDate = arr => [...arr].sort((a, b) => a.date.localeCompare(b.date));
     const intervalSpeedLogs = computed(() =>
-      workoutLogs.value
+      sortByDate(workoutLogs.value
         .filter(l => l.type === 'intervals' && l.metrics?.speed_kmh)
-        .map(l => ({ date: l.date, value: l.metrics.speed_kmh, week: l.weekNumber }))
+        .map(l => ({ date: l.date, value: l.metrics.speed_kmh, week: l.weekNumber })))
     );
     const intervalLogs = computed(() =>
-      workoutLogs.value.filter(l => l.type === 'intervals' && l.metrics?.sets_done)
-        .map(l => ({ date: l.date, value: l.metrics.sets_done }))
+      sortByDate(workoutLogs.value.filter(l => l.type === 'intervals' && l.metrics?.sets_done)
+        .map(l => ({ date: l.date, value: l.metrics.sets_done })))
     );
     const hangLogs = computed(() =>
-      workoutLogs.value
+      sortByDate(workoutLogs.value
         .filter(l => l.type === 'ocr' && l.metrics?.hang_sec)
-        .map(l => ({ date: l.date, value: l.metrics.hang_sec, week: l.weekNumber }))
+        .map(l => ({ date: l.date, value: l.metrics.hang_sec, week: l.weekNumber })))
     );
     const ocrRoundsLogs = computed(() =>
-      workoutLogs.value
+      sortByDate(workoutLogs.value
         .filter(l => l.type === 'ocr' && l.metrics?.rounds_done)
-        .map(l => ({ date: l.date, value: l.metrics.rounds_done, week: l.weekNumber }))
+        .map(l => ({ date: l.date, value: l.metrics.rounds_done, week: l.weekNumber })))
     );
     const recoveryLogs = computed(() =>
       workoutLogs.value.filter(l => l.type === 'recovery' && l.metrics?.duration_min)
