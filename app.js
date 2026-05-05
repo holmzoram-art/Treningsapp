@@ -1171,6 +1171,23 @@ createApp({
         .map(l => ({ date: l.date, value: l.metrics.sets_done }))
     );
 
+    const exerciseProgressLogs = computed(() => {
+      const byEx = {};
+      for (const log of workoutLogs.value) {
+        if (log.type !== 'strength' || !log.metrics?.exercise_sets) continue;
+        for (const [name, sets] of Object.entries(log.metrics.exercise_sets)) {
+          const best = sets.filter(s => s.weight && s.reps)
+                           .reduce((b, s) => (s.weight > (b?.weight ?? 0) ? s : b), null);
+          if (!best) continue;
+          if (!byEx[name]) byEx[name] = [];
+          byEx[name].push({ date: log.date, week: log.weekNumber, weight: best.weight, reps: best.reps });
+        }
+      }
+      return Object.entries(byEx)
+        .filter(([, e]) => e.length >= 1)
+        .map(([name, entries]) => ({ name, entries: entries.sort((a, b) => a.date.localeCompare(b.date)) }));
+    });
+
     // ── HISTORIKK (Strava-inspired activity feed) ──────────────────────────
 
     const TYPE_ICON = { intervals: '🏃', ocr: '🧗', strength: '🏋️', recovery: '🚶' };
@@ -1268,23 +1285,30 @@ createApp({
       return Object.values(byWeek).sort((a, b) => b.weekNumber - a.weekNumber);
     });
 
-    function sparkPoints(data, w = 280, h = 50) {
+    function fmtVal(v) {
+      if (v == null || isNaN(v)) return '–';
+      return v % 1 === 0 ? String(Math.round(v)) : v.toFixed(1);
+    }
+
+    // SVG coordinate system: viewBox "0 0 320 80"
+    // Graph area: x 40–316 (drawW=276), y 8–60 (drawH=52). Grid lines at y=8,34,60.
+    function sparkPoints(data, drawW = 276, drawH = 52, xOff = 40, yOff = 8) {
       if (!data.length) return '';
       const vals = data.map(d => d.value);
-      const min = Math.min(...vals); const max = Math.max(...vals); const range = max - min || 1;
+      const min = Math.min(...vals), max = Math.max(...vals), range = max - min || 1;
       return data.map((d, i) => {
-        const x = data.length === 1 ? w / 2 : (i / (data.length - 1)) * w;
-        const y = h - ((d.value - min) / range) * (h - 12) - 6;
+        const x = xOff + (data.length === 1 ? drawW / 2 : (i / (data.length - 1)) * drawW);
+        const y = yOff + 4 + (drawH - 8) * (1 - (d.value - min) / range);
         return `${x.toFixed(1)},${y.toFixed(1)}`;
       }).join(' ');
     }
-    function sparkDots(data, w = 280, h = 50) {
+    function sparkDots(data, drawW = 276, drawH = 52, xOff = 40, yOff = 8) {
       if (!data.length) return [];
       const vals = data.map(d => d.value);
-      const min = Math.min(...vals); const max = Math.max(...vals); const range = max - min || 1;
+      const min = Math.min(...vals), max = Math.max(...vals), range = max - min || 1;
       return data.map((d, i) => {
-        const x = data.length === 1 ? w / 2 : (i / (data.length - 1)) * w;
-        const y = h - ((d.value - min) / range) * (h - 12) - 6;
+        const x = xOff + (data.length === 1 ? drawW / 2 : (i / (data.length - 1)) * drawW);
+        const y = yOff + 4 + (drawH - 8) * (1 - (d.value - min) / range);
         return { x: +x.toFixed(1), y: +y.toFixed(1), value: d.value, date: d.date };
       });
     }
@@ -1642,12 +1666,12 @@ createApp({
       testTypes, testPlaceholder, selectedTestType, testHistory, testReminders,
       athleteLevels, upcomingTests, testCalendar,
       equipment, currentAthleteName,
-      logFields, activityCards, circuitStepCards, workoutLogs, intervalSpeedLogs, intervalLogs, hangLogs, ocrRoundsLogs, recoveryLogs, strengthLogs,
+      logFields, activityCards, circuitStepCards, workoutLogs, intervalSpeedLogs, intervalLogs, hangLogs, ocrRoundsLogs, recoveryLogs, strengthLogs, exerciseProgressLogs,
       historikkEntries, historikkByWeek, TYPE_ICON, TYPE_LABEL,
       SESSION_LOG_FIELDS, seedStatus,
       seedHistoricalData,
       // exercise parser
-      parseExercise, parseExercises, deloadExercises, deloadCircuit,
+      parseExercise, parseExercises, deloadExercises, deloadCircuit, fmtVal,
       // timer
       timerState, timerPhase, timerSec, timerResults, timerConfig, timerEditing,
       timerPct, isPaused, showTimer,
