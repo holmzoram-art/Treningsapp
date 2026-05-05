@@ -704,14 +704,14 @@
     <main v-if="view === 'week'" class="view-week">
 
       <div class="week-nav">
-        <button @click="navigateWeek(-1)" :disabled="viewWeek <= 1">← Uke {{ viewWeek - 1 }}</button>
+        <button class="week-nav-btn" @click="navigateWeek(-1)" :disabled="viewWeek <= 1">‹ Uke {{ viewWeek - 1 }}</button>
         <div class="week-nav-center">
           <strong>Uke {{ viewWeek }}</strong>
           <span class="week-dates">{{ weekDates(viewWeek) }}</span>
           <span class="phase-badge">Fase {{ viewingWeekData?.phase }}</span>
           <span v-if="viewingWeekData?.isDeload" class="deload-badge">Deload</span>
         </div>
-        <button @click="navigateWeek(1)" :disabled="viewWeek >= totalWeeks">Uke {{ viewWeek + 1 }} →</button>
+        <button class="week-nav-btn" @click="navigateWeek(1)" :disabled="viewWeek >= totalWeeks">Uke {{ viewWeek + 1 }} ›</button>
       </div>
 
       <div v-if="viewingWeekData?.note" class="week-note">ℹ️ {{ viewingWeekData.note }}</div>

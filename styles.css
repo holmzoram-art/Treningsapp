@@ -594,20 +594,21 @@ main { padding: 16px; max-width: 600px; margin: 0 auto; }
   align-items: center;
   justify-content: space-between;
   margin-bottom: 14px;
-  gap: 8px;
+  gap: 6px;
 }
-.week-nav button {
+.week-nav-btn {
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   color: var(--text2);
-  padding: 8px 12px;
+  padding: 8px 10px;
   font-size: 0.8rem;
   cursor: pointer;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
-.week-nav button:disabled { opacity: 0.3; cursor: default; }
-.week-nav button { min-width: 80px; flex-shrink: 0; }
-.week-nav-center { text-align: center; flex: 1; }
+.week-nav-btn:disabled { opacity: 0.3; cursor: default; }
+.week-nav-center { text-align: center; flex: 1; min-width: 0; }
 .week-nav-center strong { display: block; font-size: 1rem; }
 .week-dates { font-size: 0.78rem; color: var(--text2); }
 .week-note { background: var(--card2); border-radius: var(--radius-sm); padding: 10px 14px; color: var(--text2); font-size: 0.85rem; margin-bottom: 12px; }
