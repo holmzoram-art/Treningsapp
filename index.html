@@ -449,18 +449,7 @@
 
         <!-- RPE Logging (styrke) -->
         <div class="log-card" v-if="!isStrengthDone(selectedStrengthKey)">
-          <h3>Logg økt</h3>
-          <div class="log-fields">
-            <div v-for="field in logFields" :key="field.key" class="log-field">
-              <label>{{ field.label }}</label>
-              <div class="log-field-row">
-                <input type="number" v-model.number="workoutMetrics[field.key]"
-                       :step="field.step || 1" placeholder="–" class="log-input">
-                <span class="log-unit">{{ field.unit }}</span>
-              </div>
-            </div>
-          </div>
-          <p class="log-rpe-hint">Trykk RPE for å lagre (1 = veldig lett · 10 = maks):</p>
+          <p class="log-rpe-hint">Hvordan var økta? Trykk RPE for å lagre (1 = veldig lett · 10 = maks):</p>
           <div class="rpe-buttons">
             <button v-for="n in 10" :key="n" class="rpe-btn" :class="rpeClass(n)" @click="saveWorkoutLog(n)">{{ n }}</button>
           </div>
