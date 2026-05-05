@@ -625,7 +625,49 @@ createApp({
       return workout;
     });
 
-    const displayedTitle = computed(() =>
+    // ── PER-ACTIVITY LOGGING (intervals/recovery) ─────────────────────────
+    function parseActivityPart(id, part, isIntervals) {
+      const text = typeof part === 'string'
+        ? part
+        : [part.machine, part.sets, part.speed, part.incline, part.rest].filter(Boolean).join(' · ');
+      const machM = text.match(/^([A-ZÆØÅa-zæøå]+(?:[\s-][A-ZÆØÅa-zæøå]+)?)/);
+      const machine = machM ? machM[1] : (id === 'st' ? 'Strides' : id.toUpperCase());
+      const mid = (a, b) => b != null ? Math.round(((+a + +b) / 2) * 10) / 10 : +a;
+      const durM  = text.match(/(\d+)(?:–(\d+))?\s*min/);
+      const spdM  = text.match(/(\d+\.?\d*)(?:–(\d+\.?\d*))?\s*km[/\s]?t/i);
+      const inclM = text.match(/(\d+\.?\d*)(?:–(\d+\.?\d*))?\s*%/);
+      const setsM = text.match(/(\d+)×/);
+      const fields = [];
+      if (setsM || isIntervals)
+        fields.push({ key: id+'_sets', label: isIntervals ? 'Drag fullført' : 'Drag', unit: 'stk', integer: true, defaultVal: setsM ? +setsM[1] : null });
+      fields.push({ key: id+'_dur', label: 'Varighet', unit: 'min', integer: true, defaultVal: durM ? mid(durM[1], durM[2]) : null });
+      if (spdM)  fields.push({ key: id+'_spd',  label: 'Fart',     unit: 'km/t', step: 0.1, defaultVal: mid(spdM[1],  spdM[2])  });
+      if (inclM) fields.push({ key: id+'_incl', label: 'Stigning', unit: '%',    step: 0.5, defaultVal: mid(inclM[1], inclM[2]) });
+      return { id, machine, planText: text, fields };
+    }
+
+    const activityCards = computed(() => {
+      const wo = displayedWorkout.value;
+      const sess = selectedSession.value;
+      if (!wo || !sess) return [];
+      if (selectedStrengthKey.value || sess.type === 'strength' || sess.type === 'ocr') return [];
+      const isInt = sess.type === 'intervals';
+      const cards = [];
+      if (wo.options?.length) {
+        wo.options.forEach((opt, i) => {
+          const c = parseActivityPart('opt' + i, opt, isInt);
+          c.optLabel = ['A', 'B', 'C'][i];
+          cards.push(c);
+        });
+      } else {
+        if (wo.part1) cards.push(parseActivityPart('p1', wo.part1, isInt));
+        if (wo.part2) cards.push(parseActivityPart('p2', wo.part2, false));
+        if (wo.strides) cards.push(parseActivityPart('st', wo.strides, false));
+      }
+      return cards;
+    });
+
+ = computed(() =>
       selectedStrengthDay.value?.title || selectedSession.value?.title
     );
 
@@ -726,6 +768,21 @@ createApp({
           m.rounds_done = firstEx?.sets ?? 3;
         }
       }
+      // Per-activity pre-fill for intervals and recovery
+      if (type === 'intervals' || type === 'recovery') {
+        const isInt = type === 'intervals';
+        const prefillCard = (part, id) => {
+          const c = parseActivityPart(id, part, isInt);
+          c.fields.forEach(f => { if (f.defaultVal != null) m[f.key] = f.defaultVal; });
+        };
+        if (workout?.options?.length) {
+          prefillCard(workout.options[0], 'opt0');
+        } else {
+          if (workout?.part1) prefillCard(workout.part1, 'p1');
+          if (workout?.part2) prefillCard(workout.part2, 'p2');
+          if (workout?.strides) prefillCard(workout.strides, 'st');
+        }
+      }
       workoutMetrics.value = m;
     }
 
@@ -814,6 +871,17 @@ createApp({
       const exSetsCardio = currentExerciseSets.value;
       const hasExSets = Object.keys(exSetsCardio).length > 0;
       const cardioMetrics = { ...workoutMetrics.value };
+      // Compute backward-compat fields from per-activity cards (for Fremgang graphs)
+      if (activityCards.value.length) {
+        const dur = ['p1','p2','st','opt0','opt1'].reduce((s, id) => s + (cardioMetrics[id+'_dur'] || 0), 0);
+        if (dur > 0) cardioMetrics.duration_min = dur;
+        const spd = cardioMetrics.p1_spd ?? cardioMetrics.opt0_spd;
+        if (spd != null) cardioMetrics.speed_kmh = spd;
+        const sets = cardioMetrics.p1_sets ?? cardioMetrics.opt0_sets;
+        if (sets != null) cardioMetrics.sets_done = sets;
+        const incl = cardioMetrics.p1_incl ?? cardioMetrics.opt0_incl;
+        if (incl != null) cardioMetrics.incline_pct = incl;
+      }
       if (hasExSets) {
         cardioMetrics.exercise_sets = JSON.parse(JSON.stringify(exSetsCardio));
         cardioMetrics.sets_done = Object.values(exSetsCardio).reduce((t, s) => t + s.filter(x => x.done).length, 0);
@@ -1387,7 +1455,7 @@ createApp({
       testTypes, testPlaceholder, selectedTestType, testHistory, testReminders,
       athleteLevels, upcomingTests, testCalendar,
       equipment, currentAthleteName,
-      logFields, workoutLogs, intervalSpeedLogs, intervalLogs, hangLogs, ocrRoundsLogs, recoveryLogs, strengthLogs,
+      logFields, activityCards, workoutLogs, intervalSpeedLogs, intervalLogs, hangLogs, ocrRoundsLogs, recoveryLogs, strengthLogs,
       historikkEntries, historikkByWeek, TYPE_ICON, TYPE_LABEL,
       SESSION_LOG_FIELDS, seedStatus,
       seedHistoricalData,

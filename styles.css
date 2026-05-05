@@ -415,6 +415,16 @@ main { padding: 16px; max-width: 600px; margin: 0 auto; }
 .swap-badge { background: var(--ocr); color: #fff; padding: 1px 7px; border-radius: 8px; font-size: 0.7rem; margin-left: 6px; }
 .part-block.strides .part-label { color: var(--green); }
 
+/* ── ACTIVITY CARDS (per-activity logging) ── */
+.activity-cards { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
+.activity-card { background: var(--card2); border-radius: var(--radius-sm); padding: 10px 14px; }
+.activity-card-header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; margin-bottom: 10px; }
+.activity-label { font-weight: 700; font-size: 0.92rem; color: var(--text1); display: flex; align-items: center; gap: 6px; }
+.opt-badge { background: var(--accent); color: #fff; font-size: 0.72rem; font-weight: 800; padding: 1px 7px; border-radius: 8px; }
+.activity-plan { font-size: 0.78rem; color: var(--text2); flex: 1; }
+.activity-card-fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px 10px; }
+.activity-field label { font-size: 0.72rem; color: var(--text2); font-weight: 600; display: block; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.03em; }
+
 .mobility-list { margin-bottom: 12px; }
 .session-note { background: var(--card2); border-radius: var(--radius-sm); padding: 8px 12px; font-size: 0.82rem; color: var(--text2); }
 .placeholder-card { background: var(--card2); border-radius: var(--radius-sm); padding: 14px; color: var(--text2); font-style: italic; }

@@ -226,8 +226,31 @@
               </table>
             </div>
 
-            <!-- Alternativ A/B (fase 1 løp) -->
-            <div v-if="displayedWorkout.options" class="options-list">
+            <!-- Per-aktivitet logging: options (A/B) og del 1 / del 2 / strides -->
+            <div v-if="activityCards.length" class="activity-cards">
+              <div v-for="card in activityCards" :key="card.id" class="activity-card">
+                <div class="activity-card-header">
+                  <span class="activity-label">
+                    <span v-if="card.optLabel" class="opt-badge">{{ card.optLabel }}</span>
+                    {{ card.machine }}
+                  </span>
+                  <span class="activity-plan">{{ card.planText }}</span>
+                </div>
+                <div class="activity-card-fields">
+                  <div v-for="f in card.fields" :key="f.key" class="activity-field">
+                    <label>{{ f.label }}</label>
+                    <div class="log-field-row">
+                      <input type="number" v-model.number="workoutMetrics[f.key]"
+                             :step="f.step || 1" placeholder="–" class="log-input">
+                      <span class="log-unit">{{ f.unit }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Alternativ A/B (les-kun, kun når ingen activity cards) -->
+            <div v-else-if="displayedWorkout.options" class="options-list">
               <div v-for="(opt, i) in displayedWorkout.options" :key="i" class="option-item">
                 <span class="option-letter">{{ ['A','B'][i] }}:</span> {{ opt }}
               </div>
@@ -258,8 +281,8 @@
               <div v-if="displayedWorkout.rest" class="rest-info">⏱ {{ displayedWorkout.rest }}</div>
             </div>
 
-            <!-- Intervaller del 1 / del 2 (fase 2) -->
-            <div v-if="displayedWorkout.part1 || displayedWorkout.part2" class="parts-list">
+            <!-- Intervaller del 1 / del 2 (les-kun, kun når ingen activity cards) -->
+            <div v-if="!activityCards.length && (displayedWorkout.part1 || displayedWorkout.part2)" class="parts-list">
               <div v-if="displayedWorkout.part1" class="part-block">
                 <div class="part-label">Del 1</div>
                 <div v-if="typeof displayedWorkout.part1 === 'string'">{{ displayedWorkout.part1 }}</div>
@@ -413,7 +436,7 @@
             📍 GPS-snittfart {{ gpsAvgSpeed }} km/t lagt inn automatisk – juster om nødvendig
           </div>
           <!-- Fields: intervals/ocr/recovery + program.js strength circuits (not PPL gym) -->
-          <div v-if="!selectedStrengthKey && logFields.length" class="log-fields">
+          <div v-if="!selectedStrengthKey && !activityCards.length && logFields.length" class="log-fields">
             <p class="log-section-header">Logg resultater</p>
             <div v-for="field in logFields" :key="field.key" class="log-field">
               <label>{{ field.label }}</label>
