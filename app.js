@@ -1947,6 +1947,7 @@ createApp({
 
     watch(dagsform, (v) => localStorage.setItem(STORAGE.dagsform, v));
     watch(isOutdoor, (v) => localStorage.setItem(STORAGE.outdoor, JSON.stringify(v)));
+    watch(selectedWorkout, () => { prefillTimerConfig(); });
     watch(selectedSessionKey, (key) => {
       if (key) {
         prefillMetrics(selectedSession.value, selectedWorkout.value);
@@ -1957,7 +1958,6 @@ createApp({
       cancelRestTimer();
     });
 
-    watch(isOutdoor, () => { nextTick(() => prefillTimerConfig()); });
     watch(selectedStrengthKey, (key) => {
       if (key) { prefillStrengthMetrics(); initExerciseSets(key); }
       else if (!selectedSessionKey.value) workoutMetrics.value = {};
