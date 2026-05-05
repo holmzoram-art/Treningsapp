@@ -977,6 +977,91 @@ createApp({
       if (m2) return `${m2[1]} kilometer i timen`;
       return null;
     });
+
+    // ── OUTDOOR RUN TIMER ──────────────────────────────────────────────────
+    const outdoorState    = ref('idle'); // 'idle' | 'countdown' | 'warmup' | 'main' | 'done'
+    const outdoorWarmupMin  = ref(10);
+    const outdoorWarmupKm   = ref(1.0);
+    const outdoorWarmupType = ref('time'); // 'time' | 'distance'
+    const outdoorMainMin    = ref(30);
+    const outdoorElapsed    = ref(0);
+    const outdoorCountdown  = ref(5);
+    let _outdoorTick = null;
+
+    function parseMinFromDuration(durStr) {
+      if (!durStr) return 30;
+      const m = durStr.match(/(\d+)(?:–(\d+))?\s*min/);
+      if (!m) return 30;
+      return m[2] ? Math.round((+m[1] + +m[2]) / 2) : +m[1];
+    }
+
+    function outdoorFormatElapsed(sec) {
+      const m = Math.floor(sec / 60);
+      const s = sec % 60;
+      return `${m}:${String(s).padStart(2, '0')}`;
+    }
+
+    function transitionToMain() {
+      outdoorState.value = 'main';
+      outdoorElapsed.value = 0;
+      beep(880, 200); setTimeout(() => beep(1100, 300), 220);
+      speak(`Oppvarming ferdig – start hoveddelen. ${outdoorMainMin.value} minutter.`);
+    }
+
+    function startOutdoorTimer() {
+      if (!gpsEnabled.value) toggleGps();
+      outdoorState.value = 'countdown';
+      outdoorCountdown.value = 5;
+      outdoorElapsed.value = 0;
+      speak('Gjør deg klar');
+      _outdoorTick = setInterval(() => {
+        if (outdoorState.value === 'countdown') {
+          outdoorCountdown.value--;
+          if ([3,2,1].includes(outdoorCountdown.value)) beep(660, 120);
+          if (outdoorCountdown.value <= 0) {
+            outdoorState.value = 'warmup';
+            outdoorElapsed.value = 0;
+            beep(880, 200); setTimeout(() => beep(1100, 300), 220);
+            const desc = outdoorWarmupType.value === 'time'
+              ? `${outdoorWarmupMin.value} minutters oppvarming`
+              : `${outdoorWarmupKm.value} kilometer oppvarming`;
+            speak(`Start – ${desc}`);
+          }
+        } else if (outdoorState.value === 'warmup') {
+          outdoorElapsed.value++;
+          const e = outdoorElapsed.value;
+          if (outdoorWarmupType.value === 'time') {
+            const total = outdoorWarmupMin.value * 60;
+            if (e === Math.floor(total / 2)) speak('Halvveis i oppvarming – senk farten litt');
+            if (e >= total) transitionToMain();
+          } else {
+            if (gpsDistance.value >= outdoorWarmupKm.value) transitionToMain();
+          }
+        } else if (outdoorState.value === 'main') {
+          outdoorElapsed.value++;
+          const e = outdoorElapsed.value;
+          const total = outdoorMainMin.value * 60;
+          if (e === Math.floor(total / 2)) {
+            const speedNote = gpsSpeed.value ? ` Fart ${gpsSpeed.value} km/t.` : '';
+            speak(`Halvveis i hoveddelen.${speedNote}`);
+          }
+          if (e >= total) {
+            outdoorState.value = 'done';
+            clearInterval(_outdoorTick); _outdoorTick = null;
+            beep(880, 150); setTimeout(() => beep(1100, 150), 180); setTimeout(() => beep(1320, 400), 360);
+            const distNote = gpsDistance.value > 0.1 ? ` ${formatDist(gpsDistance.value)} løpt.` : '';
+            speak(`Ferdig! Bra jobbet!${distNote}`);
+          }
+        }
+      }, 1000);
+    }
+
+    function resetOutdoorTimer() {
+      clearInterval(_outdoorTick); _outdoorTick = null;
+      outdoorState.value = 'idle';
+      outdoorElapsed.value = 0;
+      outdoorCountdown.value = 5;
+    }
     function resolveWorkout(session, athleteId) {
       if (!session) return null;
       if (isOutdoor.value && session.outdoor) {
@@ -1847,8 +1932,11 @@ createApp({
     watch(dagsform, (v) => localStorage.setItem(STORAGE.dagsform, v));
     watch(isOutdoor, (v) => localStorage.setItem(STORAGE.outdoor, JSON.stringify(v)));
     watch(selectedSessionKey, (key) => {
-      if (key) prefillMetrics(selectedSession.value, selectedWorkout.value);
-      else workoutMetrics.value = {};
+      if (key) {
+        prefillMetrics(selectedSession.value, selectedWorkout.value);
+        outdoorMainMin.value = parseMinFromDuration(selectedSession.value?.duration);
+        resetOutdoorTimer();
+      } else workoutMetrics.value = {};
       cancelRestTimer();
     });
     watch(selectedStrengthKey, (key) => {
@@ -1885,6 +1973,9 @@ createApp({
       // timer
       timerState, timerPhase, timerSec, timerResults, timerConfig, timerEditing,
       timerPct, isPaused, showTimer,
+      outdoorState, outdoorWarmupMin, outdoorWarmupKm, outdoorWarmupType,
+      outdoorMainMin, outdoorElapsed, outdoorCountdown,
+      outdoorFormatElapsed, startOutdoorTimer, resetOutdoorTimer,
       audioMuted,
       gpsEnabled, gpsActive, gpsSpeed, gpsDistance, gpsPace, gpsAvgSpeed, mapsApiReady,
       formatSec, formatPace, formatDist,

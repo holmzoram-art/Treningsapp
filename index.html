@@ -462,6 +462,48 @@
           </div>
 
 
+          <!-- OUTDOOR RUN TIMER (kun for ikke-intervall utendørsøkter) -->
+          <div v-if="isOutdoor && !showTimer && selectedSessionKey" class="outdoor-run-timer">
+
+            <!-- Konfig -->
+            <div v-if="outdoorState === 'idle'" class="outdoor-timer-config">
+              <div class="outdoor-timer-title">🏃 Langøkt-timer</div>
+              <div class="outdoor-timer-row">
+                <span class="outdoor-timer-label">Oppvarming</span>
+                <div class="warmup-type-toggle">
+                  <button :class="['warmup-type-btn', { active: outdoorWarmupType === 'time' }]" @click="outdoorWarmupType = 'time'">Tid</button>
+                  <button :class="['warmup-type-btn', { active: outdoorWarmupType === 'distance' }]" @click="outdoorWarmupType = 'distance'">Distanse</button>
+                </div>
+                <input v-if="outdoorWarmupType === 'time'" type="number" v-model.number="outdoorWarmupMin" min="1" max="30" class="outdoor-timer-input">
+                <input v-else type="number" v-model.number="outdoorWarmupKm" min="0.5" max="5" step="0.5" class="outdoor-timer-input">
+                <span class="outdoor-timer-unit">{{ outdoorWarmupType === 'time' ? 'min' : 'km' }}</span>
+              </div>
+              <div class="outdoor-timer-row">
+                <span class="outdoor-timer-label">Hoveddel</span>
+                <input type="number" v-model.number="outdoorMainMin" min="5" max="180" class="outdoor-timer-input">
+                <span class="outdoor-timer-unit">min</span>
+              </div>
+              <button class="outdoor-start-btn" @click="startOutdoorTimer">▶ Start om 5 sek</button>
+            </div>
+
+            <!-- Aktiv timer -->
+            <div v-else class="outdoor-timer-active">
+              <div class="outdoor-phase-label" :class="outdoorState">
+                <span v-if="outdoorState === 'countdown'">Starter om {{ outdoorCountdown }}…</span>
+                <span v-else-if="outdoorState === 'warmup'">OPPVARMING</span>
+                <span v-else-if="outdoorState === 'main'">HOVEDDEL</span>
+                <span v-else>Ferdig! 🎉</span>
+              </div>
+              <div class="outdoor-timer-display" v-if="outdoorState !== 'countdown' && outdoorState !== 'done'">
+                <span class="outdoor-timer-elapsed">{{ outdoorFormatElapsed(outdoorElapsed) }}</span>
+                <span class="outdoor-timer-of" v-if="outdoorState === 'warmup' && outdoorWarmupType === 'time'"> / {{ outdoorWarmupMin }}:00 min</span>
+                <span class="outdoor-timer-of" v-else-if="outdoorState === 'warmup' && outdoorWarmupType === 'distance'"> · {{ formatDist(gpsDistance) }} / {{ outdoorWarmupKm }} km</span>
+                <span class="outdoor-timer-of" v-else-if="outdoorState === 'main'"> / {{ outdoorMainMin }}:00 min</span>
+              </div>
+              <button class="outdoor-reset-btn" @click="resetOutdoorTimer">↺ Nullstill</button>
+            </div>
+          </div>
+
         </div>
 
         <!-- RPE + lagre (cardio) -->

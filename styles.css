@@ -903,6 +903,29 @@ main { padding: 16px; max-width: 600px; margin: 0 auto; }
   background: #e8e8e8;
 }
 
+/* ── OUTDOOR RUN TIMER ── */
+.outdoor-run-timer { padding: 12px 16px 0; }
+.outdoor-timer-config { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; }
+.outdoor-timer-title { font-size: 0.9rem; font-weight: 700; }
+.outdoor-timer-row { display: flex; align-items: center; gap: 8px; }
+.outdoor-timer-label { font-size: 0.82rem; color: var(--text2); min-width: 80px; }
+.warmup-type-toggle { display: flex; gap: 4px; }
+.warmup-type-btn { padding: 4px 10px; border: 1px solid var(--border); border-radius: 12px; background: transparent; color: var(--text2); font-size: 0.78rem; cursor: pointer; }
+.warmup-type-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.outdoor-timer-input { width: 56px; padding: 6px 8px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text1); font-size: 1rem; text-align: center; }
+.outdoor-timer-unit { font-size: 0.82rem; color: var(--text2); }
+.outdoor-start-btn { padding: 12px; background: var(--green); border: none; border-radius: var(--radius-sm); color: #fff; font-size: 1rem; font-weight: 700; cursor: pointer; }
+.outdoor-timer-active { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.outdoor-phase-label { font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; padding: 4px 14px; border-radius: 20px; background: var(--bg); }
+.outdoor-phase-label.warmup { color: var(--yellow); }
+.outdoor-phase-label.main { color: var(--green); }
+.outdoor-phase-label.done { color: var(--green); }
+.outdoor-phase-label.countdown { color: var(--text2); }
+.outdoor-timer-display { display: flex; align-items: baseline; gap: 4px; }
+.outdoor-timer-elapsed { font-size: 2.4rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.outdoor-timer-of { font-size: 0.85rem; color: var(--text2); }
+.outdoor-reset-btn { padding: 7px 16px; border: 1px solid var(--border); border-radius: 20px; background: transparent; color: var(--text2); font-size: 0.82rem; cursor: pointer; }
+
 .timer-active { display: flex; flex-direction: column; align-items: center; gap: 12px; }
 .timer-phase-label {
   font-size: 0.9rem;
