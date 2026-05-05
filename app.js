@@ -1512,18 +1512,36 @@ createApp({
       newTest.value = { athlete: selectedAthlete.value, type: newTest.value.type, value: '', date: today() };
     }
 
+    function deleteTest(type, date) {
+      testHistoryRef.value = testHistoryRef.value.filter(t => !(t.type === type && t.date === date && t.athlete === selectedAthlete.value));
+      localStorage.setItem(STORAGE.tests, JSON.stringify(testHistoryRef.value));
+    }
+
     // ── ATHLETE LEVELS (beregnet fra tester, fallback til nivåprofil) ─────────
     const athleteLevels = computed(() => {
       const id = selectedAthlete.value;
-      const runTests = testHistory.value.filter(t => t.athlete === id && t.type === 'run20min')
-        .sort((a, b) => a.date > b.date ? 1 : -1);
-      const hangTests = testHistory.value.filter(t => t.athlete === id && t.type === 'deadhang')
-        .sort((a, b) => a.date > b.date ? 1 : -1);
+      const sorted = t => testHistory.value.filter(t2 => t2.athlete === id && t2.type === t).sort((a, b) => a.date > b.date ? 1 : -1);
+      const runTests    = sorted('run20min');
+      const cooperTests = sorted('cooper');
+      const hangTests   = sorted('deadhang');
 
-      const athlete  = ATHLETES.find(a => a.id === id);
-      const profile  = athlete?.level ? TRAINING_LEVELS[athlete.level] : null;
+      const athlete = ATHLETES.find(a => a.id === id);
+      const profile = athlete?.level ? TRAINING_LEVELS[athlete.level] : null;
 
-      if (!runTests.length) {
+      // Beregn terskel fra test — Løpetest 20 min har prioritet over Cooper
+      let thresholdData = null;
+      if (runTests.length) {
+        const latest = runTests[runTests.length - 1];
+        // 20-min test: løper på terskelfart → speed = distance/20min direkte
+        thresholdData = { threshold: Math.round(latest.value * 3 / 1000 * 10) / 10, date: latest.date, label: 'Løpetest 20 min' };
+      } else if (cooperTests.length) {
+        const latest = cooperTests[cooperTests.length - 1];
+        // Cooper 12-min: maks aerob fart = distance/200 km/t, terskel ≈ 85%
+        const maxSpeed = latest.value / 200;
+        thresholdData = { threshold: Math.round(maxSpeed * 0.85 * 10) / 10, date: latest.date, label: 'Cooper-test' };
+      }
+
+      if (!thresholdData) {
         if (!profile) return null;
         return {
           threshold_run_kmh: profile.threshold_kmh,
@@ -1538,8 +1556,7 @@ createApp({
         };
       }
 
-      const latest    = runTests[runTests.length - 1];
-      const threshold = Math.round(latest.value * 3 / 1000 * 10) / 10;
+      const { threshold, date: testDate, label: testLabel } = thresholdData;
       return {
         threshold_run_kmh: threshold,
         easy_run_kmh:      Math.round(threshold * 0.88 * 10) / 10,
@@ -1547,10 +1564,9 @@ createApp({
         strides_kmh:       Math.round(threshold * 1.15 * 10) / 10,
         max_hang_sec:      hangTests.length ? hangTests[hangTests.length-1].value : (profile?.hang_sec ?? null),
         carry_kg:          profile?.carry_kg ?? null,
-        level_label:       'Beregnet fra test',
-        last_updated:      latest.date,
+        level_label:       'Beregnet fra ' + testLabel,
+        last_updated:      testDate,
         from_profile:      false,
-        from_distance_m:   latest.value,
       };
     });
 
@@ -1791,7 +1807,7 @@ createApp({
       startTimer, endIntervalEarly, pauseTimer, resetTimer, toggleGps,
       // methods
       selectAthlete, selectSession, selectStrengthSession, navigateWeek, weekDates,
-      rpeClass, saveWorkoutLog, saveNote, saveTest,
+      rpeClass, saveWorkoutLog, saveNote, saveTest, deleteTest,
       isSessionDone, isSessionDoneForWeek, isStrengthDone, markSessionDone, markStrengthDone,
       testsOfType, myTestsOfType, isPR, athleteName, athleteColor,
       sparkPoints, sparkDots, barChart, rpeColor,

@@ -1050,6 +1050,7 @@
                 <span class="test-date">{{ formatDate(t.date) }}</span>
                 <span class="test-value">{{ t.value }} {{ type.unit }}</span>
                 <span class="pr-badge" v-if="isPR(t, type.id)">🏆 PR</span>
+                <button class="test-delete-btn" @click="deleteTest(type.id, t.date)" title="Slett oppføring">×</button>
               </div>
             </div>
           </div>

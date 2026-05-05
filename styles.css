@@ -732,6 +732,8 @@ main { padding: 16px; max-width: 600px; margin: 0 auto; }
 .test-date { color: var(--text2); font-size: 0.78rem; min-width: 80px; }
 .test-athlete { font-weight: 600; min-width: 60px; }
 .test-value { font-weight: 700; }
+.test-delete-btn { margin-left: auto; background: none; border: 1px solid var(--border); color: var(--text2); border-radius: 50%; width: 22px; height: 22px; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.test-delete-btn:hover { border-color: var(--red); color: var(--red); }
 .pr-badge { background: gold; color: #000; padding: 1px 7px; border-radius: 8px; font-size: 0.72rem; font-weight: 700; }
 
 /* ── EQUIPMENT VIEW ── */
