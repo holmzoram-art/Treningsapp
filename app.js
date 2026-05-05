@@ -1957,7 +1957,7 @@ createApp({
       cancelRestTimer();
     });
 
-    watch(isOutdoor, () => { prefillTimerConfig(); });
+    watch(isOutdoor, () => { nextTick(() => prefillTimerConfig()); });
     watch(selectedStrengthKey, (key) => {
       if (key) { prefillStrengthMetrics(); initExerciseSets(key); }
       else if (!selectedSessionKey.value) workoutMetrics.value = {};
