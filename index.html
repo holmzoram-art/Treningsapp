@@ -60,8 +60,8 @@
     <nav class="tab-bar">
       <button :class="{ active: view === 'today' }" @click="view = 'today'">I dag</button>
       <button :class="{ active: view === 'week' }" @click="view = 'week'">Program</button>
-      <button :class="{ active: view === 'history' }" @click="view = 'history'">Analyse</button>
       <button :class="{ active: view === 'progress' }" @click="view = 'progress'">Fremgang</button>
+      <button :class="{ active: view === 'history' }" @click="view = 'history'">Historikk</button>
       <button :class="{ active: view === 'tests' }" @click="view = 'tests'">Tester</button>
       <button :class="{ active: view === 'equipment' }" @click="view = 'equipment'">Utstyr</button>
       <button :class="{ active: view === 'settings' }" @click="view = 'settings'">⚙ Innstillinger</button>
@@ -707,47 +707,7 @@
 
     <!-- ───────────── ANALYSE / HISTORIKK ───────────── -->
     <main v-if="view === 'history'" class="view-history">
-      <h2>Analyse – {{ currentAthleteName }}</h2>
-
-      <!-- Ukentlig rapport -->
-      <div class="weekly-report-card">
-        <div class="wr-top">
-          <div>
-            <div class="wr-title">📊 Ukes-analyse</div>
-            <div class="wr-period">Siste 7 dager</div>
-          </div>
-          <div v-if="currentStreak > 0" class="wr-streak">🔥 {{ currentStreak }}d streak</div>
-        </div>
-        <p class="wr-text">{{ weeklyReport.text }}</p>
-        <div v-if="weeklyReport.stats" class="wr-stats">
-          <div class="wrs-cell">
-            <div class="wrs-num">{{ weeklyReport.stats.sessThis }}</div>
-            <div class="wrs-label">Loggede økter</div>
-            <div v-if="weeklyReport.stats.sessLast > 0" class="wrs-cmp"
-                 :class="weeklyReport.stats.sessThis >= weeklyReport.stats.sessLast ? 'wrs-up' : 'wrs-down'">
-              {{ weeklyReport.stats.sessThis >= weeklyReport.stats.sessLast ? '↑' : '↓' }}
-              {{ weeklyReport.stats.sessLast }} forrige uke
-            </div>
-          </div>
-          <div v-if="weeklyReport.stats.avgRpeThis !== null" class="wrs-cell">
-            <div class="wrs-num">{{ weeklyReport.stats.avgRpeThis }}</div>
-            <div class="wrs-label">Snitt RPE</div>
-            <div v-if="weeklyReport.stats.avgRpeLast !== null" class="wrs-cmp"
-                 :class="weeklyReport.stats.avgRpeThis <= weeklyReport.stats.avgRpeLast + 0.5 ? 'wrs-up' : 'wrs-down'">
-              {{ weeklyReport.stats.avgRpeLast }} forrige uke
-            </div>
-          </div>
-          <div v-if="weeklyReport.stats.loadThis > 0" class="wrs-cell">
-            <div class="wrs-num">{{ weeklyReport.stats.loadThis }}</div>
-            <div class="wrs-label">Intervall-load</div>
-            <div v-if="weeklyReport.stats.loadLast > 0" class="wrs-cmp"
-                 :class="weeklyReport.stats.loadThis >= weeklyReport.stats.loadLast ? 'wrs-up' : 'wrs-down'">
-              {{ weeklyReport.stats.loadThis >= weeklyReport.stats.loadLast ? '↑' : '↓' }}
-              {{ weeklyReport.stats.loadLast }} forrige uke
-            </div>
-          </div>
-        </div>
-      </div>
+      <h2>Historikk – {{ currentAthleteName }}</h2>
 
       <!-- Type-filter -->
       <div class="historikk-filter">
