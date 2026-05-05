@@ -878,9 +878,9 @@ const PROGRAM_DATA = {
             kjetil: "geir"
           },
           outdoor: {
-            sondre: { part1: { machine: "Utendørs", sets: "6×45 sek", speed: "11.5–12.3 km/t", incline: "flatt", rest: "60 sek pause" } },
-            knut:   { part1: { machine: "Utendørs", sets: "6×45–60 sek", speed: "6.8–7.0 km/t", incline: "svak bakke", rest: "60–75 sek pause" } },
-            geir:   { part1: { machine: "Utendørs", sets: "6×45 sek hard · 60 sek rolig jogg", speed: "6.4–6.8 km/t", incline: "flatt", rest: "Integrert" } },
+            sondre: { part1: { machine: "Utendørs", sets: "10×45 sek", speed: "11.5–12.3 km/t", incline: "flatt", rest: "60 sek pause" } },
+            knut:   { part1: { machine: "Utendørs", sets: "10×45–60 sek", speed: "6.8–7.0 km/t", incline: "svak bakke", rest: "60–75 sek pause" } },
+            geir:   { part1: { machine: "Utendørs", sets: "10×45 sek hard · 45 sek rolig jogg", speed: "6.4–6.8 km/t", incline: "flatt", rest: "Integrert" } },
             kjetil: "geir"
           },
           dagsform: { yellow: "Allerede lett – kjør som planlagt.", red: "4 drag i stedet for 6. Rolig innsats." }

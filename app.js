@@ -1062,6 +1062,22 @@ createApp({
       outdoorElapsed.value = 0;
       outdoorCountdown.value = 5;
     }
+
+    function prefillTimerConfig() {
+      if (selectedSession.value?.type !== 'intervals') return;
+      const w = selectedWorkout.value;
+      const src = w?.part1?.sets || w?.options?.[0] || '';
+      const setsM   = src.match(/(\d+)[×x]/);
+      const secM    = src.match(/(\d+)\s*sek/);
+      const restSrc = w?.part1?.rest || '';
+      const restSecM = restSrc.match(/(\d+)\s*sek/);
+      const restMinM = restSrc.match(/(\d+)\s*min/);
+      timerConfig.value = {
+        count:   setsM    ? +setsM[1]    : timerConfig.value.count,
+        workSec: secM     ? +secM[1]     : timerConfig.value.workSec,
+        restSec: restSecM ? +restSecM[1] : restMinM ? +restMinM[1] * 60 : timerConfig.value.restSec,
+      };
+    }
     function resolveWorkout(session, athleteId) {
       if (!session) return null;
       if (isOutdoor.value && session.outdoor) {
@@ -1934,11 +1950,14 @@ createApp({
     watch(selectedSessionKey, (key) => {
       if (key) {
         prefillMetrics(selectedSession.value, selectedWorkout.value);
+        prefillTimerConfig();
         outdoorMainMin.value = parseMinFromDuration(selectedSession.value?.duration);
         resetOutdoorTimer();
       } else workoutMetrics.value = {};
       cancelRestTimer();
     });
+
+    watch(isOutdoor, () => { prefillTimerConfig(); });
     watch(selectedStrengthKey, (key) => {
       if (key) { prefillStrengthMetrics(); initExerciseSets(key); }
       else if (!selectedSessionKey.value) workoutMetrics.value = {};
