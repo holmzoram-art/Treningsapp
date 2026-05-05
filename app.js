@@ -693,7 +693,7 @@ createApp({
       return cards;
     });
 
- = computed(() =>
+    const displayedTitle = computed(() =>
       selectedStrengthDay.value?.title || selectedSession.value?.title
     );
 
