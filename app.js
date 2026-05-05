@@ -853,8 +853,7 @@ createApp({
 
     const showTimer = computed(() => {
       if (selectedStrengthKey.value) return false;
-      return selectedSession.value?.type === 'intervals' ||
-        (selectedSession.value?.type === 'ocr' && selectedWorkout.value?.circuit);
+      return selectedSession.value?.type === 'intervals';
     });
     function resolveWorkout(session, athleteId) {
       if (!session) return null;
