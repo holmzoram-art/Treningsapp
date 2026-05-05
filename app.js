@@ -781,7 +781,7 @@ createApp({
       timerResults.value = [];
       timerPhase.value = 0;
       timerState.value = 'warmup';
-      timerSec.value = 10;
+      timerSec.value = 15;
       timerElapsed.value = 0;
       stopTick();
       speak('Gjør deg klar');
@@ -1023,7 +1023,7 @@ createApp({
     const outdoorWarmupType = ref('time'); // 'time' | 'distance'
     const outdoorMainMin    = ref(30);
     const outdoorElapsed    = ref(0);
-    const outdoorCountdown  = ref(5);
+    const outdoorCountdown  = ref(15);
     let _outdoorTick = null;
 
     function parseMinFromDuration(durStr) {
@@ -1049,7 +1049,7 @@ createApp({
     function startOutdoorTimer() {
       if (!gpsEnabled.value) toggleGps();
       outdoorState.value = 'countdown';
-      outdoorCountdown.value = 5;
+      outdoorCountdown.value = 15;
       outdoorElapsed.value = 0;
       speak('Gjør deg klar');
       _outdoorTick = setInterval(() => {
@@ -1098,7 +1098,7 @@ createApp({
       clearInterval(_outdoorTick); _outdoorTick = null;
       outdoorState.value = 'idle';
       outdoorElapsed.value = 0;
-      outdoorCountdown.value = 5;
+      outdoorCountdown.value = 15;
     }
 
     function prefillTimerConfig() {
