@@ -118,12 +118,38 @@ createApp({
 
     const totalWeeks = computed(() => PROGRAM_DATA.meta.totalWeeks);
 
-    const daysToRace = computed(() => {
-      const race = new Date(PROGRAM_DATA.meta.raceDate + 'T00:00:00');
-      const now = new Date();
-      now.setHours(0, 0, 0, 0);
-      return Math.ceil((race - now) / 86400000);
-    });
+    // ── EVENTS / COUNTDOWNS ────────────────────────────────────────────────
+    const DEFAULT_EVENTS = [
+      { name: 'Holmenkollstafetten', date: PROGRAM_DATA.meta.raceDate, icon: '🏁' },
+      { name: 'Fjelltur',             date: '2026-07-01',               icon: '⛰️' },
+      { name: 'Navy Race',            date: '2026-08-08',               icon: '⚓' },
+    ];
+    const events = ref(JSON.parse(localStorage.getItem('onitio_events') || 'null') || DEFAULT_EVENTS);
+    const newEvent = ref({ name: '', date: '', icon: '🎯' });
+
+    function daysUntilDate(dateStr) {
+      const d = new Date(dateStr + 'T00:00:00');
+      const now = new Date(); now.setHours(0, 0, 0, 0);
+      return Math.ceil((d - now) / 86400000);
+    }
+
+    const upcomingEvents = computed(() =>
+      events.value
+        .map(e => ({ ...e, days: daysUntilDate(e.date) }))
+        .sort((a, b) => a.days - b.days)
+    );
+
+    function addEvent() {
+      if (!newEvent.value.name.trim() || !newEvent.value.date) return;
+      events.value = [...events.value, { ...newEvent.value, name: newEvent.value.name.trim() }];
+      newEvent.value = { name: '', date: '', icon: '🎯' };
+    }
+
+    function removeEvent(i) {
+      events.value = events.value.filter((_, idx) => idx !== i);
+    }
+
+    watch(events, v => localStorage.setItem('onitio_events', JSON.stringify(v)), { deep: true });
 
     // ── TODAY'S SESSION ────────────────────────────────────────────────────
     const DAY_MAP = { 1: 'monday', 2: 'tuesday', 4: 'thursday', 5: 'friday' };
@@ -1447,7 +1473,8 @@ createApp({
       previousExerciseSets,
       // computed
       athletes, currentWeek, currentWeekNumber, viewingWeekData, viewingWeekWorkouts, totalWeeks,
-      daysToRace, selectedSession,
+      events, newEvent, upcomingEvents, addEvent, removeEvent,
+      selectedSession,
       selectedStrengthDay,
       selectedWorkout, displayedWorkout, displayedTitle, displayedDuration,
       dagsformHint, weekDays, rpeHistory, notesHistory,

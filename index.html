@@ -19,8 +19,12 @@
     <header class="app-header">
       <div class="header-content">
         <h1>Treningsprogram 2026</h1>
-        <span class="race-badge" v-if="daysToRace > 0">🏁 {{ daysToRace }} dager til Holmenkollstafetten</span>
-        <span class="race-badge done" v-else>🏆 Holmenkollstafetten gjennomført!</span>
+        <div class="event-badges">
+          <span v-for="e in upcomingEvents.filter(e => e.days > -7 && e.days <= 180)" :key="e.name"
+                class="race-badge" :class="{ done: e.days <= 0, soon: e.days <= 14 && e.days > 0 }">
+            {{ e.icon }} {{ e.days > 0 ? e.days + ' dager til ' + e.name : e.name + ' ✓' }}
+          </span>
+        </div>
       </div>
     </header>
 
@@ -60,6 +64,7 @@
       <button :class="{ active: view === 'progress' }" @click="view = 'progress'">Fremgang</button>
       <button :class="{ active: view === 'tests' }" @click="view = 'tests'">Tester</button>
       <button :class="{ active: view === 'equipment' }" @click="view = 'equipment'">Utstyr</button>
+      <button :class="{ active: view === 'settings' }" @click="view = 'settings'">⚙ Innstillinger</button>
     </nav>
 
     <!-- ───────────── I DAG ───────────── -->
@@ -965,6 +970,44 @@
           <li v-for="item in cat.items" :key="item">{{ item }}</li>
         </ul>
       </div>
+    </main>
+
+    <!-- ───────────── INNSTILLINGER ───────────── -->
+    <main v-if="view === 'settings'" class="view-settings">
+      <h2>Innstillinger</h2>
+
+      <section class="settings-section">
+        <h3>Events &amp; nedtelling</h3>
+        <p class="settings-desc">Events vises som nedtelling i toppen av appen.</p>
+
+        <!-- Event-liste -->
+        <div class="event-list">
+          <div v-for="(e, i) in upcomingEvents" :key="e.name + e.date" class="event-item">
+            <span class="event-icon">{{ e.icon }}</span>
+            <div class="event-info">
+              <span class="event-name">{{ e.name }}</span>
+              <span class="event-date">{{ e.date }}</span>
+            </div>
+            <span class="event-days" :class="{ done: e.days <= 0, soon: e.days <= 14 && e.days > 0 }">
+              {{ e.days > 0 ? e.days + ' dager' : e.days === 0 ? 'I dag!' : 'Ferdig' }}
+            </span>
+            <button class="event-remove-btn" @click="removeEvent(events.indexOf(e))">✕</button>
+          </div>
+        </div>
+
+        <!-- Legg til event -->
+        <div class="add-event-form">
+          <h4>Legg til event</h4>
+          <div class="add-event-row">
+            <input v-model="newEvent.icon" class="event-icon-input" maxlength="2" placeholder="🎯">
+            <input v-model="newEvent.name" class="event-name-input" placeholder="Navn på event">
+            <input v-model="newEvent.date" type="date" class="event-date-input">
+            <button class="add-event-btn" @click="addEvent" :disabled="!newEvent.name || !newEvent.date">
+              + Legg til
+            </button>
+          </div>
+        </div>
+      </section>
     </main>
 
   </div>
