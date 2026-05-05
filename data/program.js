@@ -877,6 +877,12 @@ const PROGRAM_DATA = {
             },
             kjetil: "geir"
           },
+          outdoor: {
+            sondre: { part1: { machine: "Utendørs", sets: "6×45 sek", speed: "11.5–12.3 km/t", incline: "flatt", rest: "60 sek pause" } },
+            knut:   { part1: { machine: "Utendørs", sets: "6×45–60 sek", speed: "6.8–7.0 km/t", incline: "svak bakke", rest: "60–75 sek pause" } },
+            geir:   { part1: { machine: "Utendørs", sets: "6×45 sek hard · 60 sek rolig jogg", speed: "6.4–6.8 km/t", incline: "flatt", rest: "Integrert" } },
+            kjetil: "geir"
+          },
           dagsform: { yellow: "Allerede lett – kjør som planlagt.", red: "4 drag i stedet for 6. Rolig innsats." }
         },
         thursday: {
@@ -887,6 +893,11 @@ const PROGRAM_DATA = {
             circuit: ["400–500 m @ 3–4% stigning (rolig)", "8 burpees", "45–60 sek hang", "100–120 m carry"],
             rest: "2 min"
           },
+          outdoor: {
+            rounds: 3,
+            circuit: ["400–500 m rolig utendørs · flatt", "8 burpees", "45–60 sek hang", "100–120 m carry"],
+            rest: "2 min"
+          },
           athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" },
           dagsform: { yellow: "2 runder.", red: "2 runder. Dropp burpees." }
         },
@@ -895,6 +906,10 @@ const PROGRAM_DATA = {
           summary: "25–30 min veldig rolig + lett tøying",
           common: {
             options: ["Mølle: 25–30 min @ 2–3% (pratetempo)", "Romaskin: 20 min veldig rolig"],
+            note: "Lett tøying av legg, ankel og hofter etterpå. Ingen høy intensitet."
+          },
+          outdoor: {
+            options: ["Utendørs: 25–30 min rolig løp/gange · flatt terreng"],
             note: "Lett tøying av legg, ankel og hofter etterpå. Ingen høy intensitet."
           },
           athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" },
