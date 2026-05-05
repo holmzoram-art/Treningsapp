@@ -154,6 +154,28 @@ createApp({
       events.value = events.value.filter((_, idx) => idx !== i);
     }
 
+    // ── DATA MANAGEMENT ────────────────────────────────────────────────────
+    const clearConfirm = ref(null); // 'athlete' | 'all' | null
+
+    function clearAthleteData(athleteId) {
+      const weekKeys = Object.keys(localStorage).filter(k => k.startsWith(`onitio_done_w`) && k.endsWith(`_${athleteId}`));
+      weekKeys.forEach(k => localStorage.removeItem(k));
+      localStorage.removeItem(STORAGE.wlog(athleteId));
+      localStorage.removeItem(STORAGE.rpe(athleteId));
+      localStorage.removeItem(STORAGE.note(athleteId));
+      refreshKey.value++;
+      doneVersion.value++;
+    }
+
+    function confirmClear(scope) {
+      if (scope === 'athlete') {
+        clearAthleteData(selectedAthlete.value);
+      } else {
+        ATHLETES.forEach(a => clearAthleteData(a.id));
+      }
+      clearConfirm.value = null;
+    }
+
     watch(events, v => localStorage.setItem('onitio_events', JSON.stringify(v)), { deep: true });
 
     // ── TODAY'S SESSION ────────────────────────────────────────────────────
@@ -1767,6 +1789,7 @@ createApp({
       // computed
       athletes, currentWeek, currentWeekNumber, viewingWeekData, viewingWeekWorkouts, totalWeeks,
       events, newEvent, upcomingEvents, addEvent, removeEvent,
+      clearConfirm, confirmClear,
       selectedSession,
       selectedStrengthDay,
       selectedWorkout, displayedWorkout, displayedTitle, displayedDuration,

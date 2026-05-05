@@ -1077,6 +1077,28 @@
           </div>
         </div>
       </section>
+
+      <section class="settings-section danger-section">
+        <h3>Slett treningsdata</h3>
+        <p class="settings-desc">Sletter lagrede økter, RPE-historikk og notater. Tester slettes ikke.</p>
+
+        <div v-if="!clearConfirm" class="clear-buttons">
+          <button class="clear-btn" @click="clearConfirm = 'athlete'">Slett data for {{ currentAthleteName }}</button>
+          <button class="clear-btn clear-btn-all" @click="clearConfirm = 'all'">Slett data for alle utøvere</button>
+        </div>
+
+        <div v-else class="clear-confirm">
+          <p class="clear-confirm-text">
+            ⚠️ Er du sikker? Dette kan ikke angres.
+            <span v-if="clearConfirm === 'all'"> All data for alle 4 utøvere slettes.</span>
+            <span v-else> All data for {{ currentAthleteName }} slettes.</span>
+          </p>
+          <div class="clear-confirm-btns">
+            <button class="clear-btn clear-btn-danger" @click="confirmClear(clearConfirm)">Ja, slett</button>
+            <button class="clear-btn-cancel" @click="clearConfirm = null">Avbryt</button>
+          </div>
+        </div>
+      </section>
     </main>
 
   </div>

@@ -76,6 +76,19 @@ body {
 .add-event-btn { padding: 8px 16px; background: var(--accent); color: #fff; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; white-space: nowrap; }
 .add-event-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
+.danger-section { border-top: 1px solid var(--border); padding-top: 20px; margin-top: 28px; }
+.clear-buttons { display: flex; gap: 10px; flex-wrap: wrap; }
+.clear-btn { padding: 9px 16px; border: 1px solid #e57373; border-radius: 20px; background: transparent; color: #e57373; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+.clear-btn:hover { background: #e57373; color: #fff; }
+.clear-btn-all { border-color: #ef5350; color: #ef5350; }
+.clear-btn-all:hover { background: #ef5350; color: #fff; }
+.clear-btn-danger { background: #ef5350; color: #fff; border-color: #ef5350; }
+.clear-btn-danger:hover { background: #c62828; border-color: #c62828; }
+.clear-confirm { background: var(--card); border: 1px solid #e57373; border-radius: var(--radius); padding: 14px 16px; }
+.clear-confirm-text { font-size: 0.88rem; margin-bottom: 12px; }
+.clear-confirm-btns { display: flex; gap: 10px; align-items: center; }
+.clear-btn-cancel { padding: 8px 14px; border: none; background: transparent; color: var(--text2); font-size: 0.85rem; cursor: pointer; text-decoration: underline; }
+
 /* ── ATHLETE BAR ── */
 .athlete-bar {
   display: flex;
