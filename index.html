@@ -229,7 +229,20 @@
             <div v-if="displayedWorkout.circuit" class="circuit-list">
               <div v-if="displayedWorkout.rounds" class="rounds-badge">{{ displayedWorkout.rounds }} runder</div>
               <div v-for="step in displayedWorkout.circuit" :key="step" class="circuit-step">
-                <span class="arrow">→</span> {{ step }}
+                <span class="arrow">→</span>
+                <span class="step-desc">{{ step }}</span>
+                <span v-if="/burpee/i.test(step)" class="inline-metric">
+                  <input type="number" v-model.number="workoutMetrics.burpees_done" class="inline-metric-input" min="0" placeholder="–">
+                  <span class="inline-metric-unit">gjort</span>
+                </span>
+                <span v-else-if="/hang/i.test(step)" class="inline-metric">
+                  <input type="number" v-model.number="workoutMetrics.hang_sec" class="inline-metric-input" min="0" placeholder="–">
+                  <span class="inline-metric-unit">sek</span>
+                </span>
+                <span v-else-if="/carry/i.test(step)" class="inline-metric">
+                  <input type="number" v-model.number="workoutMetrics.carry_kg" class="inline-metric-input" min="0" step="0.5" placeholder="–">
+                  <span class="inline-metric-unit">kg</span>
+                </span>
               </div>
               <div v-if="displayedWorkout.rest" class="rest-info">⏱ {{ displayedWorkout.rest }}</div>
             </div>

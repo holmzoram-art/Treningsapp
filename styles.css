@@ -397,10 +397,15 @@ main { padding: 16px; max-width: 600px; margin: 0 auto; }
 .session-summary { color: var(--text2); font-size: 0.88rem; margin-bottom: 14px; line-height: 1.5; }
 
 .exercise-list, .circuit-list, .options-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
-.exercise-item, .circuit-step, .option-item { display: flex; gap: 8px; font-size: 0.9rem; line-height: 1.4; }
+.exercise-item, .circuit-step, .option-item { display: flex; gap: 8px; font-size: 0.9rem; line-height: 1.4; align-items: center; flex-wrap: wrap; }
 .bullet, .arrow { color: var(--accent); flex-shrink: 0; font-weight: bold; }
 .option-letter { color: var(--accent); font-weight: bold; flex-shrink: 0; min-width: 20px; }
 .rounds-badge { background: var(--card2); color: var(--text2); padding: 4px 12px; border-radius: 10px; font-size: 0.8rem; font-weight: 600; display: inline-block; margin-bottom: 8px; }
+
+.inline-metric { display: inline-flex; align-items: center; gap: 4px; margin-left: 6px; }
+.inline-metric-input { width: 52px; padding: 3px 6px; border: 1.5px solid var(--border); border-radius: 6px; background: var(--card2); color: var(--text1); font-size: 0.88rem; text-align: center; }
+.inline-metric-input:focus { outline: none; border-color: var(--accent); }
+.inline-metric-unit { font-size: 0.8rem; color: var(--text2); }
 .rest-info { color: var(--text2); font-size: 0.82rem; margin-top: 6px; }
 
 .parts-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 12px; }

@@ -9,6 +9,7 @@ const SESSION_LOG_FIELDS = {
   ],
   ocr: [
     { key: 'rounds_done',  label: 'Runder fullført', unit: 'stk', integer: true },
+    { key: 'burpees_done', label: 'Burpees gjort',   unit: 'stk', integer: true },
     { key: 'hang_sec',     label: 'Beste hang',      unit: 'sek', integer: true },
     { key: 'carry_kg',     label: 'Carry-vekt',      unit: 'kg',  step: 0.5 },
     { key: 'duration_min', label: 'Varighet',         unit: 'min', integer: true },
@@ -714,6 +715,8 @@ createApp({
         if (hangStep) { const hm = hangStep.match(/(\d+)(?:–(\d+))?/); if (hm) m.hang_sec = hm[2] ? Math.round((+hm[1] + +hm[2]) / 2) : +hm[1]; }
         const carryStep = workout?.circuit?.find(s => /carry/i.test(s));
         if (carryStep) { const cm = carryStep.match(/(\d+\.?\d*)\s*kg/); if (cm) m.carry_kg = +cm[1]; }
+        const burpeeStep = workout?.circuit?.find(s => /burpee/i.test(s));
+        if (burpeeStep) { const bm = burpeeStep.match(/(\d+)/); if (bm) m.burpees_done = +bm[1]; }
       } else if (type === 'strength') {
         // program.js strength sessions are circuits — prefill rounds from session data
         if (session.common?.rounds != null) {
@@ -879,6 +882,10 @@ createApp({
       const sess = selectedSession.value;
       // program.js sessions with type='strength' are circuits (exercises as text), not PPL gym
       if (sess?.type === 'strength') return SESSION_LOG_FIELDS.circuit;
+      // OCR sessions with circuit steps: hang/carry/burpees shown inline — only rounds + duration in log card
+      if (sess?.type === 'ocr' && sess?.common?.circuit) {
+        return SESSION_LOG_FIELDS.ocr.filter(f => ['rounds_done', 'duration_min'].includes(f.key));
+      }
       return SESSION_LOG_FIELDS[sess?.type] || SESSION_LOG_FIELDS.recovery;
     });
 
