@@ -605,7 +605,8 @@ main { padding: 16px; max-width: 600px; margin: 0 auto; }
   cursor: pointer;
 }
 .week-nav button:disabled { opacity: 0.3; cursor: default; }
-.week-nav-center { text-align: center; }
+.week-nav button { min-width: 80px; }
+.week-nav-center { text-align: center; flex: 1; }
 .week-nav-center strong { display: block; font-size: 1rem; }
 .week-dates { font-size: 0.78rem; color: var(--text2); }
 .week-note { background: var(--card2); border-radius: var(--radius-sm); padding: 10px 14px; color: var(--text2); font-size: 0.85rem; margin-bottom: 12px; }
