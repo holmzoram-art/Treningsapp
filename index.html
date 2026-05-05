@@ -151,7 +151,7 @@
                     <span class="ex-name">{{ ex.name }}</span>
                     <span v-if="ex.note" class="ex-note"> – {{ ex.note }}</span>
                   </div>
-                  <span class="ex-target">{{ ex.sets }}×{{ ex.reps }}</span>
+                  <span class="ex-target">{{ ex.sets }}×{{ ex.reps ?? ex.time ?? '' }}</span>
                 </div>
                 <div v-if="previousExerciseSets[ex.name]?.length" class="ex-prev-ref">
                   Forrige: {{ previousExerciseSets[ex.name].map(s => s.weight ? s.weight + 'kg×' + s.reps : s.reps).join(', ') }}
@@ -161,8 +161,9 @@
                     <span class="sr-num">#</span>
                     <span class="sr-prev">Forrige</span>
                     <span class="sr-weight">Vekt (kg)</span>
-                    <span class="sr-reps">Reps</span>
+                    <span class="sr-reps">{{ ex.time ? 'Sek' : 'Reps' }}</span>
                     <span class="sr-done"></span>
+                    <span class="sr-del"></span>
                   </div>
                   <div v-for="(s, i) in currentExerciseSets[ex.name]" :key="i"
                        class="set-row" :class="{ 'set-done': s.done }">
@@ -178,9 +179,16 @@
                       @click="s.done = !s.done; s.done && startRestTimer(ex.restSec, ex.name)">
                       {{ s.done ? '✓' : '○' }}
                     </button>
+                    <button class="sr-remove"
+                      :disabled="currentExerciseSets[ex.name].length <= 1"
+                      @click="currentExerciseSets[ex.name].splice(i, 1)">×</button>
                     <span v-if="s.done && isSetPR(ex.name, s.weight, s.reps)" class="pr-badge-inline">🏆</span>
                   </div>
                 </div>
+                <button class="add-set-btn"
+                  @click="currentExerciseSets[ex.name].push({ weight: currentExerciseSets[ex.name].at(-1)?.weight ?? 0, reps: currentExerciseSets[ex.name].at(-1)?.reps ?? 0, done: false })">
+                  + Sett
+                </button>
                 <button class="rest-start-btn"
                   :class="{ active: restTimer.active && restTimer.exerciseName === ex.name }"
                   @click="startRestTimer(ex.restSec, ex.name)">
@@ -404,8 +412,9 @@
           <div v-if="gpsAvgSpeed && selectedSession?.type === 'intervals'" class="gps-autofill-hint">
             📍 GPS-snittfart {{ gpsAvgSpeed }} km/t lagt inn automatisk – juster om nødvendig
           </div>
-          <!-- Fields only for non-strength sessions (intervals/ocr/recovery); strength uses per-set logging -->
-          <div v-if="selectedSession?.type !== 'strength'" class="log-fields">
+          <!-- Fields: intervals/ocr/recovery + program.js strength circuits (not PPL gym) -->
+          <div v-if="!selectedStrengthKey && logFields.length" class="log-fields">
+            <p class="log-section-header">Logg resultater</p>
             <div v-for="field in logFields" :key="field.key" class="log-field">
               <label>{{ field.label }}</label>
               <div class="log-field-row">
@@ -463,7 +472,7 @@
                   <span class="ex-name">{{ ex.name }}</span>
                   <span v-if="ex.note" class="ex-note"> – {{ ex.note }}</span>
                 </div>
-                <span class="ex-target">{{ ex.sets }}×{{ ex.reps }}</span>
+                <span class="ex-target">{{ ex.sets }}×{{ ex.reps ?? ex.time ?? '' }}</span>
               </div>
 
               <!-- Forrige økt-referanse -->
@@ -477,7 +486,7 @@
                   <span class="sr-num">#</span>
                   <span class="sr-prev">Forrige</span>
                   <span class="sr-weight">Vekt (kg)</span>
-                  <span class="sr-reps">Reps</span>
+                  <span class="sr-reps">{{ ex.time ? 'Sek' : 'Reps' }}</span>
                   <span class="sr-done"></span>
                   <span class="sr-del"></span>
                 </div>

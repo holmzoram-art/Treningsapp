@@ -463,6 +463,7 @@ main { padding: 16px; max-width: 600px; margin: 0 auto; }
 .rpe-card p { color: var(--text2); font-size: 0.82rem; margin-bottom: 10px; }
 
 .log-fields { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px 12px; margin-bottom: 12px; }
+.log-section-header { grid-column: 1 / -1; font-size: 0.78rem; font-weight: 600; color: var(--text2); margin: 0 0 4px; text-transform: uppercase; letter-spacing: 0.04em; }
 .log-field label { font-size: 0.75rem; color: var(--text2); font-weight: 600; display: block; margin-bottom: 3px; }
 .log-field-row { display: flex; align-items: center; gap: 6px; }
 .log-input { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text1); padding: 6px 8px; width: 100%; font-size: 0.9rem; }
