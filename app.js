@@ -485,6 +485,7 @@ createApp({
     let _mapPolyline = null;
     let _mapMarker = null;
     let _mapInitialized = false;
+    let _lastKmAnnounced = 0;
 
     window.__mapsReady = () => { mapsApiReady.value = true; };
 
@@ -542,6 +543,7 @@ createApp({
       gpsDistance.value = 0; _gpsLastPos = null; gpsActive.value = false;
       gpsSpeedSamples.value = [];
       _mapInitialized = false; _mapObj = null; _mapPolyline = null; _mapMarker = null;
+      _lastKmAnnounced = 0;
       _gpsWatchId = navigator.geolocation.watchPosition(
         (pos) => {
           const { latitude: lat, longitude: lng, speed } = pos.coords;
@@ -558,6 +560,14 @@ createApp({
           }
           if (!_mapInitialized) nextTick(() => initMap(lat, lng));
           else updateMap(lat, lng);
+          // Per-KM voice announcement
+          const kmNow = Math.floor(gpsDistance.value);
+          if (kmNow > _lastKmAnnounced && gpsDistance.value >= 0.95) {
+            _lastKmAnnounced = kmNow;
+            const speedTxt = gpsSpeed.value ? `. Fart ${String(gpsSpeed.value).replace('.', ' komma')} kilometer i timen` : '';
+            const paceTxt = gpsPace.value ? (() => { const m = Math.floor(gpsPace.value/60), s = gpsPace.value%60; return `. Tempo ${m}:${String(s).padStart(2,'0')} per kilometer`; })() : '';
+            speak(`${kmNow} kilometer${speedTxt}${paceTxt}`);
+          }
         },
         () => { gpsActive.value = false; },
         { enableHighAccuracy: true, maximumAge: 1000, timeout: 15000 }
@@ -747,10 +757,17 @@ createApp({
         else if (s === 1) beep(660, 120);
         // 10-second warning (work/rest phases only)
         if (s === 10 && timerState.value !== 'warmup') speak('Ti sekunder');
-        // Halfway through work phase
+        // Halfway through work phase + periodic speed update for long intervals
         if (timerState.value === 'work') {
           const half = Math.round(timerConfig.value.workSec / 2);
-          if (s === half && timerConfig.value.workSec >= 20) speak('Halvveis');
+          if (s === half && timerConfig.value.workSec >= 20) {
+            const speedNote = gpsEnabled.value && gpsSpeed.value ? ` – ${gpsSpeed.value} km/t` : '';
+            speak(`Halvveis${speedNote}`);
+          }
+          // Every 30s speed update for intervals longer than 90s
+          if (timerConfig.value.workSec >= 90 && timerElapsed.value > 0 && timerElapsed.value % 30 === 0) {
+            if (gpsEnabled.value && gpsSpeed.value) speak(`${String(gpsSpeed.value).replace('.', ' komma')} kilometer i timen`);
+          }
         }
         if (timerSec.value <= 0) advanceTimer(false);
       }, 1000);
@@ -764,7 +781,8 @@ createApp({
         timerSec.value = timerConfig.value.workSec;
         timerElapsed.value = 0;
         beep(880, 200); setTimeout(() => beep(1100, 300), 220);
-        speak(`Start`);
+        const targetNote = intervalTargetSpeed.value ? ` – mål ${intervalTargetSpeed.value}` : '';
+        speak(`Start${targetNote}`);
       } else if (timerState.value === 'work') {
         timerResults.value.push({
           n: timerPhase.value,
@@ -775,8 +793,8 @@ createApp({
           timerState.value = 'done'; stopTick();
           if (gpsEnabled.value) stopGps();
           beep(880, 150); setTimeout(() => beep(1100, 150), 180); setTimeout(() => beep(1320, 400), 360);
-          speak(`Ferdig! ${timerConfig.value.count} drag gjennomført`);
-          // Auto-fill log with GPS data if available
+          const avgNote = gpsAvgSpeed.value ? ` Snittfart ${String(gpsAvgSpeed.value).replace('.', ' komma')} km/t.` : '';
+          speak(`Ferdig! ${timerConfig.value.count} drag gjennomført.${avgNote}`);
           if (gpsAvgSpeed.value) {
             workoutMetrics.value = { ...workoutMetrics.value, speed_kmh: gpsAvgSpeed.value };
           }
@@ -785,7 +803,9 @@ createApp({
           timerSec.value = timerConfig.value.restSec;
           timerElapsed.value = 0;
           beep(440, 300);
-          speak('Pause');
+          const restSec = timerConfig.value.restSec;
+          const restTxt = restSec >= 60 ? `${Math.floor(restSec/60)} minutt` : `${restSec} sekunder`;
+          speak(`Pause – neste drag om ${restTxt}`);
         }
       } else if (timerState.value === 'rest') {
         timerPhase.value++;
@@ -793,7 +813,8 @@ createApp({
         timerSec.value = timerConfig.value.workSec;
         timerElapsed.value = 0;
         beep(880, 200); setTimeout(() => beep(1100, 300), 220);
-        speak(`Drag ${timerPhase.value}`);
+        const isLast = timerPhase.value >= timerConfig.value.count;
+        speak(isLast ? `Siste drag! Alt du har!` : `Drag ${timerPhase.value}`);
       }
     }
 
@@ -944,6 +965,17 @@ createApp({
     const showTimer = computed(() => {
       if (selectedStrengthKey.value) return false;
       return selectedSession.value?.type === 'intervals';
+    });
+
+    const intervalTargetSpeed = computed(() => {
+      if (selectedSession.value?.type !== 'intervals') return null;
+      const w = selectedWorkout.value;
+      const src = w?.part1?.speed || w?.options?.[0] || '';
+      const m = src.match(/(\d+\.?\d*)\s*[–\-]\s*(\d+\.?\d*)\s*km/);
+      if (m) return `${m[1]} til ${m[2]} kilometer i timen`;
+      const m2 = src.match(/(\d+\.?\d*)\s*km/);
+      if (m2) return `${m2[1]} kilometer i timen`;
+      return null;
     });
     function resolveWorkout(session, athleteId) {
       if (!session) return null;
