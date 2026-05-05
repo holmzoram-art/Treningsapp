@@ -660,7 +660,7 @@ createApp({
       const machine = machM ? machM[1] : (id === 'st' ? 'Strides' : id.toUpperCase());
       const mid = (a, b) => b != null ? Math.round(((+a + +b) / 2) * 10) / 10 : +a;
       const durM  = text.match(/(\d+)(?:–(\d+))?\s*min/);
-      const spdM  = text.match(/(\d+\.?\d*)(?:–(\d+\.?\d*))?\s*km[/\s]?t/i);
+      const spdM  = text.match(/(\d+\.?\d*)(?:–(\d+\.?\d*))?\s*km\/?t/i);
       const inclM = text.match(/(\d+\.?\d*)(?:–(\d+\.?\d*))?\s*%/);
       const setsM = text.match(/(\d+)×/);
       const fields = [];
