@@ -832,6 +832,7 @@ main { padding: 16px; max-width: 600px; margin: 0 auto; }
   background: var(--card2);
   border-radius: var(--radius);
   padding: 16px;
+  position: relative;
   margin: 14px 0;
   border-left: 4px solid var(--intervals);
 }
@@ -865,6 +866,35 @@ main { padding: 16px; max-width: 600px; margin: 0 auto; }
 /* ── GPS PANEL ── */
 .outdoor-gps-panel { padding: 12px 16px 0; }
 .gps-panel { width: 100%; margin-top: 8px; }
+
+/* GPS prompt overlay */
+.gps-prompt-overlay {
+  position: absolute; inset: 0; background: rgba(0,0,0,0.55);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 50; border-radius: var(--radius);
+}
+.gps-prompt-card {
+  background: var(--card); border-radius: var(--radius);
+  padding: 28px 24px; text-align: center; max-width: 300px; width: 90%;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+.gps-prompt-icon { font-size: 2.2rem; margin-bottom: 10px; }
+.gps-prompt-icon.gps-pulse { animation: pulse 1s ease-in-out infinite; }
+@keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.35; } }
+.gps-prompt-card p { font-size: 1rem; margin: 0 0 18px; color: var(--text); }
+.gps-prompt-btns { display: flex; flex-direction: column; gap: 10px; }
+.gps-prompt-yes {
+  background: var(--green); color: #fff; border: none;
+  border-radius: var(--radius-sm); padding: 12px; font-size: 1rem; cursor: pointer;
+}
+.gps-prompt-no {
+  background: var(--card2); color: var(--text2); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 10px; font-size: 0.9rem; cursor: pointer;
+}
+.gps-wait-countdown {
+  font-size: 2.5rem; font-weight: 700; color: var(--text2); margin: 8px 0 16px;
+}
+
 .gps-toggle-btn {
   width: 100%;
   padding: 8px;

@@ -474,6 +474,9 @@ createApp({
     // ── GPS ────────────────────────────────────────────────────────────────────
     const gpsEnabled = ref(false);
     const gpsActive = ref(false);
+    const gpsPromptState = ref('idle'); // 'idle' | 'ask' | 'waiting' | 'timeout'
+    const gpsWaitCountdown = ref(20);
+    let _gpsWaitTimer = null;
     const gpsSpeed = ref(null);
     const gpsDistance = ref(0);
     const gpsPace = ref(null);
@@ -737,6 +740,42 @@ createApp({
     function stopTick() { if (timerTick.value) { clearInterval(timerTick.value); timerTick.value = null; } }
 
     function startTimer() {
+      // If GPS is already active, go straight to countdown
+      if (gpsActive.value) { _launchTimer(); return; }
+      // Otherwise ask user if they want GPS
+      gpsPromptState.value = 'ask';
+    }
+
+    function gpsPromptChoose(withGps) {
+      if (!withGps) { gpsEnabled.value = false; gpsPromptState.value = 'idle'; _launchTimer(); return; }
+      gpsEnabled.value = true;
+      gpsPromptState.value = 'waiting';
+      gpsWaitCountdown.value = 20;
+      startGps();
+      // Watch for first GPS fix
+      const unwatch = watch(gpsActive, (active) => {
+        if (!active) return;
+        unwatch(); clearInterval(_gpsWaitTimer); _gpsWaitTimer = null;
+        gpsPromptState.value = 'idle';
+        _launchTimer();
+      });
+      _gpsWaitTimer = setInterval(() => {
+        gpsWaitCountdown.value--;
+        if (gpsWaitCountdown.value <= 0) {
+          clearInterval(_gpsWaitTimer); _gpsWaitTimer = null;
+          unwatch();
+          gpsPromptState.value = 'timeout';
+        }
+      }, 1000);
+    }
+
+    function gpsTimeoutChoose(continueAnyway) {
+      gpsPromptState.value = 'idle';
+      if (!continueAnyway) { stopGps(); gpsEnabled.value = false; }
+      _launchTimer();
+    }
+
+    function _launchTimer() {
       const cfg = extractTimerConfig(selectedWorkout.value);
       timerConfig.value = { ...cfg };
       timerResults.value = [];
@@ -744,7 +783,6 @@ createApp({
       timerState.value = 'warmup';
       timerSec.value = 10;
       timerElapsed.value = 0;
-      if (gpsEnabled.value) startGps();
       stopTick();
       speak('Gjør deg klar');
       timerTick.value = setInterval(() => {
@@ -1997,6 +2035,7 @@ createApp({
       outdoorFormatElapsed, startOutdoorTimer, resetOutdoorTimer,
       audioMuted,
       gpsEnabled, gpsActive, gpsSpeed, gpsDistance, gpsPace, gpsAvgSpeed, mapsApiReady,
+      gpsPromptState, gpsWaitCountdown, gpsPromptChoose, gpsTimeoutChoose,
       formatSec, formatPace, formatDist,
       startTimer, endIntervalEarly, pauseTimer, resetTimer, toggleGps,
       // methods

@@ -415,6 +415,40 @@
               </div>
             </div>
 
+            <!-- GPS-spørsmål: med eller uten? -->
+            <div v-if="gpsPromptState === 'ask'" class="gps-prompt-overlay">
+              <div class="gps-prompt-card">
+                <div class="gps-prompt-icon">📍</div>
+                <p>Vil du logge GPS, fart og kart for denne økten?</p>
+                <div class="gps-prompt-btns">
+                  <button class="gps-prompt-yes" @click="gpsPromptChoose(true)">📡 Med GPS</button>
+                  <button class="gps-prompt-no"  @click="gpsPromptChoose(false)">⏱ Uten GPS</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- GPS-spørsmål: venter på signal -->
+            <div v-if="gpsPromptState === 'waiting'" class="gps-prompt-overlay">
+              <div class="gps-prompt-card">
+                <div class="gps-prompt-icon gps-pulse">📡</div>
+                <p>Venter på GPS-signal…</p>
+                <div class="gps-wait-countdown">{{ gpsWaitCountdown }}s</div>
+                <button class="gps-prompt-no" @click="gpsPromptChoose(false)">Hopp over GPS</button>
+              </div>
+            </div>
+
+            <!-- GPS-spørsmål: ingen signal etter 20s -->
+            <div v-if="gpsPromptState === 'timeout'" class="gps-prompt-overlay">
+              <div class="gps-prompt-card">
+                <div class="gps-prompt-icon">⚠️</div>
+                <p>Fikk ikke GPS-signal. Fortsette uten?</p>
+                <div class="gps-prompt-btns">
+                  <button class="gps-prompt-yes" @click="gpsTimeoutChoose(true)">▶ Fortsett uten GPS</button>
+                  <button class="gps-prompt-no"  @click="gpsTimeoutChoose(false)">✕ Avbryt</button>
+                </div>
+              </div>
+            </div>
+
             <!-- Aktiv timer -->
             <div v-else class="timer-active">
               <div class="timer-phase-label"
