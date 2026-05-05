@@ -9,11 +9,11 @@ const STRENGTH_PROGRAM = {
       title: "Pull + Bein",
       duration: "60–75 min",
       exercises: [
-        { name: "Lat Pulldown Close Grip", sets: 3, reps: "8–12", restSec: 120, note: "" },
-        { name: "Landmine Row",             sets: 3, reps: "10–12", restSec: 135, note: "" },
-        { name: "Face Pull",                sets: 3, reps: "12–15", restSec: 60,  note: "Kabel, albuene høyt" },
-        { name: "Seated Leg Curl",          sets: 3, reps: "12–15", restSec: 180, note: "" },
-        { name: "Markløft (stang)",         sets: 3, reps: "5–6",   restSec: 150, note: "Fokus på teknikk" }
+        { name: "Lat Pulldown Close Grip", sets: 3, reps: "8–12",     restSec: 120, note: "",                    tags: ["weighted", "reps"] },
+        { name: "Landmine Row",             sets: 3, reps: "10–12",    restSec: 135, note: "",                    tags: ["weighted", "reps"] },
+        { name: "Face Pull",                sets: 3, reps: "12–15",    restSec: 60,  note: "Kabel, albuene høyt", tags: ["weighted", "reps"] },
+        { name: "Seated Leg Curl",          sets: 3, reps: "12–15",    restSec: 180, note: "",                    tags: ["weighted", "reps"] },
+        { name: "Markløft (stang)",         sets: 3, reps: "5–6",      restSec: 150, note: "Fokus på teknikk",   tags: ["weighted", "reps"] }
       ],
       dagsform: {
         yellow: "Reduser vekt 20%. Behold sett og reps.",
@@ -25,12 +25,12 @@ const STRENGTH_PROGRAM = {
       title: "Push + Bein",
       duration: "60–75 min",
       exercises: [
-        { name: "Benkpress (manualer)",       sets: 4, reps: "8–10",  restSec: 120, note: "" },
-        { name: "Incline manualer",            sets: 3, reps: "8–10",  restSec: 120, note: "" },
-        { name: "Arnold Press",                sets: 3, reps: "10–12", restSec: 120, note: "" },
-        { name: "Chest Dip",                   sets: 3, reps: "8–12",  restSec: 180, note: "Legg deg fremover" },
-        { name: "Seated Chest Flys (kabel)",   sets: 3, reps: "12–15", restSec: 120, note: "" },
-        { name: "Leg Extension (maskin)",      sets: 3, reps: "12–15", restSec: 165, note: "" }
+        { name: "Benkpress (manualer)",       sets: 4, reps: "8–10",  restSec: 120, note: "",                  tags: ["weighted", "reps"] },
+        { name: "Incline manualer",            sets: 3, reps: "8–10",  restSec: 120, note: "",                  tags: ["weighted", "reps"] },
+        { name: "Arnold Press",                sets: 3, reps: "10–12", restSec: 120, note: "",                  tags: ["weighted", "reps"] },
+        { name: "Chest Dip",                   sets: 3, reps: "8–12",  restSec: 180, note: "Legg deg fremover", tags: ["bodyweight", "reps"] },
+        { name: "Seated Chest Flys (kabel)",   sets: 3, reps: "12–15", restSec: 120, note: "",                  tags: ["weighted", "reps"] },
+        { name: "Leg Extension (maskin)",      sets: 3, reps: "12–15", restSec: 165, note: "",                  tags: ["weighted", "reps"] }
       ],
       dagsform: {
         yellow: "Reduser vekt 20%. Behold sett og reps.",
@@ -42,11 +42,11 @@ const STRENGTH_PROGRAM = {
       title: "Helkropp / Tillegg",
       duration: "45–60 min",
       exercises: [
-        { name: "Seated Cable Row (V-grep)", sets: 3, reps: "8–12",  restSec: 120, note: "" },
-        { name: "Low Cable Fly Crossovers",  sets: 3, reps: "12–15", restSec: 90,  note: "" },
-        { name: "Behind the Back Curl",      sets: 3, reps: "12–15", restSec: 135, note: "" },
-        { name: "Lateral Raise Incline",     sets: 3, reps: "12–15", restSec: 90,  note: "" },
-        { name: "Planke",                    sets: 3, reps: "30–60 sek", restSec: 90, note: "", tags: ["timed"] }
+        { name: "Seated Cable Row (V-grep)", sets: 3, reps: "8–12",      restSec: 120, note: "", tags: ["weighted", "reps"] },
+        { name: "Low Cable Fly Crossovers",  sets: 3, reps: "12–15",     restSec: 90,  note: "", tags: ["weighted", "reps"] },
+        { name: "Behind the Back Curl",      sets: 3, reps: "12–15",     restSec: 135, note: "", tags: ["weighted", "reps"] },
+        { name: "Lateral Raise Incline",     sets: 3, reps: "12–15",     restSec: 90,  note: "", tags: ["weighted", "reps"] },
+        { name: "Planke",                    sets: 3, reps: "30–60 sek", restSec: 90,  note: "", tags: ["timed"] }
       ],
       dagsform: {
         yellow: "Reduser vekt 20%. Behold sett og reps.",

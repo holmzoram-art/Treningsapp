@@ -267,10 +267,36 @@ createApp({
     // ── EXERCISE TAG SYSTEM ────────────────────────────────────────────────
     // Tags decide UI: 'timed' → timer button + Sek column; 'weighted' → weight input; 'reps' → reps input
     const EXERCISE_TAGS = {
-      'planke':       ['timed'],
-      'dead hang':    ['timed'],
-      'hollow hold':  ['timed'],
-      'wall sit':     ['timed'],
+      // Timed – no reps, use countdown timer
+      'planke':           ['timed'],
+      'sideplanke':       ['timed'],
+      'dead hang':        ['timed'],
+      'hollow hold':      ['timed'],
+      'wall sit':         ['timed'],
+      'hofteåpner':       ['timed'],
+      "farmer's carry":   ['timed', 'weighted'],
+      'carry':            ['timed', 'weighted'],
+      // Bodyweight – reps-based, no external load
+      'push-up':          ['bodyweight', 'reps'],
+      'pull-up':          ['bodyweight', 'reps'],
+      'chest dip':        ['bodyweight', 'reps'],
+      'dip':              ['bodyweight', 'reps'],
+      'trx':              ['bodyweight', 'reps'],
+      'shoulder cars':    ['bodyweight', 'reps'],
+      'cars':             ['bodyweight', 'reps'],
+      // Weighted – external load + reps
+      'hip thrust':       ['weighted', 'reps'],
+      'utfall':           ['weighted', 'reps'],
+      'roing':            ['weighted', 'reps'],
+      'step-ups':         ['weighted', 'reps'],
+      'step-up':          ['weighted', 'reps'],
+      'box step':         ['weighted', 'reps'],
+      'goblet squat':     ['weighted', 'reps'],
+      'split squat':      ['weighted', 'reps'],
+      'pallof press':     ['weighted', 'reps'],
+      'push-press':       ['weighted', 'reps'],
+      'press':            ['weighted', 'reps'],
+      'squat':            ['weighted', 'reps'],
     };
 
     function getExTags(ex) {
