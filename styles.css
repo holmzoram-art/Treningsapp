@@ -590,6 +590,7 @@ main { padding: 16px; max-width: 600px; margin: 0 auto; }
 /* ── WEEK VIEW ── */
 .week-nav {
   display: flex;
+  flex-wrap: nowrap;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 14px;
@@ -605,7 +606,7 @@ main { padding: 16px; max-width: 600px; margin: 0 auto; }
   cursor: pointer;
 }
 .week-nav button:disabled { opacity: 0.3; cursor: default; }
-.week-nav button { min-width: 80px; }
+.week-nav button { min-width: 80px; flex-shrink: 0; }
 .week-nav-center { text-align: center; flex: 1; }
 .week-nav-center strong { display: block; font-size: 1rem; }
 .week-dates { font-size: 0.78rem; color: var(--text2); }
