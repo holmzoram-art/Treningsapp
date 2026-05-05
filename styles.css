@@ -933,12 +933,41 @@ main { padding: 16px; max-width: 600px; margin: 0 auto; }
 .spark-range { color: var(--text1); font-weight: 600; font-size: 0.8rem; }
 
 .sparkline-axis { width: 100%; height: 85px; display: block; overflow: visible; }
+.sparkline-bar  { width: 100%; height: 90px; display: block; overflow: visible; }
 .graph-grid-line { stroke: var(--border); stroke-width: 1; stroke-dasharray: 3 3; }
 .graph-axis-text { font-size: 9px; fill: var(--text2); font-family: monospace; }
 .graph-unit { font-size: 0.75rem; color: var(--text2); font-weight: 400; margin-left: 4px; }
 .graph-subtitle { font-size: 0.78rem; color: var(--accent); margin-top: 2px; }
 .graph-section-title { font-size: 0.8rem; color: var(--text2); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin: 16px 0 8px; }
 .empty-note { font-size: 0.82rem; color: var(--text2); font-style: italic; padding: 12px 0; }
+.graph-meta { font-size: 0.78rem; color: var(--text2); margin-bottom: 8px; }
+.graph-meta strong { color: var(--text); }
+.graph-legend { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; font-size: 0.72rem; color: var(--text2); align-items: center; }
+.gl-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 3px; }
+.trend-badge { font-size: 0.72rem; font-weight: 700; padding: 2px 6px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+.trend-badge-up   { background: rgba(76,175,80,0.2);  color: #4CAF50; }
+.trend-badge-down { background: rgba(244,67,54,0.15); color: #F44336; }
+
+/* ── UKENTLIG RAPPORT ── */
+.weekly-report-card {
+  background: linear-gradient(135deg, var(--card), var(--card2));
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 16px;
+}
+.wr-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+.wr-title { font-weight: 700; font-size: 1rem; }
+.wr-period { font-size: 0.73rem; color: var(--text2); margin-top: 2px; }
+.wr-streak { font-size: 0.88rem; font-weight: 700; color: var(--yellow); }
+.wr-text { font-size: 0.88rem; line-height: 1.65; color: var(--text); margin-bottom: 14px; }
+.wr-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.wrs-cell { background: rgba(255,255,255,0.05); border-radius: var(--radius-sm); padding: 10px 8px; text-align: center; }
+.wrs-num  { font-size: 1.5rem; font-weight: 700; }
+.wrs-label { font-size: 0.68rem; color: var(--text2); margin-top: 2px; }
+.wrs-cmp  { font-size: 0.68rem; margin-top: 5px; }
+.wrs-up   { color: #4CAF50; }
+.wrs-down { color: var(--yellow); }
 
 /* ── PER-SET EXERCISE LOGGING (Hevy-inspirert) ── */
 .ex-set-list { display: flex; flex-direction: column; gap: 16px; margin-bottom: 14px; }

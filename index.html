@@ -60,7 +60,7 @@
     <nav class="tab-bar">
       <button :class="{ active: view === 'today' }" @click="view = 'today'">I dag</button>
       <button :class="{ active: view === 'week' }" @click="view = 'week'">Program</button>
-      <button :class="{ active: view === 'history' }" @click="view = 'history'">Historikk</button>
+      <button :class="{ active: view === 'history' }" @click="view = 'history'">Analyse</button>
       <button :class="{ active: view === 'progress' }" @click="view = 'progress'">Fremgang</button>
       <button :class="{ active: view === 'tests' }" @click="view = 'tests'">Tester</button>
       <button :class="{ active: view === 'equipment' }" @click="view = 'equipment'">Utstyr</button>
@@ -705,9 +705,49 @@
 
     </main>
 
-    <!-- ───────────── HISTORIKK ───────────── -->
+    <!-- ───────────── ANALYSE / HISTORIKK ───────────── -->
     <main v-if="view === 'history'" class="view-history">
-      <h2>Historikk – {{ currentAthleteName }}</h2>
+      <h2>Analyse – {{ currentAthleteName }}</h2>
+
+      <!-- Ukentlig rapport -->
+      <div class="weekly-report-card">
+        <div class="wr-top">
+          <div>
+            <div class="wr-title">📊 Ukes-analyse</div>
+            <div class="wr-period">Siste 7 dager</div>
+          </div>
+          <div v-if="currentStreak > 0" class="wr-streak">🔥 {{ currentStreak }}d streak</div>
+        </div>
+        <p class="wr-text">{{ weeklyReport.text }}</p>
+        <div v-if="weeklyReport.stats" class="wr-stats">
+          <div class="wrs-cell">
+            <div class="wrs-num">{{ weeklyReport.stats.sessThis }}</div>
+            <div class="wrs-label">Loggede økter</div>
+            <div v-if="weeklyReport.stats.sessLast > 0" class="wrs-cmp"
+                 :class="weeklyReport.stats.sessThis >= weeklyReport.stats.sessLast ? 'wrs-up' : 'wrs-down'">
+              {{ weeklyReport.stats.sessThis >= weeklyReport.stats.sessLast ? '↑' : '↓' }}
+              {{ weeklyReport.stats.sessLast }} forrige uke
+            </div>
+          </div>
+          <div v-if="weeklyReport.stats.avgRpeThis !== null" class="wrs-cell">
+            <div class="wrs-num">{{ weeklyReport.stats.avgRpeThis }}</div>
+            <div class="wrs-label">Snitt RPE</div>
+            <div v-if="weeklyReport.stats.avgRpeLast !== null" class="wrs-cmp"
+                 :class="weeklyReport.stats.avgRpeThis <= weeklyReport.stats.avgRpeLast + 0.5 ? 'wrs-up' : 'wrs-down'">
+              {{ weeklyReport.stats.avgRpeLast }} forrige uke
+            </div>
+          </div>
+          <div v-if="weeklyReport.stats.loadThis > 0" class="wrs-cell">
+            <div class="wrs-num">{{ weeklyReport.stats.loadThis }}</div>
+            <div class="wrs-label">Intervall-load</div>
+            <div v-if="weeklyReport.stats.loadLast > 0" class="wrs-cmp"
+                 :class="weeklyReport.stats.loadThis >= weeklyReport.stats.loadLast ? 'wrs-up' : 'wrs-down'">
+              {{ weeklyReport.stats.loadThis >= weeklyReport.stats.loadLast ? '↑' : '↓' }}
+              {{ weeklyReport.stats.loadLast }} forrige uke
+            </div>
+          </div>
+        </div>
+      </div>
 
       <!-- Type-filter -->
       <div class="historikk-filter">
@@ -784,21 +824,38 @@
         </div>
       </div>
 
-      <!-- Intervall-fart -->
-      <div v-if="intervalSpeedLogs.length" class="graph-card">
-        <div class="graph-title">⚡ Intervall-fart <span class="graph-unit">km/t</span></div>
-        <svg class="sparkline-axis" viewBox="0 0 320 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-          <line x1="40" x2="316" y1="10" y2="10" class="graph-grid-line"/>
-          <line x1="40" x2="316" y1="35" y2="35" class="graph-grid-line"/>
-          <line x1="40" x2="316" y1="60" y2="60" class="graph-grid-line"/>
-          <text x="36" y="14" class="graph-axis-text" text-anchor="end">{{ fmtVal(Math.max(...intervalSpeedLogs.map(l=>l.value))) }}</text>
-          <text x="36" y="39" class="graph-axis-text" text-anchor="end">{{ fmtVal((Math.min(...intervalSpeedLogs.map(l=>l.value))+Math.max(...intervalSpeedLogs.map(l=>l.value)))/2) }}</text>
-          <text x="36" y="64" class="graph-axis-text" text-anchor="end">{{ fmtVal(Math.min(...intervalSpeedLogs.map(l=>l.value))) }}</text>
-          <text x="40"  y="76" class="graph-axis-text">{{ formatShortDate(intervalSpeedLogs[0].date) }}</text>
-          <text x="316" y="76" class="graph-axis-text" text-anchor="end">{{ formatShortDate(intervalSpeedLogs.at(-1).date) }}</text>
-          <polyline :points="sparkPoints(intervalSpeedLogs)" fill="none" stroke="#2196F3" stroke-width="2" stroke-linejoin="round"/>
-          <circle v-for="(d,i) in sparkDots(intervalSpeedLogs)" :key="i" :cx="d.x" :cy="d.y" r="3" fill="#2196F3"/>
+      <!-- Intervall-belastning (søylediagram) -->
+      <div v-if="intervalLoadLogs.length" class="graph-card">
+        <div class="graph-title">
+          ⚡ Intervall-belastning <span class="graph-unit">drag × km/t</span>
+          <span v-if="intervalLoadLogs.length >= 2"
+                class="trend-badge"
+                :class="intervalLoadLogs.at(-1).value >= intervalLoadLogs.at(-2).value ? 'trend-badge-up' : 'trend-badge-down'">
+            {{ intervalLoadLogs.at(-1).value >= intervalLoadLogs.at(-2).value ? '↑' : '↓' }}
+            {{ Math.abs(intervalLoadLogs.at(-1).value - intervalLoadLogs.at(-2).value) }}
+          </span>
+        </div>
+        <div class="graph-meta">
+          Siste: <strong>{{ intervalLoadLogs.at(-1).value }}</strong>
+          &nbsp;·&nbsp;Beste: <strong>{{ Math.max(...intervalLoadLogs.map(l=>l.value)) }}</strong>
+          &nbsp;·&nbsp;{{ intervalLoadLogs.at(-1).sets }} drag @ {{ intervalLoadLogs.at(-1).speed }} km/t
+        </div>
+        <svg class="sparkline-bar" viewBox="0 0 300 90" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+          <line x1="16" x2="284" y1="73" y2="73" class="graph-grid-line"/>
+          <line x1="16" x2="284" y1="8"  y2="8"  class="graph-grid-line" opacity="0.4"/>
+          <g v-for="(b, i) in barChart(intervalLoadLogs)" :key="i">
+            <rect :x="b.x" :y="b.y" :width="b.w" :height="b.h" :fill="rpeColor(b.rpe)" rx="2" opacity="0.88"/>
+            <text v-if="b.w >= 14" :x="b.x + b.w/2" :y="b.y - 2" class="graph-axis-text" text-anchor="middle">{{ b.label }}</text>
+          </g>
+          <text x="16"  y="85" class="graph-axis-text">{{ formatShortDate(intervalLoadLogs[0].date) }}</text>
+          <text x="284" y="85" class="graph-axis-text" text-anchor="end">{{ formatShortDate(intervalLoadLogs.at(-1).date) }}</text>
         </svg>
+        <div class="graph-legend">
+          <span class="gl-dot" style="background:#4CAF50"></span>RPE ≤5
+          <span class="gl-dot" style="background:#2196F3"></span>RPE 6–7
+          <span class="gl-dot" style="background:#FF9800"></span>RPE 8
+          <span class="gl-dot" style="background:#F44336"></span>RPE ≥9
+        </div>
       </div>
 
       <!-- Dead hang -->

@@ -1149,6 +1149,18 @@ createApp({
         .filter(l => l.type === 'intervals' && l.metrics?.speed_kmh)
         .map(l => ({ date: l.date, value: l.metrics.speed_kmh, week: l.weekNumber })))
     );
+    // Belastning = drag × km/t — viser reell progresjon uavhengig av intervalformat
+    const intervalLoadLogs = computed(() =>
+      sortByDate(workoutLogs.value
+        .filter(l => l.type === 'intervals' && l.metrics?.sets_done && l.metrics?.speed_kmh)
+        .map(l => ({
+          date: l.date,
+          value: Math.round(l.metrics.sets_done * l.metrics.speed_kmh),
+          sets: l.metrics.sets_done,
+          speed: l.metrics.speed_kmh,
+          rpe: l.metrics.rpe || 0
+        })))
+    );
     const intervalLogs = computed(() =>
       sortByDate(workoutLogs.value.filter(l => l.type === 'intervals' && l.metrics?.sets_done)
         .map(l => ({ date: l.date, value: l.metrics.sets_done })))
@@ -1286,6 +1298,69 @@ createApp({
       return Object.values(byWeek).sort((a, b) => b.weekNumber - a.weekNumber);
     });
 
+    const weeklyReport = computed(() => {
+      refreshKey.value;
+      const todayStr = today();
+      const d7  = new Date(todayStr); d7.setDate(d7.getDate() - 7);
+      const d14 = new Date(todayStr); d14.setDate(d14.getDate() - 14);
+      const s7  = d7.toISOString().slice(0, 10);
+      const s14 = d14.toISOString().slice(0, 10);
+
+      const thisW = workoutLogs.value.filter(l => l.date > s7  && l.date <= todayStr);
+      const lastW = workoutLogs.value.filter(l => l.date > s14 && l.date <= s7);
+      const name  = currentAthleteName.value;
+
+      if (!thisW.length && !lastW.length) {
+        return { text: `Logg dine første økter fra «I dag»-fanen, ${name} — så genereres ukentlig analyse her automatisk.`, stats: null };
+      }
+
+      const rpeArr  = v => v.filter(l => l.metrics?.rpe).map(l => l.metrics.rpe);
+      const avgRpe  = arr => arr.length ? +(arr.reduce((s, v) => s + v, 0) / arr.length).toFixed(1) : null;
+      const loadSum = v => v.filter(l => l.metrics?.sets_done && l.metrics?.speed_kmh)
+                           .reduce((s, l) => s + l.metrics.sets_done * l.metrics.speed_kmh, 0);
+
+      const sessThis = thisW.length, sessLast = lastW.length;
+      const avgRpeThis = avgRpe(rpeArr(thisW)), avgRpeLast = avgRpe(rpeArr(lastW));
+      const loadThis = Math.round(loadSum(thisW)), loadLast = Math.round(loadSum(lastW));
+
+      const weekPrs = [...new Set(thisW.flatMap(l => prExerciseNames(l)))];
+
+      const lines = [];
+      if (sessThis === 0) {
+        lines.push(`Ingen loggede økter de siste 7 dagene, ${name}.`);
+        if (sessLast > 0) lines.push(`Forrige uke var det ${sessLast} økt${sessLast > 1 ? 'er' : ''} — kom tilbake på sporet!`);
+      } else {
+        const badge = sessThis >= 4 ? ' 🔥' : sessThis >= 3 ? ' 💪' : '';
+        lines.push(`${name} har logget ${sessThis} økt${sessThis > 1 ? 'er' : ''} de siste 7 dagene${badge}.`);
+        if (sessLast > 0) {
+          if (sessThis > sessLast)      lines.push(`${sessThis - sessLast} mer enn uken før — bra fremgang!`);
+          else if (sessThis < sessLast) lines.push(`Litt færre enn uken før (${sessLast}), men alle uker teller.`);
+          else                          lines.push(`Samme treningsrytme som forrige uke — konsistent!`);
+        }
+      }
+
+      if (loadThis && loadLast) {
+        const pct = Math.round((loadThis - loadLast) / loadLast * 100);
+        if      (pct >  10) lines.push(`Intervall-belastningen økte ${pct}% — kroppen din håndterer mer!`);
+        else if (pct < -10) lines.push(`Intervall-belastningen var ${Math.abs(pct)}% lavere enn forrige uke — fint å variere intensiteten.`);
+        else                lines.push(`Intervall-belastningen holder seg stabil.`);
+      }
+
+      if (avgRpeThis !== null) {
+        if      (avgRpeThis <= 5) lines.push(`Snitt-RPE ${avgRpeThis} — kontrollert trening. Vurder å øke intensiteten litt.`);
+        else if (avgRpeThis <= 7) lines.push(`Snitt-RPE ${avgRpeThis} — god balanse mellom belastning og restitusjon.`);
+        else if (avgRpeThis <= 8) lines.push(`Snitt-RPE ${avgRpeThis} — høy innsats! Sørg for nok søvn og hvile.`);
+        else                      lines.push(`Snitt-RPE ${avgRpeThis} — veldig høy intensitet. Prioriter restitusjon nå.`);
+      }
+
+      if (weekPrs.length) lines.push(`🏆 Ny rekord: ${weekPrs.slice(0, 3).join(', ')}!`);
+
+      return {
+        text: lines.join(' '),
+        stats: { sessThis, sessLast, avgRpeThis, avgRpeLast, loadThis, loadLast }
+      };
+    });
+
     function fmtVal(v) {
       if (v == null || isNaN(v)) return '–';
       return v % 1 === 0 ? String(Math.round(v)) : v.toFixed(1);
@@ -1319,6 +1394,34 @@ createApp({
         return { x: +x.toFixed(1), y: +y.toFixed(1), value: d.value, date: d.date };
       });
     }
+
+    // Bar chart: viewBox "0 0 300 90", bars x:[16,284] (drawW=268), y:[8,73] (drawH=65)
+    function barChart(data, drawW = 268, drawH = 65, xOff = 16, yOff = 8) {
+      if (!data.length) return [];
+      const max = Math.max(...data.map(d => d.value)) || 1;
+      const n = data.length;
+      const slot = drawW / n;
+      const bw = Math.min(slot * 0.7, 28);
+      return data.map((d, i) => {
+        const bh = Math.max(3, drawH * (d.value / max));
+        return {
+          x: +(xOff + i * slot + (slot - bw) / 2).toFixed(1),
+          y: +(yOff + drawH - bh).toFixed(1),
+          w: +bw.toFixed(1),
+          h: +bh.toFixed(1),
+          label: String(d.value),
+          date: d.date, rpe: d.rpe || 0, sets: d.sets || 0, speed: d.speed || 0
+        };
+      });
+    }
+    function rpeColor(rpe) {
+      if (!rpe) return '#2196F3';
+      if (rpe <= 5) return '#4CAF50';
+      if (rpe <= 7) return '#2196F3';
+      if (rpe <= 8) return '#FF9800';
+      return '#F44336';
+    }
+
     const testTypes = [
       {
         id: 'run20min', label: 'Løpetest 20 min', unit: 'm', higherBetter: true,
@@ -1673,8 +1776,8 @@ createApp({
       testTypes, testPlaceholder, selectedTestType, testHistory, testReminders,
       athleteLevels, upcomingTests, testCalendar,
       equipment, currentAthleteName,
-      logFields, activityCards, circuitStepCards, workoutLogs, intervalSpeedLogs, intervalLogs, hangLogs, ocrRoundsLogs, recoveryLogs, strengthLogs, exerciseProgressLogs,
-      historikkEntries, historikkByWeek, TYPE_ICON, TYPE_LABEL,
+      logFields, activityCards, circuitStepCards, workoutLogs, intervalSpeedLogs, intervalLoadLogs, intervalLogs, hangLogs, ocrRoundsLogs, recoveryLogs, strengthLogs, exerciseProgressLogs,
+      historikkEntries, historikkByWeek, weeklyReport, TYPE_ICON, TYPE_LABEL,
       SESSION_LOG_FIELDS, seedStatus,
       seedHistoricalData,
       // exercise parser
@@ -1691,7 +1794,7 @@ createApp({
       rpeClass, saveWorkoutLog, saveNote, saveTest,
       isSessionDone, isSessionDoneForWeek, isStrengthDone, markSessionDone, markStrengthDone,
       testsOfType, myTestsOfType, isPR, athleteName, athleteColor,
-      sparkPoints, sparkDots,
+      sparkPoints, sparkDots, barChart, rpeColor,
       formatDate, formatShortDate,
       isSetPR,
       // rest timer
