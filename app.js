@@ -166,7 +166,7 @@ createApp({
       deloadMode.value = false;
       shortMode.value = false;
       cancelRestTimer();
-      // Circuit strength sessions get per-set logging too
+      cancelWorkTimer();
       if (selectedSession.value?.type === 'strength') {
         const exercises = parseExercises(selectedWorkout.value?.exercises || [])
           .filter(ex => ex.sets && ex.name);
@@ -193,6 +193,7 @@ createApp({
       deloadMode.value = false;
       shortMode.value = false;
       cancelRestTimer();
+      cancelWorkTimer();
       if (newKey) { prefillStrengthMetrics(); initExerciseSets(newKey); }
       else workoutMetrics.value = {};
     }
@@ -263,7 +264,25 @@ createApp({
       return exercises.map(parseExercise);
     }
 
-    // ── DELOAD CALCULATOR ──────────────────────────────────────────────────
+    // ── EXERCISE TAG SYSTEM ────────────────────────────────────────────────
+    // Tags decide UI: 'timed' → timer button + Sek column; 'weighted' → weight input; 'reps' → reps input
+    const EXERCISE_TAGS = {
+      'planke':       ['timed'],
+      'dead hang':    ['timed'],
+      'hollow hold':  ['timed'],
+      'wall sit':     ['timed'],
+    };
+
+    function getExTags(ex) {
+      if (ex.tags) return ex.tags;                          // explicit tags win
+      const key = (ex.name || '').toLowerCase();
+      for (const [pat, tags] of Object.entries(EXERCISE_TAGS)) {
+        if (key.includes(pat)) return tags;
+      }
+      return ex.time ? ['timed'] : ['weighted', 'reps'];   // fallback: derive from parsed data
+    }
+
+
     function deloadExercises(exercises) {
       return parseExercises(exercises).map(ex => ({
         ...ex,
@@ -455,6 +474,37 @@ createApp({
     const restTimer = ref({ active: false, remaining: 0, total: 0, exerciseName: '' });
     let _restInterval = null;
 
+    // ── WORK TIMER (nedtelling under tidsbaserte øvelser) ─────────────────
+    const workTimer = ref({ active: false, remaining: 0, total: 0, setIdx: null, exName: null, tickId: null });
+
+    function startWorkTimer(seconds, exName, setIdx, restSec) {
+      cancelWorkTimer();
+      const secs = Math.max(1, Math.round(+seconds || 30));
+      const tickId = setInterval(() => {
+        workTimer.value.remaining--;
+        const r = workTimer.value.remaining;
+        if (r === 3) beep(660, 120);
+        else if (r === 2) beep(660, 120);
+        else if (r === 1) beep(660, 120);
+        if (r <= 0) {
+          clearInterval(workTimer.value.tickId);
+          workTimer.value.active = false;
+          const sets = currentExerciseSets.value[exName];
+          if (sets?.[setIdx]) {
+            sets[setIdx].done = true;
+            if (restSec > 0) startRestTimer(restSec, exName);
+          }
+          beep(880, 200); setTimeout(() => beep(1100, 300), 220);
+        }
+      }, 1000);
+      workTimer.value = { active: true, remaining: secs, total: secs, setIdx, exName, tickId };
+    }
+
+    function cancelWorkTimer() {
+      if (workTimer.value.tickId) clearInterval(workTimer.value.tickId);
+      workTimer.value = { active: false, remaining: 0, total: 0, setIdx: null, exName: null, tickId: null };
+    }
+
     function formatRestTime(sec) {
       const m = Math.floor(sec / 60), s = sec % 60;
       return m > 0 ? `${m}:${String(s).padStart(2, '0')}` : `${s}s`;
@@ -638,14 +688,14 @@ createApp({
         if (setFactor !== 1) {
           exs = exs.map(ex => ({ ...ex, sets: Math.max(1, Math.round(ex.sets * setFactor)) }));
         }
-        return { exercises_raw: exs };
+        return { exercises_raw: exs.map(ex => ({ ...ex, tags: getExTags(ex) })) };
       }
       const workout = adjustWorkout(selectedWorkout.value, dagsform.value, deloadMode.value, shortMode.value);
       // Circuit/program.js strength sessions: build exercises_raw so per-set UI can be used
       if (selectedSession.value?.type === 'strength' && workout?.exercises?.length) {
         const parsed = parseExercises(workout.exercises)
           .filter(ex => ex.sets && ex.name)
-          .map(ex => ({ ...ex, restSec: ex.restSec ?? 60 }));
+          .map(ex => ({ ...ex, restSec: ex.restSec ?? 60, tags: getExTags(ex) }));
         if (parsed.length) return { ...workout, exercises_raw: parsed };
       }
       return workout;
@@ -1505,6 +1555,8 @@ createApp({
       isSetPR,
       // rest timer
       restTimer, startRestTimer, cancelRestTimer, formatRestTime,
+      // work timer
+      workTimer, startWorkTimer, cancelWorkTimer,
     };
   }
 }).mount('#app');

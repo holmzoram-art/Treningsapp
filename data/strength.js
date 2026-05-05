@@ -46,7 +46,7 @@ const STRENGTH_PROGRAM = {
         { name: "Low Cable Fly Crossovers",  sets: 3, reps: "12–15", restSec: 90,  note: "" },
         { name: "Behind the Back Curl",      sets: 3, reps: "12–15", restSec: 135, note: "" },
         { name: "Lateral Raise Incline",     sets: 3, reps: "12–15", restSec: 90,  note: "" },
-        { name: "Planke",                    sets: 3, reps: "30–60 sek", restSec: 90, note: "" }
+        { name: "Planke",                    sets: 3, reps: "30–60 sek", restSec: 90, note: "", tags: ["timed"] }
       ],
       dagsform: {
         yellow: "Reduser vekt 20%. Behold sett og reps.",
