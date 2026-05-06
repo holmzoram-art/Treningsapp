@@ -38,6 +38,10 @@
         :style="selectedAthlete === athlete.id ? { background: athlete.color, borderColor: athlete.color } : { borderColor: athlete.color, color: athlete.color }"
         @click="selectAthlete(athlete.id)"
       >{{ athlete.name }}</button>
+      <div class="volume-control">
+        <button class="mute-btn-sm" @click="audioMuted = !audioMuted" :title="audioMuted ? 'Lyd av' : 'Lyd på'">{{ audioMuted ? '🔇' : '🔊' }}</button>
+        <input class="volume-slider-sm" type="range" min="0.1" max="1" step="0.05" v-model.number="audioVolume" :disabled="audioMuted">
+      </div>
     </div>
 
     <!-- DAGSFORM -->
@@ -448,7 +452,6 @@
                 <button class="mute-btn" :class="{ muted: audioMuted }" @click="audioMuted = !audioMuted" title="Lyd av/på">
                   {{ audioMuted ? '🔇' : '🔊' }}
                 </button>
-                <input class="volume-slider" type="range" min="0.1" max="1" step="0.05" v-model.number="audioVolume" :disabled="audioMuted" title="Volum">
               </div>
             </div>
 

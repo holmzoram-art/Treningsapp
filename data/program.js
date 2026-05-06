@@ -35,7 +35,7 @@ const PROGRAM_DATA = {
             rounds: 3, duration: "60 sek per stasjon", rest: "15 sek mellom stasjoner · 90 sek mellom runder",
             exercises: ["Hip thrust", "Utfall", "Roing (manualer/TRX)", "Push-ups", "Planke", "Dead hang"]
           },
-          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" },
+          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "Bruk 20–30% lettere vekter. Behold repetisjoner og runder.", red: "2 runder i stedet for 3. 50% vekt. Dropp dead hang." }
         },
         tuesday: {
@@ -47,7 +47,7 @@ const PROGRAM_DATA = {
               "Romaskin: 10×250 m · 60 sek rolig mellom"
             ]
           },
-          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" },
+          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "Senk fart 0.5 km/t eller stigning 1–2%. Behold antall drag.", red: "Halvér antall drag (4 i stedet for 8). Gå rolig mellom." }
         },
         thursday: {
@@ -58,7 +58,7 @@ const PROGRAM_DATA = {
             circuit: ["400 m løp @ 5–6% stigning", "10 burpees", "60–75 sek hang", "100 m farmer's carry"],
             rest: "2 min pause mellom runder"
           },
-          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" },
+          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "3 runder. Senk fart 0.5 km/t. Hang: −10–20 sek.", red: "2 runder. Dropp burpees. Hang 30–40 sek." }
         },
         friday: {
@@ -71,7 +71,7 @@ const PROGRAM_DATA = {
             ],
             mobility: ["Hofter: 90/90 + pigeon stretch", "Brystrygg: rotasjonsdriller", "Skuldre/underarmer", "Ankler: dorsalfleksjonsdrill"]
           },
-          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" },
+          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "Samme, men roligere. RPE 4–5.", red: "20 min rolig gange + tøying." }
         }
       }
@@ -84,28 +84,28 @@ const PROGRAM_DATA = {
           title: "Styrkesirkel", type: "strength", duration: "45–50 min",
           summary: "3 runder × 6 stasjoner × 70 sek",
           common: { rounds: 3, duration: "70 sek per stasjon", rest: "15 sek mellom stasjoner · 90 sek mellom runder", exercises: ["Hip thrust", "Utfall", "Roing (manualer/TRX)", "Push-ups", "Planke", "Dead hang"] },
-          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" },
+          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "Bruk 20–30% lettere vekter.", red: "2 runder. 50% vekt." }
         },
         tuesday: {
           title: "Intervaller", type: "intervals", duration: "40–45 min",
           summary: "Samme som Uke 1",
           common: { options: ["Mølle: 8×2 min @ 3–5% stigning · 1 min pause", "Romaskin: 10×250 m · 60 sek rolig"] },
-          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" },
+          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "Senk fart 0.5 km/t eller stigning 1–2%.", red: "Halvér antall drag." }
         },
         thursday: {
           title: "OCR-Hybrid", type: "ocr", duration: "40–45 min",
           summary: "4 runder: 400m @ 5–6% → 10 burpees → 65–70s hang → 100m carry · Pause 2 min",
           common: { rounds: 4, circuit: ["400 m løp @ 5–6% stigning", "10 burpees", "65–70 sek hang", "100 m farmer's carry"], rest: "2 min pause" },
-          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" },
+          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "3 runder. Hang: −10 sek.", red: "2 runder. Dropp burpees." }
         },
         friday: {
           title: "Rolig + mobilitet", type: "recovery", duration: "35–40 min",
           summary: "35–40 min rolig + mobilitet",
           common: { options: ["Mølle: 35–40 min rolig", "Romaskin: 25 min rolig + mobilitet"] },
-          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" },
+          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "Roligere tempo.", red: "20 min rolig gange." }
         }
       }
@@ -118,28 +118,28 @@ const PROGRAM_DATA = {
           title: "Styrkesirkel", type: "strength", duration: "45–50 min",
           summary: "3 runder × 6 stasjoner × 75 sek",
           common: { rounds: 3, duration: "75 sek per stasjon", rest: "15 sek mellom stasjoner · 90 sek mellom runder", exercises: ["Hip thrust", "Utfall", "Roing (manualer/TRX)", "Push-ups", "Planke", "Dead hang"] },
-          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" },
+          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "Bruk 20–30% lettere vekter.", red: "2 runder. 50% vekt." }
         },
         tuesday: {
           title: "Intervaller (progresjon)", type: "intervals", duration: "40–45 min",
           summary: "+1 drag fra uke 2 ELLER +0.5–1% stigning",
           common: { options: ["Mølle: 9×2 min @ 3.5–5.5% stigning · 1 min pause", "Romaskin: 11×250 m · 60 sek rolig"] },
-          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" },
+          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "Behold uke 2-volum. Senk intensitet litt.", red: "Halvér antall drag." }
         },
         thursday: {
           title: "OCR-Hybrid", type: "ocr", duration: "40–45 min",
           summary: "4 runder: 400m @ 5–6% → 10 burpees → 70–75s hang → 100m carry · Pause 2 min",
           common: { rounds: 4, circuit: ["400 m løp @ 5–6% stigning", "10 burpees", "70–75 sek hang", "100 m farmer's carry"], rest: "2 min pause" },
-          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" },
+          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "3 runder. Hang: −10 sek.", red: "2 runder. Dropp burpees." }
         },
         friday: {
           title: "Rolig + mobilitet", type: "recovery", duration: "35–40 min",
           summary: "35–40 min rolig + mobilitet",
           common: { options: ["Mølle: 35–40 min rolig", "Romaskin: 25 min + mobilitet"] },
-          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" },
+          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "Roligere tempo.", red: "20 min rolig gange." }
         }
       }
@@ -152,28 +152,28 @@ const PROGRAM_DATA = {
           title: "Styrkesirkel (deload)", type: "strength", duration: "35–40 min",
           summary: "3 runder × 60 sek (lett uke)",
           common: { rounds: 3, duration: "60 sek per stasjon", rest: "90 sek mellom runder", exercises: ["Hip thrust", "Utfall", "Roing (manualer/TRX)", "Push-ups", "Planke", "Dead hang"], note: "Lettere vekter enn normalt. RPE 6–7." },
-          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" },
+          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "Allerede lett. Juster som du ønsker.", red: "2 runder. Fokus på mobilitet etterpå." }
         },
         tuesday: {
           title: "Intervaller (deload)", type: "intervals", duration: "35–40 min",
           summary: "−2 drag fra uke 3, eller roligere intensitet",
           common: { options: ["Mølle: 6×2 min @ 3% · 1 min pause (roligere)", "Romaskin: 8×250 m · 60 sek rolig"] },
-          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" },
+          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "Ytterligere reduksjon OK.", red: "Gå/ro rolig 20 min." }
         },
         thursday: {
           title: "OCR-Hybrid (deload)", type: "ocr", duration: "35–40 min",
           summary: "4 runder: 400m @ 5–6% → 10 burpees → 60–65s hang → 100m carry · Pause 2 min",
           common: { rounds: 4, circuit: ["400 m løp @ 5–6% stigning", "10 burpees", "60–65 sek hang", "100 m farmer's carry"], rest: "2 min pause" },
-          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" },
+          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "3 runder.", red: "2 runder. Dropp burpees." }
         },
         friday: {
           title: "Rolig + mobilitet", type: "recovery", duration: "30–35 min",
           summary: "Mølle 30–35 min eller roing 20–25 min + mobilitet",
           common: { options: ["Mølle: 30–35 min rolig", "Romaskin: 20–25 min + mobilitet"] },
-          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" },
+          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "Roligere.", red: "Bare mobilitet." }
         }
       }
@@ -186,28 +186,28 @@ const PROGRAM_DATA = {
           title: "Styrkesirkel", type: "strength", duration: "50–55 min",
           summary: "4 runder × 6 stasjoner × 60 sek",
           common: { rounds: 4, duration: "60 sek per stasjon", rest: "15 sek mellom stasjoner · 90 sek mellom runder", exercises: ["Hip thrust", "Utfall", "Roing (manualer/TRX)", "Push-ups", "Planke", "Dead hang"] },
-          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" },
+          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "3 runder. Lettere vekter.", red: "2 runder. 50% vekt." }
         },
         tuesday: {
           title: "Intervaller", type: "intervals", duration: "40–45 min",
           summary: "Tilbake til basis eller progresjon fra uke 3",
           common: { options: ["Mølle: 8×2 min @ 3–5% · 1 min pause", "Romaskin: 10×250 m · 60 sek rolig"] },
-          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" },
+          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "Senk fart/stigning.", red: "Halvér drag." }
         },
         thursday: {
           title: "OCR-Hybrid", type: "ocr", duration: "40–45 min",
           summary: "4 runder: 400m @ 5–6% → 10 burpees → 60–65s hang → 100m carry",
           common: { rounds: 4, circuit: ["400 m løp @ 5–6% stigning", "10 burpees", "60–65 sek hang", "100 m farmer's carry"], rest: "2 min pause" },
-          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" },
+          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "3 runder.", red: "2 runder." }
         },
         friday: {
           title: "Rolig + mobilitet", type: "recovery", duration: "35–40 min",
           summary: "35–40 min rolig + mobilitet",
           common: { options: ["Mølle: 35–40 min rolig", "Romaskin: 25 min + mobilitet"] },
-          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" },
+          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "Roligere.", red: "20 min gange." }
         }
       }
@@ -220,28 +220,28 @@ const PROGRAM_DATA = {
           title: "Styrkesirkel", type: "strength", duration: "50–55 min",
           summary: "4 runder × 6 stasjoner × 70 sek",
           common: { rounds: 4, duration: "70 sek per stasjon", rest: "15 sek mellom stasjoner · 90 sek mellom runder", exercises: ["Hip thrust", "Utfall", "Roing (manualer/TRX)", "Push-ups", "Planke", "Dead hang"] },
-          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" },
+          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "3 runder. Lettere vekter.", red: "2 runder." }
         },
         tuesday: {
           title: "Intervaller (+progresjon)", type: "intervals", duration: "40–45 min",
           summary: "+1 drag eller +0.5–1% stigning fra uke 5",
           common: { options: ["Mølle: 9×2 min @ 3.5–5.5% · 1 min pause", "Romaskin: 11×250 m · 60 sek rolig"] },
-          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" },
+          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "Behold uke 5-volum.", red: "Halvér drag." }
         },
         thursday: {
           title: "OCR-Hybrid", type: "ocr", duration: "40–45 min",
           summary: "4 runder: 400m @ 5–6% → 10 burpees → 65–70s hang → 100m carry",
           common: { rounds: 4, circuit: ["400 m løp @ 5–6% stigning", "10 burpees", "65–70 sek hang", "100 m farmer's carry"], rest: "2 min pause" },
-          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" },
+          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "3 runder.", red: "2 runder." }
         },
         friday: {
           title: "Rolig + mobilitet", type: "recovery", duration: "35–40 min",
           summary: "35–40 min rolig + mobilitet",
           common: { options: ["Mølle: 35–40 min rolig", "Romaskin: 25 min + mobilitet"] },
-          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" },
+          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "Roligere.", red: "20 min gange." }
         }
       }
@@ -254,28 +254,28 @@ const PROGRAM_DATA = {
           title: "Styrkesirkel", type: "strength", duration: "50–55 min",
           summary: "4 runder × 6 stasjoner × 75 sek",
           common: { rounds: 4, duration: "75 sek per stasjon", rest: "15 sek mellom stasjoner · 90 sek mellom runder", exercises: ["Hip thrust", "Utfall", "Roing (manualer/TRX)", "Push-ups", "Planke", "Dead hang"] },
-          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" },
+          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "3 runder. Lettere vekter.", red: "2 runder." }
         },
         tuesday: {
           title: "Intervaller (behold progresjon)", type: "intervals", duration: "40–45 min",
           summary: "Behold progresjon fra uke 6",
           common: { options: ["Mølle: 9×2 min @ 4–6% · 1 min pause", "Romaskin: 11×250 m · 60 sek rolig"] },
-          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" },
+          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "Senk stigning 1–2%.", red: "Halvér drag." }
         },
         thursday: {
           title: "OCR-Hybrid", type: "ocr", duration: "40–45 min",
           summary: "4 runder: 400m @ 5–6% → 10 burpees → 70–75s hang → 100m carry",
           common: { rounds: 4, circuit: ["400 m løp @ 5–6% stigning", "10 burpees", "70–75 sek hang", "100 m farmer's carry"], rest: "2 min pause" },
-          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" },
+          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "3 runder.", red: "2 runder." }
         },
         friday: {
           title: "Rolig + mobilitet", type: "recovery", duration: "35–40 min",
           summary: "35–40 min rolig + mobilitet",
           common: { options: ["Mølle: 35–40 min rolig", "Romaskin: 25 min + mobilitet"] },
-          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" },
+          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "Roligere.", red: "20 min gange." }
         }
       }
@@ -292,7 +292,7 @@ const PROGRAM_DATA = {
             exercises: ["Hip thrust", "Roing (manualer/TRX)", "Push-ups", "Planke", "Dead hang (lett)"],
             note: "Ingen failure. Lett–moderat innsats. Dynamisk oppvarming 8–10 min før."
           },
-          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" },
+          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "2 runder.", red: "1 runde + mobilitet." }
         },
         thursday: {
@@ -302,7 +302,7 @@ const PROGRAM_DATA = {
             rounds: "3–4", circuit: ["400 m løp @ 3–4% stigning – RPE 6–7", "8 burpees – rolig rytme", "60 sek hang", "100 m farmer's carry – moderat vekt"],
             rest: "2:00–2:30 min pause"
           },
-          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" },
+          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "3 runder.", red: "2 runder. Dropp burpees." }
         },
         friday: {
@@ -312,7 +312,7 @@ const PROGRAM_DATA = {
             options: ["Mølle: 30–35 min @ 0–2% · RPE 5–6", "Romaskin: 20–25 min rolig"],
             mobility: ["Hofter: 90/90 + pigeon stretch", "Brystrygg: rotasjonsdriller", "Skuldre/underarmer", "Ankler: dorsalfleksjonsdrill"]
           },
-          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" },
+          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "Bare rolig gange og tøying.", red: "Bare mobilitet." }
         }
       }
@@ -337,7 +337,7 @@ const PROGRAM_DATA = {
               "Core: Hollow hold 3×30 sek + sideplanke 3×30 sek/side"
             ]
           },
-          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" },
+          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "Bruk 20–30% lettere vekter.", red: "2 sett per øvelse. 50% vekt." }
         },
         tuesday: {
@@ -357,15 +357,13 @@ const PROGRAM_DATA = {
               part1: { machine: "Romaskin", sets: "10×45 sek hard / 30 sek rolig" },
               part2: { machine: "Mølle", options: ["A: 10×45 sek @ 0% · 6.5–7.0 km/t · 45 sek pause", "B: 12×30 sek @ 0% · 6.2–6.8 km/t · 45 sek pause"] }
             },
-            kjetil: "geir"
-          },
+            kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "Senk fart 0.5 km/t eller stigning 1–2%. Behold antall drag.", red: "Halvér antall drag. Ro/løp rolig mellom." },
           outdoor: {
             sondre: { part1: { machine: "Utendørs", sets: "12×45 sek", speed: "12.0–12.5 km/t", incline: "flatt", rest: "45 sek gange" } },
             knut:   { part1: { machine: "Utendørs", sets: "8×60 sek", speed: "7.0 km/t", incline: "flatt", rest: "60 sek gange" } },
             geir:   { part1: { machine: "Utendørs", sets: "10×45 sek hard / 30 sek rolig jogg", speed: "6.5–7.0 km/t hard · 4.5–5.0 km/t rolig", incline: "flatt", rest: "Integrert" } },
-            kjetil: "geir"
-          }
+            kjetil: "geir", lena: "geir" }
         },
         thursday: {
           title: "OCR-Hybrid", type: "ocr", duration: "40–45 min",
@@ -375,8 +373,7 @@ const PROGRAM_DATA = {
             sondre: { rounds: 5, circuit: ["500 m mølle @ 4–6% · 9–10 km/t", "10 burpees", "60 sek hang", "100–150 m farmer's carry"], rest: "90–120 sek" },
             knut:   { rounds: 5, circuit: ["500 m mølle @ 4–6% · 6.5–7.0 km/t", "10 burpees", "60 sek hang", "100–150 m farmer's carry"], rest: "90–120 sek" },
             geir:   { rounds: 5, circuit: ["500 m mølle @ 4–6% · 6.0–6.5 km/t", "10 burpees", "60 sek hang", "100–150 m farmer's carry"], rest: "90–120 sek" },
-            kjetil: "geir"
-          },
+            kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "4 runder. Senk fart 0.5 km/t. Hang: −10 sek.", red: "3 runder. Dropp burpees." }
         },
         friday: {
@@ -399,8 +396,7 @@ const PROGRAM_DATA = {
               part2: "Mølle 10–12 min @ 0–1% · 5.5–6.2 km/t",
               strides: "6×12–15 sek @ 0–1% · 9–11 km/t"
             },
-            kjetil: "geir"
-          },
+            kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "Dropp strides. Bare rolig.", red: "20 min rolig gange." }
         }
       }
@@ -423,7 +419,7 @@ const PROGRAM_DATA = {
               "Pallof press 3×12/side"
             ]
           },
-          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" },
+          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "3 sett per øvelse. Lettere vekter.", red: "2 sett. 50% vekt." }
         },
         tuesday: {
@@ -443,8 +439,7 @@ const PROGRAM_DATA = {
               part1: { machine: "Romaskin", sets: "8×60 sek hard / 45 sek rolig" },
               part2: { machine: "Mølle", options: ["A: 8×60 sek @ 0% · 6.2–6.8 km/t · 60 sek pause", "B: 12×30 sek @ 0% · 6.2–6.8 km/t · 45 sek pause"] }
             },
-            kjetil: "geir"
-          },
+            kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "Senk fart 0.5 km/t eller stigning 1–2%.", red: "Halvér antall drag." }
         },
         thursday: {
@@ -455,8 +450,7 @@ const PROGRAM_DATA = {
             sondre: { rounds: 5, circuit: ["600 m mølle @ 4–6% · 9–10 km/t", "12 burpees", "60–70 sek hang", "150 m carry"], rest: "2 min" },
             knut:   { rounds: 5, circuit: ["600 m mølle @ 4–6% · 6.5–7.0 km/t", "12 burpees", "60–70 sek hang", "150 m carry"], rest: "2 min" },
             geir:   { rounds: 5, circuit: ["600 m mølle @ 4–6% · 6.0–6.5 km/t", "12 burpees", "60–70 sek hang", "150 m carry"], rest: "2 min" },
-            kjetil: "geir"
-          },
+            kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "4 runder. Senk fart 0.5 km/t.", red: "3 runder. Dropp burpees." }
         },
         friday: {
@@ -467,8 +461,7 @@ const PROGRAM_DATA = {
             sondre: { part1: "Mølle 20 min @ 3–5% · 8.8–9.5 km/t", part2: "Romaskin 10–12 min rolig", strides: "6×15 sek @ 0–1% · 14–16 km/t" },
             knut:   { part1: "Mølle 20 min @ 3–5% · 5.5–6.2 km/t", part2: "Romaskin 10–12 min rolig", strides: "6×15 sek @ 0–1% · 10–12 km/t" },
             geir:   { part1: "Romaskin 20 min rolig", part2: "Mølle 10–12 min @ 0–1% · 5.5–6.2 km/t", strides: "6×15 sek @ 0–1% · 9–11 km/t" },
-            kjetil: "geir"
-          },
+            kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "Dropp strides.", red: "20 min rolig gange." }
         }
       }
@@ -491,7 +484,7 @@ const PROGRAM_DATA = {
               "Sideplanke 3×40 sek/side"
             ]
           },
-          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" },
+          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "3 sett. Lettere vekter.", red: "2 sett. 50% vekt." }
         },
         tuesday: {
@@ -511,8 +504,7 @@ const PROGRAM_DATA = {
               part1: { machine: "Romaskin", sets: "6×90 sek hard / 60 sek rolig" },
               part2: { machine: "Mølle", options: ["A: 8×60 sek @ 0% · 6.2–6.8 km/t · 60 sek pause", "B: 10×30 sek @ 0% · 6.2–6.8 km/t · 45 sek pause"] }
             },
-            kjetil: "geir"
-          },
+            kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "Senk fart 0.5 km/t.", red: "Halvér drag." }
         },
         thursday: {
@@ -523,8 +515,7 @@ const PROGRAM_DATA = {
             sondre: { rounds: 5, circuit: ["500–600 m @ 4–6% · 9–10 km/t", "10 burpees + 10 goblet squats", "60–70 sek hang", "100–150 m carry"], rest: "2 min" },
             knut:   { rounds: 5, circuit: ["500–600 m @ 4–6% · 6.5–7.0 km/t", "10 burpees + 10 goblet squats", "60–70 sek hang", "100–150 m carry"], rest: "2 min" },
             geir:   { rounds: 5, circuit: ["500–600 m @ 4–6% · 6.0–6.5 km/t", "10 burpees + 10 goblet squats", "60–70 sek hang", "100–150 m carry"], rest: "2 min" },
-            kjetil: "geir"
-          },
+            kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "4 runder.", red: "3 runder. Dropp burpees." }
         },
         friday: {
@@ -535,8 +526,7 @@ const PROGRAM_DATA = {
             sondre: { part1: "Mølle 20 min @ 3–5% · 8.8–9.5 km/t", part2: "Romaskin 10–12 min rolig", strides: "6×15 sek @ 0–1% · 14–16 km/t" },
             knut:   { part1: "Mølle 20 min @ 3–5% · 5.5–6.2 km/t", part2: "Romaskin 10–12 min rolig", strides: "6×15 sek @ 0–1% · 10–12 km/t" },
             geir:   { part1: "Romaskin 20 min rolig", part2: "Mølle 10–12 min @ 0–1% · 5.5–6.2 km/t", strides: "6×15 sek @ 0–1% · 9–11 km/t" },
-            kjetil: "geir"
-          },
+            kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "Dropp strides.", red: "20 min rolig gange." }
         }
       }
@@ -558,7 +548,7 @@ const PROGRAM_DATA = {
               "Hollow hold 3×35 sek"
             ]
           },
-          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" },
+          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "3 sett. Lettere vekter.", red: "2 sett. 50% vekt." }
         },
         tuesday: {
@@ -578,8 +568,7 @@ const PROGRAM_DATA = {
               part1: { machine: "Romaskin", sets: "10×45 sek hard / 30 sek rolig" },
               part2: { machine: "Mølle", options: ["A: 10×45 sek @ 0% · 6.5–7.0 km/t · 45 sek pause", "B: 12×30 sek @ 0% · 6.2–6.8 km/t · 45 sek pause"] }
             },
-            kjetil: "geir"
-          },
+            kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "Senk fart 0.5 km/t.", red: "Halvér drag." }
         },
         thursday: {
@@ -590,8 +579,7 @@ const PROGRAM_DATA = {
             sondre: { rounds: 5, circuit: ["600 m mølle @ 4–6% · 9–10 km/t", "12 burpees", "70–75 sek hang", "150–200 m carry"], rest: "2 min" },
             knut:   { rounds: 5, circuit: ["600 m mølle @ 4–6% · 6.5–7.0 km/t", "12 burpees", "70–75 sek hang", "150–200 m carry"], rest: "2 min" },
             geir:   { rounds: 5, circuit: ["600 m mølle @ 4–6% · 6.0–6.5 km/t", "12 burpees", "70–75 sek hang", "150–200 m carry"], rest: "2 min" },
-            kjetil: "geir"
-          },
+            kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "4 runder.", red: "3 runder. Dropp burpees." }
         },
         friday: {
@@ -602,8 +590,7 @@ const PROGRAM_DATA = {
             sondre: { part1: "Mølle 45 min @ 3–5% · 9.0–9.5 km/t", part2: null, strides: "6×12–15 sek @ 0–1% · 14–16 km/t" },
             knut:   { part1: "Mølle 45 min @ 3–5% · 5.6–6.2 km/t", part2: null, strides: "6×12–15 sek @ 0–1% · 10–12 km/t" },
             geir:   { part1: "Romaskin 45 min rolig", part2: null, strides: "6×12–15 sek @ 0–1% · 9–11 km/t" },
-            kjetil: "geir"
-          },
+            kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "Dropp strides.", red: "20 min rolig." }
         }
       }
@@ -616,7 +603,7 @@ const PROGRAM_DATA = {
           title: "Lett styrke", type: "strength", duration: "30–35 min",
           summary: "2 sett per øvelse",
           common: { exercises: ["Step-ups 2×10", "Hip thrust 2×8", "TRX-ro 2×10", "Dead hang 2×45 sek", "Farmer's carry 2×40 sek"] },
-          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" },
+          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "1 sett.", red: "Bare mobilitet." }
         },
         tuesday: {
@@ -636,22 +623,21 @@ const PROGRAM_DATA = {
               part1: { machine: "Romaskin", sets: "8×30 sek hard / 45 sek rolig" },
               part2: { machine: "Mølle", options: ["A: 8×30 sek @ 0% · 6.5–7.0 km/t · 45 sek pause", "B: 10×20 sek @ 0% · 6.2–6.8 km/t · 40 sek pause"] }
             },
-            kjetil: "geir"
-          },
+            kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "Ytterligere reduksjon.", red: "Rolig 20 min." }
         },
         thursday: {
           title: "Lett hybrid (deload)", type: "ocr", duration: "30–35 min",
           summary: "3 runder: 400m @ 3–4% → 8 burpees → 45–60s hang → 100m carry",
           common: { rounds: 3, circuit: ["400 m @ 3–4% stigning", "8 burpees", "45–60 sek hang", "100 m carry"], rest: "2 min" },
-          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" },
+          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "2 runder.", red: "2 runder. Dropp burpees." }
         },
         friday: {
           title: "Rolig (ingen strides)", type: "recovery", duration: "30–35 min",
           summary: "30–35 min rolig @ 2–4%",
           common: { options: ["Mølle: 30–35 min @ 2–4% rolig", "Romaskin: 20 min rolig"] },
-          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" },
+          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "Kortere.", red: "Bare tøying." }
         }
       }
@@ -673,7 +659,7 @@ const PROGRAM_DATA = {
               "Sideplanke 3×40–45 sek/side"
             ]
           },
-          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" },
+          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "3 sett. Lettere vekter.", red: "2 sett." }
         },
         tuesday: {
@@ -693,8 +679,7 @@ const PROGRAM_DATA = {
               part1: { machine: "Romaskin", sets: "6×60–75 sek hard / 60 sek rolig" },
               part2: { machine: "Mølle", options: ["A: 6×60 sek @ 0% · 6.2–6.8 km/t · 60 sek pause", "B: 10×30 sek @ 0% · 6.2–6.8 km/t · 45 sek pause"] }
             },
-            kjetil: "geir"
-          },
+            kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "Senk fart 0.5 km/t.", red: "Halvér drag." }
         },
         thursday: {
@@ -705,8 +690,7 @@ const PROGRAM_DATA = {
             sondre: { rounds: 5, circuit: ["600 m @ 4–6% · 9–10 km/t", "12 burpees", "70–80 sek hang", "150–200 m carry"], rest: "2 min" },
             knut:   { rounds: 5, circuit: ["600 m @ 4–6% · 6.5–7.0 km/t", "12 burpees", "70–80 sek hang", "150–200 m carry"], rest: "2 min" },
             geir:   { rounds: 5, circuit: ["600 m @ 4–6% · 6.0–6.5 km/t", "12 burpees", "70–80 sek hang", "150–200 m carry"], rest: "2 min" },
-            kjetil: "geir"
-          },
+            kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "4 runder.", red: "3 runder." }
         },
         friday: {
@@ -717,8 +701,7 @@ const PROGRAM_DATA = {
             sondre: { part1: "Mølle 45–50 min @ 3–4% · 9.0–9.5 km/t", part2: null, strides: "6×15 sek · 0–1% · 14–16 km/t" },
             knut:   { part1: "Mølle 45–50 min @ 3–4% · 5.6–6.2 km/t", part2: null, strides: "6×15 sek · 0–1% · 10–12 km/t" },
             geir:   { part1: "Romaskin 45–50 min rolig", part2: null, strides: "6×15 sek · 0–1% · 9–11 km/t" },
-            kjetil: "geir"
-          },
+            kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "Dropp strides.", red: "20–30 min rolig." }
         }
       }
@@ -731,7 +714,7 @@ const PROGRAM_DATA = {
           title: "Lett styrke", type: "strength", duration: "30–35 min",
           summary: "2–3 sett per øvelse, lett/moderat",
           common: { exercises: ["Step-ups 2×10", "Hip thrust 2×8", "Goblet squat 2×10", "Dead hang 2×45 sek", "Farmer's carry 2×40 sek"] },
-          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" },
+          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "1–2 sett.", red: "Bare mobilitet." }
         },
         tuesday: {
@@ -751,22 +734,21 @@ const PROGRAM_DATA = {
               part1: { machine: "Romaskin", sets: "8×45 sek hard / 30 sek rolig" },
               part2: { machine: "Mølle", options: ["A: 8×45 sek @ 0% · 6.5–7.0 km/t · 45 sek pause", "B: 10×25 sek @ 0% · 6.2–6.8 km/t · 40 sek pause"] }
             },
-            kjetil: "geir"
-          },
+            kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "Ytterligere reduksjon.", red: "Rolig 20 min." }
         },
         thursday: {
           title: "Lett hybrid (4 runder)", type: "ocr", duration: "35–40 min",
           summary: "4 runder: 500m → 10 burpees → 60s hang → 120–150m carry",
           common: { rounds: 4, circuit: ["500 m løp", "10 burpees", "60 sek hang", "120–150 m carry"], rest: "2 min" },
-          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" },
+          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "3 runder.", red: "2 runder." }
         },
         friday: {
           title: "Rolig", type: "recovery", duration: "35–40 min",
           summary: "35–40 min rolig @ 2–4% (ingen strides)",
           common: { options: ["Mølle: 35–40 min @ 2–4% rolig", "Romaskin: 25 min rolig"] },
-          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" },
+          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "Kortere.", red: "Bare tøying." }
         }
       }
@@ -788,7 +770,7 @@ const PROGRAM_DATA = {
               "Anti-rotasjon (Pallof) 3×12/side"
             ]
           },
-          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" },
+          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "3 sett. Lettere vekter.", red: "2 sett." }
         },
         tuesday: {
@@ -808,8 +790,7 @@ const PROGRAM_DATA = {
               part1: { machine: "Romaskin", sets: "8×60 sek hard / 45 sek rolig" },
               part2: { machine: "Mølle", options: ["A: 6×60 sek @ 0% · 6.4–6.8 km/t · 60 sek pause", "B: 12×25 sek @ 0% · 6.2–6.8 km/t · 40 sek pause"] }
             },
-            kjetil: "geir"
-          },
+            kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "Senk fart 0.5 km/t.", red: "Halvér drag." }
         },
         thursday: {
@@ -820,8 +801,7 @@ const PROGRAM_DATA = {
             sondre: { rounds: 6, circuit: ["500 m @ 4–6% · 9–10 km/t", "10 burpees + 10 goblet squats", "75–90 sek hang", "150–200 m carry"], rest: "2 min" },
             knut:   { rounds: 6, circuit: ["500 m @ 4–6% · 6.5–7.0 km/t", "10 burpees + 10 goblet squats", "75–90 sek hang", "150–200 m carry"], rest: "2 min" },
             geir:   { rounds: 6, circuit: ["500 m @ 4–6% · 6.0–6.5 km/t", "10 burpees + 10 goblet squats", "75–90 sek hang", "150–200 m carry"], rest: "2 min" },
-            kjetil: "geir"
-          },
+            kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "4 runder.", red: "3 runder." }
         },
         friday: {
@@ -832,8 +812,7 @@ const PROGRAM_DATA = {
             sondre: { part1: "Mølle 45–50 min @ 3–4%", part2: null, strides: "6×12–15 sek · 14–16 km/t" },
             knut:   { part1: "Mølle 45–50 min @ 3–4%", part2: null, strides: "6×12–15 sek · 10–12 km/t" },
             geir:   { part1: "Romaskin 45–50 min rolig", part2: null, strides: "6×12–15 sek · 9–11 km/t" },
-            kjetil: "geir"
-          },
+            kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "Dropp strides.", red: "20–30 min rolig." }
         }
       }
@@ -855,7 +834,7 @@ const PROGRAM_DATA = {
               "Lett mobilitet"
             ]
           },
-          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" },
+          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "1 sett.", red: "Bare mobilitet." }
         },
         tuesday: {
@@ -875,14 +854,12 @@ const PROGRAM_DATA = {
               part1: { machine: "Romaskin", sets: "6×45 sek moderat / 45 sek rolig" },
               part2: { machine: "Mølle", sets: "6×45 sek @ 0% · 6.4–6.8 km/t · 60 sek pause" }
             },
-            kjetil: "geir"
-          },
+            kjetil: "geir", lena: "geir" },
           outdoor: {
             sondre: { part1: { machine: "Utendørs", sets: "10×45 sek", speed: "11.5–12.3 km/t", incline: "flatt", rest: "60 sek pause" } },
             knut:   { part1: { machine: "Utendørs", sets: "10×45–60 sek", speed: "6.8–7.0 km/t", incline: "svak bakke", rest: "60–75 sek pause" } },
             geir:   { part1: { machine: "Utendørs", sets: "10×45 sek hard · 45 sek rolig jogg", speed: "6.4–6.8 km/t", incline: "flatt", rest: "Integrert" } },
-            kjetil: "geir"
-          },
+            kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "Allerede lett – kjør som planlagt.", red: "4 drag i stedet for 6. Rolig innsats." }
         },
         thursday: {
@@ -898,7 +875,7 @@ const PROGRAM_DATA = {
             circuit: ["400–500 m rolig utendørs · flatt", "8 burpees", "45–60 sek hang", "100–120 m carry"],
             rest: "2 min"
           },
-          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" },
+          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "2 runder.", red: "2 runder. Dropp burpees." }
         },
         friday: {
@@ -912,7 +889,7 @@ const PROGRAM_DATA = {
             options: ["Utendørs: 25–30 min rolig løp/gange · flatt terreng"],
             note: "Lett tøying av legg, ankel og hofter etterpå. Ingen høy intensitet."
           },
-          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir" },
+          athletes: { sondre: null, knut: null, geir: null, kjetil: "geir", lena: "geir" },
           dagsform: { yellow: "Kortere.", red: "Bare tøying og mobilitet." }
         }
       }
@@ -923,7 +900,7 @@ const PROGRAM_DATA = {
 
 // ─── FASE 3 SESJONBYGGERE (brukt av p3Week) ───────────────────────────────────
 
-function _p3ath() { return { sondre: null, knut: null, geir: null, kjetil: "geir" }; }
+function _p3ath() { return { sondre: null, knut: null, geir: null, kjetil: "geir", lena: "geir" }; }
 
 function _p3Monday(wn) {
   const isDeload = wn === 24 || wn === 32;
@@ -1068,7 +1045,7 @@ PROGRAM_DATA.weeks.push(
     const startMs = new Date('2026-01-12T00:00:00').getTime() + (wn - 1) * 7 * 86400000;
     const startDate = new Date(startMs).toISOString().split('T')[0];
     const isDeload = wn === 33, isTest = wn === 34;
-    const ath = { sondre: null, knut: null, geir: null, kjetil: "geir" };
+    const ath = { sondre: null, knut: null, geir: null, kjetil: "geir", lena: "geir" };
     return {
       weekNumber: wn, phase: 4, label: `Uke ${wn}`, startDate, isDeload,
       note: isTest ? '⚡ Testuke 34 – Løpetest 20 min: nye terskelfarter for HM-blokken' : isDeload ? 'Deload etter Navy Race – gjenoppretting' : 'Fase 4 – Overgang: 1×OCR/uke, løpsmengde øker',
@@ -1097,7 +1074,7 @@ PROGRAM_DATA.weeks.push(
     const ltMin = isDeload ? 70 : wn >= 42 ? 130 : wn >= 40 ? 125 : wn >= 38 ? 120 : 115;
     const thrSets = isDeload ? "4×5 min" : wn >= 42 ? "2×15 min" : wn >= 39 ? "3×10 min" : "4×8 min";
     const thrRest = wn >= 39 ? "3 min pause" : "2 min pause";
-    const ath = { sondre: null, knut: null, geir: null, kjetil: "geir" };
+    const ath = { sondre: null, knut: null, geir: null, kjetil: "geir", lena: "geir" };
     return {
       weekNumber: wn, phase: 5, label: `Uke ${wn}`, startDate, isDeload,
       note: isTest ? '⚡ Testuke 40 – Løpetest 20 min: fartskalibrering for HM' : isDeload ? 'Deload – avslutt HM-blokk, forb. maratonbase' : 'Fase 5 – HM-spesifikk',
@@ -1135,7 +1112,7 @@ PROGRAM_DATA.weeks.push(
     const startDate = new Date(startMs).toISOString().split('T')[0];
     const isDeload = wn === 50, hangWeek = wn % 2 === 1;
     const ltMin = isDeload ? 90 : wn >= 48 ? 150 : wn >= 46 ? 140 : 130;
-    const ath = { sondre: null, knut: null, geir: null, kjetil: "geir" };
+    const ath = { sondre: null, knut: null, geir: null, kjetil: "geir", lena: "geir" };
     return {
       weekNumber: wn, phase: 6, label: `Uke ${wn}`, startDate, isDeload,
       note: isDeload ? 'Deload – avslutt maratonbase' : `Fase 6 – Maratonbase${hangWeek ? ' · Hang/carry denne uka' : ''}`,

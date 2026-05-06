@@ -39,5 +39,15 @@ const ATHLETES = [
     teamsEmail: "",
     profile: "Etappe 3 – roing og moderat løp",
     strengthDefaults: { hip_thrust_kg: 40, carry_kg: 20, goblet_kg: 16 }
+  },
+  {
+    id: "lena",
+    name: "Lena",
+    color: "#E91E8C",
+    colorLight: "#FCE4EC",
+    level: "C",
+    teamsEmail: "",
+    profile: "Etappe 3 – roing og moderat løp",
+    strengthDefaults: { hip_thrust_kg: 40, carry_kg: 20, goblet_kg: 16 }
   }
 ];

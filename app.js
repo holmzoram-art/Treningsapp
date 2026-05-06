@@ -2054,7 +2054,14 @@ createApp({
       else if (!selectedSessionKey.value) workoutMetrics.value = {};
       cancelRestTimer();
     });
-    watch(selectedAthlete, (id) => { newTest.value.athlete = id; });
+    watch(selectedAthlete, (id) => {
+      newTest.value.athlete = id;
+      const a = ATHLETES.find(x => x.id === id);
+      if (a) {
+        document.documentElement.style.setProperty('--accent', a.color);
+        document.documentElement.style.setProperty('--accent-light', a.colorLight);
+      }
+    }, { immediate: true });
 
     return {
       // state
