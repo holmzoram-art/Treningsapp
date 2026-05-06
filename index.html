@@ -382,14 +382,15 @@
               📍 Aktiver GPS-sporing
             </button>
             <div v-show="gpsEnabled">
+              <!-- Stats vises alltid under løping -->
               <div class="gps-stats">
-                <div class="gps-stat">
-                  <div class="gps-val">{{ gpsSpeed != null ? gpsSpeed + ' km/t' : '–' }}</div>
-                  <div class="gps-lbl">Fart</div>
-                </div>
                 <div class="gps-stat">
                   <div class="gps-val">{{ formatDist(gpsDistance) }}</div>
                   <div class="gps-lbl">Distanse</div>
+                </div>
+                <div class="gps-stat">
+                  <div class="gps-val">{{ gpsSpeed != null ? gpsSpeed + ' km/t' : '–' }}</div>
+                  <div class="gps-lbl">Fart nå</div>
                 </div>
                 <div class="gps-stat">
                   <div class="gps-val">{{ formatPace(gpsPace) }}</div>
@@ -398,9 +399,30 @@
                 <div class="gps-dot" :class="{ active: gpsActive }">{{ gpsActive ? '● GPS' : '○ Søker…' }}</div>
                 <button class="gps-off-btn" @click="toggleGps" title="Slå av GPS">✕</button>
               </div>
-              <div id="gps-map" class="gps-map"></div>
+
+              <!-- Kart og oppsummering: kun når ferdig -->
+              <div v-if="outdoorState === 'done'" class="run-summary">
+                <div class="run-summary-stats">
+                  <div class="run-stat-big">
+                    <span class="run-stat-val">{{ formatDist(gpsDistance) }}</span>
+                    <span class="run-stat-lbl">Total distanse</span>
+                  </div>
+                  <div class="run-stat-big">
+                    <span class="run-stat-val">{{ gpsAvgSpeed != null ? gpsAvgSpeed + ' km/t' : '–' }}</span>
+                    <span class="run-stat-lbl">Snittfart</span>
+                  </div>
+                  <div class="run-stat-big">
+                    <span class="run-stat-val">{{ outdoorFormatElapsed(outdoorMainMin * 60) }}</span>
+                    <span class="run-stat-lbl">Varighet</span>
+                  </div>
+                </div>
+                <div id="gps-map" class="gps-map"></div>
+              </div>
+              <!-- Kartet i DOM men usynlig mens man løper (Google Maps trenger dette) -->
+              <div v-else id="gps-map" style="display:none"></div>
             </div>
           </div>
+
 
           <!-- ── INTERVALLTIMER ── -->
           <div v-if="showTimer" class="timer-wrap">

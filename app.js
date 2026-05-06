@@ -512,6 +512,7 @@ createApp({
     let _mapMarker = null;
     let _mapInitialized = false;
     let _lastKmAnnounced = 0;
+    let _routeCoords = [];   // samle alle koordinater for ettertegning
 
     window.__mapsReady = () => { mapsApiReady.value = true; };
 
@@ -568,12 +569,14 @@ createApp({
       if (!navigator.geolocation) return;
       gpsDistance.value = 0; _gpsLastPos = null; gpsActive.value = false;
       gpsSpeedSamples.value = [];
+      _routeCoords = [];
       _mapInitialized = false; _mapObj = null; _mapPolyline = null; _mapMarker = null;
       _lastKmAnnounced = 0;
       _gpsWatchId = navigator.geolocation.watchPosition(
         (pos) => {
           const { latitude: lat, longitude: lng, speed } = pos.coords;
           gpsActive.value = true;
+          _routeCoords.push({ lat, lng });
           gpsSpeed.value = speed != null ? Math.round(speed * 3.6 * 10) / 10 : null;
           if (_gpsLastPos) {
             const d = haversineKm(_gpsLastPos.lat, _gpsLastPos.lng, lat, lng);
@@ -584,8 +587,7 @@ createApp({
             gpsPace.value = Math.round(3600 / gpsSpeed.value);
             if (timerState.value === 'work') gpsSpeedSamples.value.push(gpsSpeed.value);
           }
-          if (!_mapInitialized) nextTick(() => initMap(lat, lng));
-          else updateMap(lat, lng);
+          if (!_mapInitialized) { /* kart tegnes ved done */ }
           // Per-KM voice announcement
           const kmNow = Math.floor(gpsDistance.value);
           if (kmNow > _lastKmAnnounced && gpsDistance.value >= 0.95) {
@@ -1105,6 +1107,7 @@ createApp({
           outdoorElapsed.value++;
           const e = outdoorElapsed.value;
           const total = outdoorMainMin.value * 60;
+          if (gpsSpeed.value && gpsSpeed.value > 0.5) gpsSpeedSamples.value.push(gpsSpeed.value);
           if (e === Math.floor(total / 2)) {
             const speedNote = gpsSpeed.value ? ` Fart ${gpsSpeed.value} km/t.` : '';
             speak(`Halvveis i hoveddelen.${speedNote}`);
@@ -1114,7 +1117,8 @@ createApp({
             clearInterval(_outdoorTick); _outdoorTick = null;
             beep(880, 150); setTimeout(() => beep(1100, 150), 180); setTimeout(() => beep(1320, 400), 360);
             const distNote = gpsDistance.value > 0.1 ? ` ${formatDist(gpsDistance.value)} løpt.` : '';
-            speak(`Ferdig! Bra jobbet!${distNote}`);
+            const avgNote = gpsAvgSpeed.value ? ` Snittfart ${gpsAvgSpeed.value} km/t.` : '';
+            speak(`Ferdig! Bra jobbet!${distNote}${avgNote}`);
           }
         }
       }, 1000);
@@ -2011,6 +2015,17 @@ createApp({
 
     watch(dagsform, (v) => localStorage.setItem(STORAGE.dagsform, v));
     watch(isOutdoor, (v) => localStorage.setItem(STORAGE.outdoor, JSON.stringify(v)));
+    watch(outdoorState, (s) => {
+      if (s === 'done' && _routeCoords.length > 0) {
+        nextTick(() => {
+          const mid = _routeCoords[Math.floor(_routeCoords.length / 2)];
+          initMap(mid.lat, mid.lng);
+          if (_mapPolyline) {
+            _routeCoords.forEach(c => _mapPolyline.getPath().push(new google.maps.LatLng(c.lat, c.lng)));
+          }
+        });
+      }
+    });
     watch(selectedWorkout, () => { prefillTimerConfig(); });
     watch(selectedSessionKey, (key) => {
       if (key) {
