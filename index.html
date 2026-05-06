@@ -531,8 +531,46 @@
           </div>
 
 
-          <!-- OUTDOOR RUN TIMER (kun for ikke-intervall utendørsøkter) -->
-          <div v-if="isOutdoor && !showTimer && selectedSessionKey" class="outdoor-run-timer">
+          <!-- OCR GPS LAP TRACKER (utendørs runder) -->
+          <div v-if="isOutdoor && selectedSession?.type === 'ocr' && selectedSessionKey" class="ocr-gps-tracker">
+            <div class="ocr-gps-header">
+              <span class="ocr-gps-title">📍 Avstandsmåler</span>
+              <div class="ocr-gps-status-row">
+                <button v-if="!gpsEnabled" class="ocr-gps-enable-btn" @click="toggleGps">Aktiver GPS</button>
+                <template v-else>
+                  <span class="gps-dot-sm" :class="{ active: gpsActive }">{{ gpsActive ? '● GPS aktiv' : '○ Søker…' }}</span>
+                  <span class="ocr-total-dist-sm">Tot: {{ formatDist(gpsDistance) }}</span>
+                  <button class="gps-off-btn-sm" @click="toggleGps">✕</button>
+                </template>
+              </div>
+            </div>
+
+            <div class="ocr-seg-display">
+              <span class="ocr-seg-m">{{ lapDist }}<small>m</small></span>
+              <span class="ocr-seg-sub">
+                nåværende segment
+                <span v-if="savedCourseLengthM" class="ocr-seg-ref"> · mål {{ savedCourseLengthM }}m</span>
+              </span>
+            </div>
+
+            <div v-if="lapHistory.length" class="ocr-lap-history">
+              <span v-for="(lap, i) in lapHistory" :key="i" class="ocr-lap-chip">Steg {{ i+1 }}: {{ lap }}m</span>
+            </div>
+
+            <div class="ocr-lap-actions">
+              <button class="ocr-lap-btn" @click="recordLap" :disabled="!gpsActive || lapDist < 10">
+                📍 Marker ({{ lapDist }}m)
+              </button>
+              <button class="ocr-save-course-btn" @click="saveCourseLengthM" :disabled="!gpsActive || lapDist < 10" :title="'Lagre ' + lapDist + 'm som løypelengde'">
+                💾 {{ savedCourseLengthM ? 'Oppdater løype' : 'Lagre løype' }}
+              </button>
+              <button class="ocr-reset-laps-btn" @click="resetLaps" title="Nullstill segmenter">↺</button>
+            </div>
+            <p class="ocr-measure-hint">Gå/løp ruten én gang og trykk «Lagre løype» for å måle opp banen nøyaktig.</p>
+          </div>
+
+          <!-- OUTDOOR RUN TIMER (kun for recovery/rolig – ikke OCR) -->
+          <div v-if="isOutdoor && !showTimer && selectedSessionKey && selectedSession?.type !== 'ocr'" class="outdoor-run-timer">
 
             <!-- Konfig -->
             <div v-if="outdoorState === 'idle'" class="outdoor-timer-config">

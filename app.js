@@ -598,6 +598,28 @@ createApp({
       else stopGps();
     }
 
+    // ── OCR GPS LAP TRACKER ─────────────────────────────────────────────────────
+    const lapStartDist  = ref(0);
+    const lapHistory    = ref([]);
+    const savedCourseLengthM = ref(parseInt(localStorage.getItem('onitio_course_m') || '0') || null);
+    const lapDist = computed(() => Math.round((gpsDistance.value - lapStartDist.value) * 1000));
+
+    function recordLap() {
+      lapHistory.value.push(lapDist.value);
+      lapStartDist.value = gpsDistance.value;
+    }
+    function resetLaps() {
+      lapHistory.value = [];
+      lapStartDist.value = gpsDistance.value;
+    }
+    function saveCourseLengthM() {
+      const m = lapDist.value;
+      if (m > 10) {
+        savedCourseLengthM.value = m;
+        localStorage.setItem('onitio_course_m', String(m));
+      }
+    }
+
     function formatPace(secPerKm) {
       if (!secPerKm) return '–';
       return `${Math.floor(secPerKm/60)}:${String(secPerKm%60).padStart(2,'0')} /km`;
@@ -2142,6 +2164,7 @@ createApp({
       audioMuted, audioVolume, beep, fullscreenTimer, toggleFullscreenTimer,
       gpsEnabled, gpsActive, gpsSpeed, gpsDistance, gpsPace, gpsAvgSpeed, mapsApiReady,
       gpsPromptState, gpsWaitCountdown, gpsPromptChoose, gpsTimeoutChoose,
+      lapDist, lapHistory, savedCourseLengthM, recordLap, resetLaps, saveCourseLengthM,
       formatSec, formatPace, formatDist,
       startTimer, endIntervalEarly, pauseTimer, resetTimer, toggleGps,
       // methods
