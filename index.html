@@ -740,8 +740,18 @@
     </main>
 
     <!-- Fullskjerm-timer overlay (utenfor main, dekker hele skjermen) -->
-    <div v-if="fullscreenTimer && workTimer.active" class="fullscreen-timer-overlay">
-      <div class="fullscreen-timer-inner">
+    <div v-if="fullscreenTimer && (workTimer.active || workTimerDone)" class="fullscreen-timer-overlay">
+      <!-- Ferdig-skjerm med confetti -->
+      <div v-if="workTimerDone" class="fullscreen-done">
+        <div class="confetti-wrap" aria-hidden="true">
+          <span v-for="i in 30" :key="i" class="confetti-piece" :style="{ '--i': i }"></span>
+        </div>
+        <div class="fullscreen-done-emoji">🎉</div>
+        <div class="fullscreen-done-text">Ferdig!</div>
+        <div class="fullscreen-done-sub">{{ workTimer.exName }}</div>
+      </div>
+      <!-- Aktiv timer -->
+      <div v-else class="fullscreen-timer-inner">
         <div class="fullscreen-timer-phase" :class="workTimer.phase">
           {{ workTimer.phase === 'prep' ? 'Gjør deg klar…' : workTimer.exName }}
         </div>

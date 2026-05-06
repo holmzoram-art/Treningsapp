@@ -348,6 +348,35 @@ body {
   border-radius: 8px; padding: 14px 36px; font-size: 1rem; cursor: pointer;
 }
 
+/* ── FULLSCREEN DONE / CONFETTI ── */
+.fullscreen-done {
+  position: relative; text-align: center; overflow: hidden;
+  width: 100%; padding: 40px 20px;
+}
+.fullscreen-done-emoji { font-size: 5rem; animation: pop 0.4s cubic-bezier(.36,1.56,.64,1); }
+.fullscreen-done-text  { font-size: 4rem; font-weight: 900; color: #fff; margin: 8px 0 4px; }
+.fullscreen-done-sub   { font-size: 1.2rem; color: #aaa; text-transform: uppercase; letter-spacing: 0.06em; }
+@keyframes pop { 0% { transform: scale(0.3); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
+.confetti-wrap {
+  position: absolute; inset: 0; pointer-events: none; overflow: hidden;
+}
+.confetti-piece {
+  position: absolute;
+  top: -10px;
+  left: calc(var(--i) * 3.4%);
+  width: 8px; height: 14px;
+  border-radius: 2px;
+  background: hsl(calc(var(--i) * 12), 85%, 60%);
+  animation: confettiFall calc(1.4s + (var(--i) * 0.04s)) calc(var(--i) * 0.04s) ease-in forwards;
+  transform-origin: center;
+}
+@keyframes confettiFall {
+  0%   { transform: translateY(0) rotate(0deg); opacity: 1; }
+  80%  { opacity: 1; }
+  100% { transform: translateY(100vh) rotate(calc(var(--i) * 20deg)); opacity: 0; }
+}
+
 /* ── GPS AUTO-FILL ── */
 .gps-autofill-hint {
   font-size: 0.78rem;

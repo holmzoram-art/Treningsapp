@@ -631,6 +631,7 @@ createApp({
     // ── WORK TIMER (nedtelling under tidsbaserte øvelser) ─────────────────
     const PREP_SECS = 10;
     const workTimer = ref({ active: false, phase: 'prep', remaining: 0, total: 0, setIdx: null, exName: null, tickId: null });
+    const workTimerDone = ref(false);
 
     function startWorkTimer(seconds, exName, setIdx, restSec) {
       cancelWorkTimer();
@@ -668,13 +669,18 @@ createApp({
           if (remaining <= 0) {
             clearInterval(tickId);
             workTimer.value.active = false;
-            toggleFullscreenTimer(false);
-            const sets = currentExerciseSets.value[exName];
-            if (sets?.[setIdx]) {
-              sets[setIdx].done = true;
-              if (restSec > 0) startRestTimer(restSec, exName);
-            }
+            workTimerDone.value = true;
             beep(880, 200); setTimeout(() => beep(1100, 300), 220);
+            speak('Bra jobbet!');
+            setTimeout(() => {
+              workTimerDone.value = false;
+              toggleFullscreenTimer(false);
+              const sets = currentExerciseSets.value[exName];
+              if (sets?.[setIdx]) {
+                sets[setIdx].done = true;
+                if (restSec > 0) startRestTimer(restSec, exName);
+              }
+            }, 2500);
           }
         }
       }, 1000);
@@ -2090,7 +2096,7 @@ createApp({
       // rest timer
       restTimer, startRestTimer, cancelRestTimer, formatRestTime,
       // work timer
-      workTimer, startWorkTimer, cancelWorkTimer,
+      workTimer, workTimerDone, startWorkTimer, cancelWorkTimer,
     };
   }
 }).mount('#app');
