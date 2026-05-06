@@ -1332,6 +1332,18 @@ createApp({
       }
     }
 
+    const exerciseSetsForDisplay = computed(() => {
+      const exs = displayedWorkout.value?.exercises_raw;
+      if (!exs?.length) return currentExerciseSets.value;
+      const out = {};
+      for (const ex of exs) {
+        const stored = currentExerciseSets.value[ex.name];
+        if (!stored) continue;
+        out[ex.name] = stored.length <= ex.sets ? stored : stored.slice(0, ex.sets);
+      }
+      return out;
+    });
+
     // Returns true if weight×reps is a new 3RM-record for this exercise (ignores sets with 0 weight)
     function isSetPR(exerciseName, weight, reps) {
       if (!weight || !reps) return false;
@@ -2079,7 +2091,7 @@ createApp({
       selectedAthlete, dagsform, view, viewWeek, selectedSessionKey, selectedStrengthKey,
       deloadMode, shortMode, isOutdoor,
       todayNote, noteSaved, newTest, workoutMetrics,
-      currentExerciseSets, historikkFilter, doneVersion, selectedRpe, editingLog,
+      currentExerciseSets, exerciseSetsForDisplay, historikkFilter, doneVersion, selectedRpe, editingLog,
       previousExerciseSets, lastLoggedRpe,
       // computed
       athletes, currentWeek, currentWeekNumber, viewingWeekData, viewingWeekWorkouts, totalWeeks,

@@ -191,7 +191,7 @@
                     <span class="sr-done"></span>
                     <span class="sr-del"></span>
                   </div>
-                  <div v-for="(s, i) in currentExerciseSets[ex.name]" :key="i"
+                  <div v-for="(s, i) in exerciseSetsForDisplay[ex.name]" :key="i"
                        class="set-row" :class="{ 'set-done': s.done }">
                     <span class="sr-num">{{ i + 1 }}</span>
                     <span class="sr-prev">
@@ -207,7 +207,7 @@
                       {{ s.done ? '✓' : (ex.tags?.includes('timed') && workTimer.active && workTimer.exName === ex.name && workTimer.setIdx === i ? workTimer.remaining + 's' : (ex.tags?.includes('timed') ? '▶' : '○')) }}
                     </button>
                     <button class="sr-remove"
-                      :disabled="currentExerciseSets[ex.name].length <= 1"
+                      :disabled="(exerciseSetsForDisplay[ex.name]?.length ?? 1) <= 1"
                       @click="currentExerciseSets[ex.name].splice(i, 1)">×</button>
                     <span v-if="s.done && isSetPR(ex.name, s.weight, s.reps)" class="pr-badge-inline">🏆</span>
                   </div>
@@ -656,7 +656,7 @@
                   <span class="sr-done"></span>
                   <span class="sr-del"></span>
                 </div>
-                <div v-for="(s, i) in currentExerciseSets[ex.name]" :key="i"
+                <div v-for="(s, i) in exerciseSetsForDisplay[ex.name]" :key="i"
                      class="set-row" :class="{ 'set-done': s.done }">
                   <span class="sr-num">{{ i + 1 }}</span>
                   <span class="sr-prev">
@@ -672,7 +672,7 @@
                     {{ s.done ? '✓' : (ex.tags?.includes('timed') && workTimer.active && workTimer.exName === ex.name && workTimer.setIdx === i ? workTimer.remaining + 's' : (ex.tags?.includes('timed') ? '▶' : '○')) }}
                   </button>
                   <button class="sr-remove"
-                    :disabled="currentExerciseSets[ex.name].length <= 1"
+                    :disabled="(exerciseSetsForDisplay[ex.name]?.length ?? 1) <= 1"
                     @click="currentExerciseSets[ex.name].splice(i, 1)">×</button>
                   <span v-if="s.done && isSetPR(ex.name, s.weight, s.reps)" class="pr-badge-inline">🏆</span>
                 </div>
