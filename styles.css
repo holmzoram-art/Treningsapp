@@ -362,30 +362,60 @@ body {
   margin-left: -50vh;
   transform: rotate(90deg);
 }
-.fullscreen-timer-inner { text-align: center; padding: 16px 32px; width: 100%; }
+.fullscreen-timer-inner {
+  text-align: center; width: 100%;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  height: 100%; gap: 6px; padding: 10px 24px; box-sizing: border-box;
+}
 .fullscreen-timer-phase {
-  font-size: 3.5vh; color: #888; margin-bottom: 4px;
-  text-transform: uppercase; letter-spacing: 0.08em;
+  font-size: min(3.5vh, 5vw); color: #888;
+  text-transform: uppercase; letter-spacing: 0.08em; flex-shrink: 0;
 }
 .fullscreen-timer-phase.prep { color: #f0a500; }
 .fullscreen-timer-phase.work { color: #aaa; }
 .fullscreen-timer-count {
-  font-size: 42vh; font-weight: 900; color: #fff;
-  font-variant-numeric: tabular-nums; line-height: 0.9;
-  margin-bottom: 12px;
+  font-size: min(42vh, 50vw); font-weight: 900; color: #fff;
+  font-variant-numeric: tabular-nums; line-height: 0.9; flex-shrink: 0;
 }
 .fullscreen-timer-count.prep { color: #f0a500; }
 .fullscreen-timer-count.work { color: #fff; }
 .fullscreen-timer-track {
   height: 14px; background: #222; border-radius: 7px;
-  overflow: hidden; margin: 0 auto 20px; max-width: 90%;
+  overflow: hidden; width: 90%; flex-shrink: 0;
 }
 .fullscreen-timer-fill {
   height: 100%; background: var(--accent); border-radius: 7px; transition: width 1s linear;
 }
 .fullscreen-timer-close {
   background: #111; color: #555; border: 1px solid #333;
-  border-radius: 8px; padding: 10px 32px; font-size: 3.5vh; cursor: pointer;
+  border-radius: 8px; padding: 8px 28px; font-size: min(3.5vh, 5vw); cursor: pointer; flex-shrink: 0;
+}
+
+/* ── LENA MODE ── */
+.lena-mode { --accent: #E91E8C; --accent-dim: rgba(233,30,140,0.18); }
+.lena-mode .app-header { background: linear-gradient(135deg, #1a0a14 0%, #1e0a1a 50%, #1a0a14 100%); }
+.lena-mode .athlete-btn.active { box-shadow: 0 0 0 3px rgba(233,30,140,0.5), 0 0 16px rgba(233,30,140,0.3); }
+.lena-mode .session-card { border-color: rgba(233,30,140,0.25); }
+.lena-mode .set-row.set-done { background: rgba(233,30,140,0.12); }
+.lena-mode .sr-check.checked { background: #E91E8C; border-color: #E91E8C; }
+.lena-mode .session-title::after { content: ' ✨'; }
+
+.lena-toast {
+  position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  z-index: 999;
+  background: linear-gradient(135deg, #E91E8C, #ff6eb4);
+  color: #fff;
+  font-size: clamp(1.4rem, 6vw, 2rem); font-weight: 900;
+  padding: 18px 32px; border-radius: 20px;
+  text-align: center; letter-spacing: 0.03em;
+  box-shadow: 0 8px 40px rgba(233,30,140,0.5);
+  pointer-events: none; white-space: nowrap;
+}
+.lena-toast-anim-enter-active { animation: lena-pop 0.3s cubic-bezier(.36,1.56,.64,1); }
+.lena-toast-anim-leave-active { animation: lena-pop 0.25s cubic-bezier(.36,1.56,.64,1) reverse; }
+@keyframes lena-pop {
+  0%   { transform: translate(-50%, -50%) scale(0.4); opacity: 0; }
+  100% { transform: translate(-50%, -50%) scale(1);   opacity: 1; }
 }
 
 /* ── FULLSCREEN DONE / CONFETTI ── */

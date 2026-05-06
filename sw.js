@@ -1,4 +1,4 @@
-const APP_CACHE = 'onitio-app-v4';
+const APP_CACHE = 'onitio-app-v6';
 const CDN_CACHE = 'onitio-cdn-v1';
 
 const APP_ASSETS = [

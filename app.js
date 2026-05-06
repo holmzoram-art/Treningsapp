@@ -664,6 +664,7 @@ createApp({
               if (sets?.[setIdx]) {
                 sets[setIdx].done = true;
                 if (restSec > 0) startRestTimer(restSec, exName);
+                triggerLenaToast();
               }
             }, 2500);
           }
@@ -682,6 +683,28 @@ createApp({
     function formatRestTime(sec) {
       const m = Math.floor(sec / 60), s = sec % 60;
       return m > 0 ? `${m}:${String(s).padStart(2, '0')}` : `${s}s`;
+    }
+
+    const LENA_MESSAGES = [
+      'YOU GO GIRL! 💪✨', 'SLAY QUEEN! 👑💅', 'KILLING IT! 🔥💕',
+      'YAAAS! 💃🎀', 'OMG DU ER SÅ STERK! 🏋️‍♀️', 'WERK IT BESTIE! 👊🌸',
+      'TOTAL BOSS! 👸✨', 'DET HER ER DIN DAG! 🌟', 'POWERGIRRRL! 💥💗',
+      'INGEN STOPPER DEG NÅ! 🚀🎀', 'SÅ PROUD OF YOU! 🥹💖', 'LETS GOOOO! 🙌🔥',
+    ];
+    const lenaToast = ref(null);
+    let _lenaToastTimer = null;
+
+    function triggerLenaToast() {
+      if (selectedAthlete.value !== 'lena') return;
+      if (_lenaToastTimer) clearTimeout(_lenaToastTimer);
+      lenaToast.value = LENA_MESSAGES[Math.floor(Math.random() * LENA_MESSAGES.length)];
+      _lenaToastTimer = setTimeout(() => { lenaToast.value = null; }, 2500);
+    }
+
+    function completeSet(s, restSec, exName) {
+      s.done = true;
+      startRestTimer(restSec, exName);
+      triggerLenaToast();
     }
 
     function startRestTimer(sec, name) {
@@ -2131,6 +2154,8 @@ createApp({
       isSetPR,
       // rest timer
       restTimer, startRestTimer, cancelRestTimer, formatRestTime,
+      // lena
+      lenaToast, completeSet,
       // work timer
       workTimer, workTimerDone, startWorkTimer, cancelWorkTimer,
     };
