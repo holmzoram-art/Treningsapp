@@ -442,6 +442,7 @@ createApp({
 
     // ── AUDIO ──────────────────────────────────────────────────────────────────
     const audioMuted = ref(false);
+    const audioVolume = ref(parseFloat(localStorage.getItem('onitio_volume') || '0.7'));
     let _audioCtx = null;
 
     function getAudioCtx() {
@@ -449,7 +450,7 @@ createApp({
       return _audioCtx;
     }
 
-    function beep(freq = 880, durationMs = 150, vol = 0.4) {
+    function beep(freq = 880, durationMs = 150) {
       if (audioMuted.value) return;
       try {
         const ctx = getAudioCtx();
@@ -457,7 +458,8 @@ createApp({
         const gain = ctx.createGain();
         osc.connect(gain); gain.connect(ctx.destination);
         osc.frequency.value = freq;
-        gain.gain.setValueAtTime(vol, ctx.currentTime);
+        const v = audioVolume.value;
+        gain.gain.setValueAtTime(v, ctx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + durationMs / 1000);
         osc.start(); osc.stop(ctx.currentTime + durationMs / 1000);
       } catch (e) {}
@@ -467,8 +469,29 @@ createApp({
       if (audioMuted.value || !window.speechSynthesis) return;
       const utt = new SpeechSynthesisUtterance(text);
       utt.lang = 'nb-NO'; utt.rate = 1.05;
+      utt.volume = audioVolume.value;
       window.speechSynthesis.cancel();
       window.speechSynthesis.speak(utt);
+    }
+
+    watch(audioVolume, v => localStorage.setItem('onitio_volume', v));
+
+    // ── FULLSCREEN TIMER ────────────────────────────────────────────────────────
+    const fullscreenTimer = ref(false);
+    let _wakeLock = null;
+
+    async function requestWakeLock() {
+      try {
+        if ('wakeLock' in navigator) _wakeLock = await navigator.wakeLock.request('screen');
+      } catch (e) {}
+    }
+    function releaseWakeLock() {
+      if (_wakeLock) { _wakeLock.release(); _wakeLock = null; }
+    }
+    function toggleFullscreenTimer(on) {
+      fullscreenTimer.value = on;
+      if (on) requestWakeLock();
+      else releaseWakeLock();
     }
 
     // ── GPS ────────────────────────────────────────────────────────────────────
@@ -2033,7 +2056,7 @@ createApp({
       outdoorState, outdoorWarmupMin, outdoorWarmupKm, outdoorWarmupType,
       outdoorMainMin, outdoorElapsed, outdoorCountdown,
       outdoorFormatElapsed, startOutdoorTimer, resetOutdoorTimer,
-      audioMuted,
+      audioMuted, audioVolume, fullscreenTimer, toggleFullscreenTimer,
       gpsEnabled, gpsActive, gpsSpeed, gpsDistance, gpsPace, gpsAvgSpeed, mapsApiReady,
       gpsPromptState, gpsWaitCountdown, gpsPromptChoose, gpsTimeoutChoose,
       formatSec, formatPace, formatDist,

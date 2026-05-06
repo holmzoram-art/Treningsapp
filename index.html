@@ -71,6 +71,18 @@
     <!-- ───────────── I DAG ───────────── -->
     <main v-if="view === 'today'" class="view-today">
 
+      <!-- Sticky pause-timer banner (alltid synlig øverst) -->
+      <div v-if="restTimer.active" class="rest-timer-sticky">
+        <div class="rest-timer-info">
+          <span class="rest-timer-name">⏱ Pause · {{ restTimer.exerciseName }}</span>
+          <span class="rest-timer-countdown">{{ formatRestTime(restTimer.remaining) }}</span>
+        </div>
+        <div class="rest-timer-track">
+          <div class="rest-timer-fill" :style="{ width: Math.round((1 - restTimer.remaining / restTimer.total) * 100) + '%' }"></div>
+        </div>
+        <button class="rest-cancel-btn" @click="cancelRestTimer">✕</button>
+      </div>
+
       <div class="week-info">
         <span>Uke {{ currentWeekNumber }} · {{ weekDates(currentWeekNumber) }}</span>
         <span class="phase-badge">Fase {{ currentWeek?.phase }}</span>
@@ -204,14 +216,20 @@
                   @click="currentExerciseSets[ex.name].push({ weight: currentExerciseSets[ex.name].at(-1)?.weight ?? 0, reps: currentExerciseSets[ex.name].at(-1)?.reps ?? 0, done: false })">
                   + Sett
                 </button>
-                <button class="rest-start-btn"
-                  :class="{ active: restTimer.active && restTimer.exerciseName === ex.name }"
-                  @click="startRestTimer(ex.restSec, ex.name)">
-                  ⏱ Pause {{ formatRestTime(ex.restSec) }}
-                </button>
+                <div class="ex-action-row">
+                  <button class="rest-start-btn"
+                    :class="{ active: restTimer.active && restTimer.exerciseName === ex.name }"
+                    @click="startRestTimer(ex.restSec, ex.name)">
+                    ⏱ Pause {{ formatRestTime(ex.restSec) }}
+                  </button>
+                  <button v-if="ex.tags?.includes('timed')" class="fullscreen-timer-btn"
+                    @click="toggleFullscreenTimer(true); startRestTimer(parseInt(ex.time) || 60, ex.name)">
+                    ⛶ Fullskjerm
+                  </button>
+                </div>
               </div>
 
-              <!-- Rest Timer Bar -->
+              <!-- Rest Timer Bar (inline, skjult når sticky vises) -->
               <div v-if="restTimer.active" class="rest-timer-bar">
                 <div class="rest-timer-info">
                   <span class="rest-timer-name">⏱ Pause etter {{ restTimer.exerciseName }}</span>
@@ -412,6 +430,7 @@
                 <button class="mute-btn" :class="{ muted: audioMuted }" @click="audioMuted = !audioMuted" title="Lyd av/på">
                   {{ audioMuted ? '🔇' : '🔊' }}
                 </button>
+                <input class="volume-slider" type="range" min="0.1" max="1" step="0.05" v-model.number="audioVolume" :disabled="audioMuted" title="Volum">
               </div>
             </div>
 
@@ -653,14 +672,20 @@
               </button>
 
               <!-- Pause-knapp og timer -->
-              <button class="rest-start-btn"
-                :class="{ active: restTimer.active && restTimer.exerciseName === ex.name }"
-                @click="startRestTimer(ex.restSec, ex.name)">
-                ⏱ Pause {{ formatRestTime(ex.restSec) }}
-              </button>
+              <div class="ex-action-row">
+                <button class="rest-start-btn"
+                  :class="{ active: restTimer.active && restTimer.exerciseName === ex.name }"
+                  @click="startRestTimer(ex.restSec, ex.name)">
+                  ⏱ Pause {{ formatRestTime(ex.restSec) }}
+                </button>
+                <button v-if="ex.tags?.includes('timed')" class="fullscreen-timer-btn"
+                  @click="toggleFullscreenTimer(true); startRestTimer(parseInt(ex.time) || 60, ex.name)">
+                  ⛶ Fullskjerm
+                </button>
+              </div>
             </div>
 
-            <!-- Rest Timer Bar -->
+            <!-- Rest Timer Bar (inline) -->
             <div v-if="restTimer.active" class="rest-timer-bar">
               <div class="rest-timer-info">
                 <span class="rest-timer-name">⏱ Pause etter {{ restTimer.exerciseName }}</span>
@@ -699,6 +724,18 @@
 
       </div>
     </main>
+
+    <!-- Fullskjerm-timer overlay (utenfor main, dekker hele skjermen) -->
+    <div v-if="fullscreenTimer && restTimer.active" class="fullscreen-timer-overlay" @click.self="toggleFullscreenTimer(false)">
+      <div class="fullscreen-timer-inner">
+        <div class="fullscreen-timer-name">{{ restTimer.exerciseName }}</div>
+        <div class="fullscreen-timer-count">{{ formatRestTime(restTimer.remaining) }}</div>
+        <div class="fullscreen-timer-track">
+          <div class="fullscreen-timer-fill" :style="{ width: Math.round((1 - restTimer.remaining / restTimer.total) * 100) + '%' }"></div>
+        </div>
+        <button class="fullscreen-timer-close" @click="toggleFullscreenTimer(false)">Lukk fullskjerm</button>
+      </div>
+    </div>
 
     <!-- ───────────── PROGRAM ───────────── -->
     <main v-if="view === 'week'" class="view-week">
