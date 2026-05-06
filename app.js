@@ -196,23 +196,8 @@ createApp({
       cancelWorkTimer();
       selectedRpe.value = null;
       editingLog.value = false;
-      if (selectedSession.value?.type === 'strength') {
-        const exercises = parseExercises(selectedWorkout.value?.exercises || [])
-          .filter(ex => ex.sets && ex.name);
-        const prev = previousExerciseSets.value;
-        const result = {};
-        for (const ex of exercises) {
-          const prevSets = prev[ex.name] || [];
-          result[ex.name] = Array.from({ length: ex.sets }, (_, i) => ({
-            weight: prevSets[i]?.weight ?? (parseInt(ex.weight) || getExerciseDefaultWeight(ex.name, selectedAthlete.value)),
-            reps:   prevSets[i]?.reps   ?? (ex.time ? (parseInt(ex.time) || 0) : (parseInt(ex.reps) || 0)),
-            done:   false,
-          }));
-        }
-        currentExerciseSets.value = result;
-      } else {
-        currentExerciseSets.value = {};
-      }
+      currentExerciseSets.value = {};
+      initExerciseSets();
     }
 
     function selectStrengthSession(key) {
@@ -223,7 +208,7 @@ createApp({
       shortMode.value = false;
       cancelRestTimer();
       cancelWorkTimer();
-      if (newKey) { prefillStrengthMetrics(); initExerciseSets(newKey); }
+      if (newKey) { prefillStrengthMetrics(); initExerciseSets(); }
       else workoutMetrics.value = {};
     }
 
@@ -1309,20 +1294,42 @@ createApp({
       return last?.rpe || null;
     });
 
-    function initExerciseSets(strengthKey) {
-      const sd = STRENGTH_PROGRAM.days[strengthKey];
-      if (!sd) { currentExerciseSets.value = {}; return; }
+    function initExerciseSets() {
+      const exs = displayedWorkout.value?.exercises_raw;
+      if (!exs?.length) { currentExerciseSets.value = {}; return; }
       const prev = previousExerciseSets.value;
       const result = {};
-      for (const ex of sd.exercises) {
+      for (const ex of exs) {
         const prevSets = prev[ex.name] || [];
         result[ex.name] = Array.from({ length: ex.sets }, (_, i) => ({
-          weight: prevSets[i]?.weight ?? 0,
-          reps:   prevSets[i]?.reps   ?? (parseInt(ex.reps) || 0),
+          weight: prevSets[i]?.weight ?? (parseInt(ex.weight) || getExerciseDefaultWeight(ex.name, selectedAthlete.value)),
+          reps:   prevSets[i]?.reps   ?? (ex.time ? (parseInt(ex.time) || 0) : (parseInt(ex.reps) || 0)),
           done:   false,
         }));
       }
       currentExerciseSets.value = result;
+    }
+
+    function resyncExerciseSets() {
+      const exs = displayedWorkout.value?.exercises_raw;
+      if (!exs?.length) return;
+      const current = currentExerciseSets.value;
+      if (!Object.keys(current).length) { initExerciseSets(); return; }
+      for (const ex of exs) {
+        const sets = current[ex.name];
+        if (!sets) continue;
+        const anyDone = sets.some(s => s.done);
+        if (anyDone) continue;
+        const targetReps = ex.time ? (parseInt(ex.time) || 0) : (parseInt(ex.reps) || 0);
+        // update reps from program
+        for (let i = 0; i < sets.length; i++) sets[i].reps = targetReps;
+        // trim excess sets
+        if (sets.length > ex.sets) sets.splice(ex.sets);
+        // add missing sets
+        while (sets.length < ex.sets) {
+          sets.push({ weight: sets.at(-1)?.weight ?? 0, reps: targetReps, done: false });
+        }
+      }
     }
 
     // Returns true if weight×reps is a new 3RM-record for this exercise (ignores sets with 0 weight)
@@ -2050,9 +2057,13 @@ createApp({
     });
 
     watch(selectedStrengthKey, (key) => {
-      if (key) { prefillStrengthMetrics(); initExerciseSets(key); }
+      if (key) { prefillStrengthMetrics(); initExerciseSets(); }
       else if (!selectedSessionKey.value) workoutMetrics.value = {};
       cancelRestTimer();
+    });
+
+    watch(displayedWorkout, (newW) => {
+      if (newW?.exercises_raw?.length) resyncExerciseSets();
     });
     watch(selectedAthlete, (id) => {
       newTest.value.athlete = id;
@@ -2093,7 +2104,7 @@ createApp({
       outdoorState, outdoorWarmupMin, outdoorWarmupKm, outdoorWarmupType,
       outdoorMainMin, outdoorElapsed, outdoorCountdown,
       outdoorFormatElapsed, startOutdoorTimer, resetOutdoorTimer,
-      audioMuted, audioVolume, fullscreenTimer, toggleFullscreenTimer,
+      audioMuted, audioVolume, beep, fullscreenTimer, toggleFullscreenTimer,
       gpsEnabled, gpsActive, gpsSpeed, gpsDistance, gpsPace, gpsAvgSpeed, mapsApiReady,
       gpsPromptState, gpsWaitCountdown, gpsPromptChoose, gpsTimeoutChoose,
       formatSec, formatPace, formatDist,

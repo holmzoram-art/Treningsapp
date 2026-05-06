@@ -76,6 +76,15 @@ body {
 .add-event-btn { padding: 8px 16px; background: var(--accent); color: #fff; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; white-space: nowrap; }
 .add-event-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
+.volume-setting-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.mute-toggle-btn { padding: 7px 14px; border: 1px solid var(--border); border-radius: 20px; background: var(--card); font-size: 0.85rem; cursor: pointer; white-space: nowrap; }
+.volume-slider { flex: 1; accent-color: var(--accent); }
+.volume-slider:disabled { opacity: 0.35; }
+.volume-pct { font-size: 0.82rem; color: var(--text2); width: 36px; text-align: right; }
+.test-sound-btn { padding: 7px 18px; border: 1px solid var(--accent); border-radius: 20px; background: transparent; color: var(--accent); font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+.test-sound-btn:hover { background: var(--accent); color: #fff; }
+.test-sound-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
 .danger-section { border-top: 1px solid var(--border); padding-top: 20px; margin-top: 28px; }
 .clear-buttons { display: flex; gap: 10px; flex-wrap: wrap; }
 .clear-btn { padding: 9px 16px; border: 1px solid #e57373; border-radius: 20px; background: transparent; color: #e57373; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.15s; }
