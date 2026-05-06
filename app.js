@@ -1161,14 +1161,20 @@ createApp({
         if (isAthleteMap) {
           const raw = src[athleteId];
           if (raw === null || raw === undefined) return session.common;
-          if (typeof raw === 'string') return src[raw];
+          if (typeof raw === 'string') {
+            const resolved = src[raw];
+            return (resolved === null || resolved === undefined) ? session.common : resolved;
+          }
           return raw;
         }
         return src;
       }
       const raw = session.athletes?.[athleteId];
       if (raw === null || raw === undefined) return session.common;
-      if (typeof raw === 'string') return session.athletes[raw];
+      if (typeof raw === 'string') {
+        const resolved = session.athletes[raw];
+        return (resolved === null || resolved === undefined) ? session.common : resolved;
+      }
       return raw;
     }
 
