@@ -636,7 +636,8 @@ createApp({
       let phase = 'prep';
       let remaining = PREP_SECS;
 
-      beep(440, 80); setTimeout(() => beep(440, 80), 120);   // "klar deg" – to korte pip
+      beep(440, 80); setTimeout(() => beep(440, 80), 120);
+      toggleFullscreenTimer(true);
 
       workTimer.value = { active: true, phase: 'prep', remaining: PREP_SECS, total: PREP_SECS, setIdx, exName, tickId: null };
 
@@ -665,6 +666,7 @@ createApp({
           if (remaining <= 0) {
             clearInterval(tickId);
             workTimer.value.active = false;
+            toggleFullscreenTimer(false);
             const sets = currentExerciseSets.value[exName];
             if (sets?.[setIdx]) {
               sets[setIdx].done = true;
@@ -681,6 +683,7 @@ createApp({
     function cancelWorkTimer() {
       if (workTimer.value.tickId) clearInterval(workTimer.value.tickId);
       workTimer.value = { active: false, phase: 'prep', remaining: 0, total: 0, setIdx: null, exName: null, tickId: null };
+      toggleFullscreenTimer(false);
     }
 
     function formatRestTime(sec) {

@@ -222,10 +222,6 @@
                     @click="startRestTimer(ex.restSec, ex.name)">
                     ⏱ Pause {{ formatRestTime(ex.restSec) }}
                   </button>
-                  <button v-if="ex.tags?.includes('timed')" class="fullscreen-timer-btn"
-                    @click="toggleFullscreenTimer(true); startRestTimer(parseInt(ex.time) || 60, ex.name)">
-                    ⛶ Fullskjerm
-                  </button>
                 </div>
               </div>
 
@@ -678,10 +674,6 @@
                   @click="startRestTimer(ex.restSec, ex.name)">
                   ⏱ Pause {{ formatRestTime(ex.restSec) }}
                 </button>
-                <button v-if="ex.tags?.includes('timed')" class="fullscreen-timer-btn"
-                  @click="toggleFullscreenTimer(true); startRestTimer(parseInt(ex.time) || 60, ex.name)">
-                  ⛶ Fullskjerm
-                </button>
               </div>
             </div>
 
@@ -726,14 +718,18 @@
     </main>
 
     <!-- Fullskjerm-timer overlay (utenfor main, dekker hele skjermen) -->
-    <div v-if="fullscreenTimer && restTimer.active" class="fullscreen-timer-overlay" @click.self="toggleFullscreenTimer(false)">
+    <div v-if="fullscreenTimer && workTimer.active" class="fullscreen-timer-overlay">
       <div class="fullscreen-timer-inner">
-        <div class="fullscreen-timer-name">{{ restTimer.exerciseName }}</div>
-        <div class="fullscreen-timer-count">{{ formatRestTime(restTimer.remaining) }}</div>
-        <div class="fullscreen-timer-track">
-          <div class="fullscreen-timer-fill" :style="{ width: Math.round((1 - restTimer.remaining / restTimer.total) * 100) + '%' }"></div>
+        <div class="fullscreen-timer-phase" :class="workTimer.phase">
+          {{ workTimer.phase === 'prep' ? 'Gjør deg klar…' : workTimer.exName }}
         </div>
-        <button class="fullscreen-timer-close" @click="toggleFullscreenTimer(false)">Lukk fullskjerm</button>
+        <div class="fullscreen-timer-count" :class="workTimer.phase">
+          {{ workTimer.remaining }}
+        </div>
+        <div class="fullscreen-timer-track">
+          <div class="fullscreen-timer-fill" :style="{ width: Math.round((1 - workTimer.remaining / workTimer.total) * 100) + '%' }"></div>
+        </div>
+        <button class="fullscreen-timer-close" @click="cancelWorkTimer()">✕ Avbryt</button>
       </div>
     </div>
 
