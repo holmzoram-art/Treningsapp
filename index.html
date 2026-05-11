@@ -95,7 +95,7 @@
       </div>
 
       <!-- Økt-velger: skjules når en økt er valgt -->
-      <template v-if="!selectedSessionKey && !selectedStrengthKey">
+      <template v-if="!selectedSessionKey && !selectedStrengthKey && !selectedLibraryKey">
         <div class="session-picker">
           <button
             v-for="(dayLabel, dayKey) in weekDays"
@@ -129,24 +129,50 @@
             </button>
           </div>
         </div>
+
+        <!-- Frittstående løpeøkter (bibliotek) -->
+        <div class="strength-picker-wrap lib-picker-wrap">
+          <div class="lib-picker-header">
+            <div class="strength-picker-label">Løpeøkter:</div>
+            <div class="library-cat-tabs">
+              <button
+                v-for="cat in LIBRARY_CATEGORIES" :key="cat"
+                class="lib-cat-btn" :class="{ active: libraryCategory === cat }"
+                @click="libraryCategory = cat"
+              >{{ cat }}</button>
+            </div>
+          </div>
+          <div class="strength-picker lib-session-row">
+            <button
+              v-for="(sess, key) in LIBRARY_SESSIONS" :key="key"
+              v-show="sess.category === libraryCategory"
+              class="strength-picker-btn lib-session-btn"
+              :class="{ active: selectedLibraryKey === key }"
+              @click="selectLibrarySession(key)"
+            >
+              <span class="sp-title">{{ sess.title }}</span>
+              <span class="sp-dur">{{ sess.duration }}</span>
+            </button>
+          </div>
+        </div>
       </template>
 
       <!-- Tilbakeknapp når økt er valgt -->
       <div v-else class="session-back-bar">
-        <button class="back-btn" @click="selectedSessionKey = null; selectedStrengthKey = null">← Tilbake</button>
+        <button class="back-btn" @click="selectedSessionKey = null; selectedStrengthKey = null; selectedLibraryKey = null">← Tilbake</button>
         <span class="back-session-title">{{ displayedTitle }}</span>
       </div>
 
       <!-- Ingen økt valgt -->
-      <div v-if="!selectedSessionKey && !selectedStrengthKey" class="rest-card">
+      <div v-if="!selectedSessionKey && !selectedStrengthKey && !selectedLibraryKey" class="rest-card">
         <div class="rest-icon">👆</div>
         <h2>Velg en økt</h2>
         <p>Trykk på en av øktene over for å se hva du skal gjøre.</p>
       </div>
 
-      <!-- Øktvisning (løp/OCR) -->
-      <div v-if="selectedSessionKey && selectedSession">
-        <div class="session-card" :class="selectedSession?.type">
+      <!-- Øktvisning (løp/OCR + bibliotek) -->
+      <div v-if="(selectedSessionKey && selectedSession) || (selectedLibraryKey && selectedLibrarySession)">
+        <div class="session-card" :class="effectiveCardioSession?.type">
 
           <!-- Justeringsindikator -->
           <div v-if="deloadMode || dagsform !== 'green' || shortMode"
@@ -164,7 +190,7 @@
               </button>
             </div>
           </div>
-          <p class="session-summary">{{ selectedSession?.summary }}</p>
+          <p class="session-summary">{{ effectiveCardioSession?.summary }}</p>
 
           <!-- Fase 3 plassholder -->
           <div v-if="displayedWorkout?.note && !displayedWorkout?.exercises && !displayedWorkout?.options && !displayedWorkout?.circuit && !displayedWorkout?.part1" class="placeholder-card">
@@ -615,7 +641,7 @@
 
         <!-- RPE + lagre (cardio) -->
         <div class="log-card" v-if="!isSessionDone(selectedSessionKey) || editingLog">
-          <div v-if="gpsAvgSpeed && selectedSession?.type === 'intervals'" class="gps-autofill-hint">
+          <div v-if="gpsAvgSpeed && effectiveCardioSession?.type === 'intervals'" class="gps-autofill-hint">
             📍 GPS-snittfart {{ gpsAvgSpeed }} km/t lagt inn automatisk – juster om nødvendig
           </div>
           <!-- Fields: intervals/ocr/recovery + program.js strength circuits (not PPL gym) -->
@@ -626,7 +652,7 @@
               <div class="log-field-row">
                 <input type="number" v-model.number="workoutMetrics[field.key]"
                        :step="field.step || 1" placeholder="–" class="log-input"
-                       :class="{ 'gps-filled': field.key === 'speed_kmh' && gpsAvgSpeed && selectedSession?.type === 'intervals' }">
+                       :class="{ 'gps-filled': field.key === 'speed_kmh' && gpsAvgSpeed && effectiveCardioSession?.type === 'intervals' }">
                 <span class="log-unit">{{ field.unit }}</span>
               </div>
             </div>
@@ -1317,6 +1343,7 @@
   <script src="data/levels.js"></script>
   <script src="data/program.js"></script>
   <script src="data/strength.js"></script>
+  <script src="data/library.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-const APP_CACHE = 'onitio-app-v10';
+const APP_CACHE = 'onitio-app-v11';
 const CDN_CACHE = 'onitio-cdn-v1';
 
 const APP_ASSETS = [
@@ -9,6 +9,7 @@ const APP_ASSETS = [
   '/Treningsapp/data/athletes.js',
   '/Treningsapp/data/program.js',
   '/Treningsapp/data/strength.js',
+  '/Treningsapp/data/library.js',
   '/Treningsapp/manifest.json',
 ];
 

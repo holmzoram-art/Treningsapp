@@ -40,6 +40,8 @@ createApp({
     const viewWeek = ref(1);
     const selectedSessionKey = ref(null);
     const selectedStrengthKey = ref(null); // 'monday' | 'wednesday' | 'friday' | null
+    const selectedLibraryKey  = ref(null); // key from LIBRARY_SESSIONS or null
+    const libraryCategory     = ref('Intervall');
     const deloadMode = ref(false);
     const shortMode = ref(false);
     const isOutdoor = ref(false);
@@ -235,6 +237,7 @@ createApp({
     function selectSession(key) {
       selectedSessionKey.value = key;
       selectedStrengthKey.value = null;
+      selectedLibraryKey.value = null;
       deloadMode.value = false;
       shortMode.value = false;
       cancelRestTimer();
@@ -249,6 +252,7 @@ createApp({
       const newKey = selectedStrengthKey.value === key ? null : key;
       selectedStrengthKey.value = newKey;
       selectedSessionKey.value = null;
+      selectedLibraryKey.value = null;
       deloadMode.value = false;
       shortMode.value = false;
       cancelRestTimer();
@@ -257,7 +261,20 @@ createApp({
       else workoutMetrics.value = {};
     }
 
-    // ── DONE TRACKING ──────────────────────────────────────────────────────
+    function selectLibrarySession(key) {
+      const newKey = selectedLibraryKey.value === key ? null : key;
+      selectedLibraryKey.value = newKey;
+      selectedSessionKey.value = null;
+      selectedStrengthKey.value = null;
+      deloadMode.value = false;
+      shortMode.value = false;
+      cancelRestTimer();
+      cancelWorkTimer();
+      selectedRpe.value = null;
+      editingLog.value = false;
+      currentExerciseSets.value = {};
+      if (newKey) workoutMetrics.value = {};
+    }
     function doneKey(weekNum, athleteId) {
       return `onitio_done_w${weekNum}_${athleteId}`;
     }
@@ -990,7 +1007,22 @@ createApp({
       selectedStrengthKey.value ? STRENGTH_PROGRAM.days[selectedStrengthKey.value] : null
     );
 
+    const selectedLibrarySession = computed(() =>
+      selectedLibraryKey.value ? LIBRARY_SESSIONS[selectedLibraryKey.value] : null
+    );
+
+    // The active cardio session: either a free library session or the scheduled session
+    const effectiveCardioSession = computed(() =>
+      selectedLibrarySession.value || selectedSession.value
+    );
+
     const displayedWorkout = computed(() => {
+      if (selectedLibraryKey.value) {
+        const libSess = selectedLibrarySession.value;
+        if (!libSess) return null;
+        const raw = replaceTokensDeep(libSess.common, athleteLevels.value);
+        return adjustWorkout(raw, dagsform.value, deloadMode.value, shortMode.value);
+      }
       if (selectedStrengthKey.value) {
         const sd = selectedStrengthDay.value;
         if (!sd) return null;
@@ -1039,7 +1071,7 @@ createApp({
 
     const activityCards = computed(() => {
       const wo = displayedWorkout.value;
-      const sess = selectedSession.value;
+      const sess = effectiveCardioSession.value;
       if (!wo || !sess) return [];
       if (selectedStrengthKey.value || sess.type === 'strength' || sess.type === 'ocr') return [];
       const isInt = sess.type === 'intervals';
@@ -1105,22 +1137,22 @@ createApp({
     });
 
     const displayedTitle = computed(() =>
-      selectedStrengthDay.value?.title || selectedSession.value?.title
+      selectedStrengthDay.value?.title || selectedLibrarySession.value?.title || selectedSession.value?.title
     );
 
     const displayedDuration = computed(() => {
       if (shortMode.value) return '20 min';
       if (selectedStrengthDay.value) return selectedStrengthDay.value.duration;
-      return selectedSession.value?.duration;
+      return selectedLibrarySession.value?.duration || selectedSession.value?.duration;
     });
 
     const showTimer = computed(() => {
       if (selectedStrengthKey.value) return false;
-      return selectedSession.value?.type === 'intervals';
+      return effectiveCardioSession.value?.type === 'intervals';
     });
 
     const intervalTargetSpeed = computed(() => {
-      if (selectedSession.value?.type !== 'intervals') return null;
+      if (effectiveCardioSession.value?.type !== 'intervals') return null;
       const w = selectedWorkout.value;
       const src = w?.part1?.speed || w?.options?.[0] || '';
       const m = src.match(/(\d+\.?\d*)\s*[–\-]\s*(\d+\.?\d*)\s*km/);
@@ -1218,7 +1250,7 @@ createApp({
     }
 
     function prefillTimerConfig() {
-      if (selectedSession.value?.type !== 'intervals') return;
+      if (effectiveCardioSession.value?.type !== 'intervals') return;
       const w = displayedWorkout.value;
       const src = w?.part1?.sets || w?.options?.[0] || '';
       const setsM   = src.match(/(\d+)[×x]/);
@@ -1272,6 +1304,7 @@ createApp({
           .replace(/\{\{easy\}\}/g,      levels.easy_run_kmh      + ' km/t')
           .replace(/\{\{ocr_run\}\}/g,   levels.ocr_run_kmh       + ' km/t')
           .replace(/\{\{strides\}\}/g,   levels.strides_kmh       + ' km/t')
+          .replace(/\{\{marathon_pace\}\}/g, levels.marathon_pace_kmh + ' km/t')
           .replace(/\{\{hang\}\}/g,      String(levels.max_hang_sec ?? 60))
           .replace(/\{\{carry\}\}/g,     String(levels.carry_kg    ?? 20));
       }
@@ -1286,8 +1319,9 @@ createApp({
 
     // ── DAGSFORM HINT ──────────────────────────────────────────────────────
     const dagsformHint = computed(() => {
-      if (dagsform.value === 'yellow') return PROGRAM_DATA.dagsformRules.yellow;
-      if (dagsform.value === 'red') return PROGRAM_DATA.dagsformRules.red;
+      const libDgf = selectedLibrarySession.value?.dagsform;
+      if (dagsform.value === 'yellow') return libDgf?.yellow || PROGRAM_DATA.dagsformRules.yellow;
+      if (dagsform.value === 'red') return libDgf?.red || PROGRAM_DATA.dagsformRules.red;
       return '';
     });
 
@@ -1372,7 +1406,9 @@ createApp({
     const previousExerciseSets = computed(() => {
       const key = selectedStrengthKey.value
         ? 'strength_' + selectedStrengthKey.value
-        : selectedSessionKey.value;
+        : selectedLibraryKey.value
+          ? 'library_' + selectedLibraryKey.value
+          : selectedSessionKey.value;
       if (!key) return {};
       const relevant = [...workoutLogs.value].reverse().filter(l => l.sessionKey === key && l.metrics?.exercise_sets);
       // Prefer a green/yellow day log — skip deload and red dagsform so reduced weights don't overwrite the baseline
@@ -1383,7 +1419,9 @@ createApp({
     const lastLoggedRpe = computed(() => {
       const key = selectedStrengthKey.value
         ? 'strength_' + selectedStrengthKey.value
-        : selectedSessionKey.value;
+        : selectedLibraryKey.value
+          ? 'library_' + selectedLibraryKey.value
+          : selectedSessionKey.value;
       if (!key) return null;
       const last = [...workoutLogs.value].reverse().find(l => l.sessionKey === key);
       return last?.rpe || null;
@@ -1508,9 +1546,10 @@ createApp({
         refreshKey.value++;
         return;
       }
-      if (!editingLog.value) markSessionDone(selectedSessionKey.value);
+      if (!editingLog.value && selectedSessionKey.value) markSessionDone(selectedSessionKey.value);
+      const sessKey = selectedLibraryKey.value ? ('library_' + selectedLibraryKey.value) : selectedSessionKey.value;
       const rpeHist = JSON.parse(localStorage.getItem(STORAGE.rpe(selectedAthlete.value)) || '[]');
-      rpeHist.push({ date: today(), rpe, session: selectedSessionKey.value });
+      rpeHist.push({ date: today(), rpe, session: sessKey });
       localStorage.setItem(STORAGE.rpe(selectedAthlete.value), JSON.stringify(rpeHist));
       const logs = JSON.parse(localStorage.getItem(STORAGE.wlog(selectedAthlete.value)) || '[]');
       const exSetsCardio = currentExerciseSets.value;
@@ -1544,12 +1583,12 @@ createApp({
       }
       const newEntry = {
         date: today(), weekNumber: currentWeekNumber.value,
-        sessionKey: selectedSessionKey.value,
-        type: selectedSession.value?.type || 'unknown',
+        sessionKey: sessKey,
+        type: effectiveCardioSession.value?.type || 'unknown',
         dagsform: dagsform.value, deloadMode: deloadMode.value,
         rpe, metrics: cardioMetrics,
       };
-      const sk = selectedSessionKey.value;
+      const sk = sessKey;
       const existingIdx = editingLog.value ? logs.map((l,i)=>[l,i]).filter(([l])=>l.sessionKey===sk).at(-1)?.[1] : -1;
       if (existingIdx >= 0) logs[existingIdx] = newEntry; else logs.push(newEntry);
       localStorage.setItem(STORAGE.wlog(selectedAthlete.value), JSON.stringify(logs));
@@ -1610,7 +1649,7 @@ createApp({
 
     const logFields = computed(() => {
       if (selectedStrengthKey.value) return SESSION_LOG_FIELDS.strength;
-      const sess = selectedSession.value;
+      const sess = effectiveCardioSession.value;
       // program.js sessions with type='strength' are circuits (exercises as text), not PPL gym
       if (sess?.type === 'strength') return SESSION_LOG_FIELDS.circuit;
       // OCR sessions with circuit steps: hang/carry/burpees shown inline — only rounds + duration in log card
@@ -2041,29 +2080,31 @@ createApp({
       if (!thresholdData) {
         if (!profile) return null;
         return {
-          threshold_run_kmh: profile.threshold_kmh,
-          easy_run_kmh:      profile.easy_run_kmh,
-          ocr_run_kmh:       profile.ocr_run_kmh,
-          strides_kmh:       profile.strides_kmh,
-          max_hang_sec:      hangTests.length ? hangTests[hangTests.length-1].value : profile.hang_sec,
-          carry_kg:          carryKgFromTest ?? profile.carry_kg,
-          level_label:       profile.label,
-          last_updated:      null,
-          from_profile:      true,
+          threshold_run_kmh:  profile.threshold_kmh,
+          marathon_pace_kmh:  Math.round(profile.threshold_kmh * 0.92 * 10) / 10,
+          easy_run_kmh:       profile.easy_run_kmh,
+          ocr_run_kmh:        profile.ocr_run_kmh,
+          strides_kmh:        profile.strides_kmh,
+          max_hang_sec:       hangTests.length ? hangTests[hangTests.length-1].value : profile.hang_sec,
+          carry_kg:           carryKgFromTest ?? profile.carry_kg,
+          level_label:        profile.label,
+          last_updated:       null,
+          from_profile:       true,
         };
       }
 
       const { threshold, date: testDate, label: testLabel } = thresholdData;
       return {
-        threshold_run_kmh: threshold,
-        easy_run_kmh:      Math.round(threshold * 0.88 * 10) / 10,
-        ocr_run_kmh:       Math.round(threshold * 0.96 * 10) / 10,
-        strides_kmh:       Math.round(threshold * 1.15 * 10) / 10,
-        max_hang_sec:      hangTests.length ? hangTests[hangTests.length-1].value : (profile?.hang_sec ?? null),
-        carry_kg:          carryKgFromTest ?? (profile?.carry_kg ?? null),
-        level_label:       'Beregnet fra ' + testLabel,
-        last_updated:      testDate,
-        from_profile:      false,
+        threshold_run_kmh:  threshold,
+        marathon_pace_kmh:  Math.round(threshold * 0.92 * 10) / 10,
+        easy_run_kmh:       Math.round(threshold * 0.88 * 10) / 10,
+        ocr_run_kmh:        Math.round(threshold * 0.96 * 10) / 10,
+        strides_kmh:        Math.round(threshold * 1.15 * 10) / 10,
+        max_hang_sec:       hangTests.length ? hangTests[hangTests.length-1].value : (profile?.hang_sec ?? null),
+        carry_kg:           carryKgFromTest ?? (profile?.carry_kg ?? null),
+        level_label:        'Beregnet fra ' + testLabel,
+        last_updated:       testDate,
+        from_profile:       false,
       };
     });
 
@@ -2104,6 +2145,7 @@ createApp({
     function selectAthlete(id) {
       selectedAthlete.value = id;
       selectedStrengthKey.value = null;
+      selectedLibraryKey.value = null;
       deloadMode.value = false;
       shortMode.value = false;
       cancelRestTimer();
@@ -2169,11 +2211,21 @@ createApp({
       cancelRestTimer();
     });
 
+    watch(selectedLibraryKey, (key) => {
+      if (key) {
+        prefillMetrics(selectedLibrarySession.value, displayedWorkout.value);
+        prefillTimerConfig();
+        outdoorMainMin.value = parseMinFromDuration(selectedLibrarySession.value?.duration);
+        resetOutdoorTimer();
+      } else workoutMetrics.value = {};
+      cancelRestTimer();
+    });
+
     watch(displayedWorkout, (newW) => {
       if (newW?.exercises_raw?.length) resyncExerciseSets();
       // Re-prefill metrics when dagsform/deload changes for cardio sessions
-      if (selectedSessionKey.value && !selectedStrengthKey.value) {
-        prefillMetrics(selectedSession.value, newW);
+      if ((selectedSessionKey.value || selectedLibraryKey.value) && !selectedStrengthKey.value) {
+        prefillMetrics(effectiveCardioSession.value, newW);
         prefillTimerConfig();
       }
     });
@@ -2189,6 +2241,7 @@ createApp({
     return {
       // state
       selectedAthlete, dagsform, view, viewWeek, selectedSessionKey, selectedStrengthKey,
+      selectedLibraryKey, libraryCategory,
       deloadMode, shortMode, isOutdoor,
       todayNote, noteSaved, newTest, workoutMetrics,
       currentExerciseSets, exerciseSetsForDisplay, historikkFilter, doneVersion, selectedRpe, editingLog,
@@ -2199,6 +2252,8 @@ createApp({
       clearConfirm, confirmClear, downloadBackup, restoreBackup, backupRestoreMsg,
       selectedSession,
       selectedStrengthDay,
+      selectedLibrarySession, effectiveCardioSession, LIBRARY_SESSIONS, LIBRARY_CATEGORIES,
+      selectLibrarySession,
       selectedWorkout, displayedWorkout, displayedTitle, displayedDuration,
       dagsformHint, weekDays, rpeHistory, notesHistory,
       completedSessions, currentStreak, avgRpe,

@@ -258,8 +258,56 @@ body {
   color: #fff;
 }
 .sp-check { font-size: 0.85rem; }
+.sp-dur { font-size: 0.72rem; color: var(--text2); margin-left: 2px; }
 
-/* ── REST TIMER ── */
+/* ── LIBRARY PICKER ── */
+.lib-picker-wrap {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+}
+.lib-picker-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.lib-cat-tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.lib-cat-btn {
+  padding: 4px 12px;
+  background: transparent;
+  border: 1.5px solid var(--border);
+  border-radius: 20px;
+  color: var(--text2);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.lib-cat-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.lib-session-row { flex-wrap: wrap; }
+.lib-session-btn {
+  border-color: var(--accent);
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 6px 12px;
+}
+.lib-session-btn.active {
+  background: var(--accent);
+  color: #fff;
+}
+.lib-session-btn.active .sp-dur { color: rgba(255,255,255,0.7); }
+
+/* ── REST TIMER ──*/
 .rest-start-btn {
   background: transparent;
   border: 1px solid var(--border);
