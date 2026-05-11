@@ -163,12 +163,6 @@
         <span class="back-session-title">{{ displayedTitle }}</span>
       </div>
 
-      <!-- Ingen økt valgt -->
-      <div v-if="!selectedSessionKey && !selectedStrengthKey && !selectedLibraryKey" class="rest-card">
-        <div class="rest-icon">👆</div>
-        <h2>Velg en økt</h2>
-        <p>Trykk på en av øktene over for å se hva du skal gjøre.</p>
-      </div>
 
       <!-- Øktvisning (løp/OCR + bibliotek) -->
       <div v-if="(selectedSessionKey && selectedSession) || (selectedLibraryKey && selectedLibrarySession)">
