@@ -176,6 +176,51 @@ createApp({
       clearConfirm.value = null;
     }
 
+    function downloadBackup() {
+      const data = {};
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('onitio_')) {
+          try { data[key] = JSON.parse(localStorage.getItem(key)); }
+          catch { data[key] = localStorage.getItem(key); }
+        }
+      }
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `onitio-backup-${today()}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    const backupRestoreMsg = ref('');
+    function restoreBackup(event) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = JSON.parse(e.target.result);
+          let count = 0;
+          for (const [key, value] of Object.entries(data)) {
+            if (key.startsWith('onitio_')) {
+              localStorage.setItem(key, typeof value === 'string' ? value : JSON.stringify(value));
+              count++;
+            }
+          }
+          refreshKey.value++;
+          backupRestoreMsg.value = `✓ ${count} elementer gjenopprettet`;
+          setTimeout(() => { backupRestoreMsg.value = ''; }, 4000);
+        } catch {
+          backupRestoreMsg.value = '✗ Ugyldig backup-fil';
+          setTimeout(() => { backupRestoreMsg.value = ''; }, 4000);
+        }
+        event.target.value = '';
+      };
+      reader.readAsText(file);
+    }
+
     watch(events, v => localStorage.setItem('onitio_events', JSON.stringify(v)), { deep: true });
 
     // ── TODAY'S SESSION ────────────────────────────────────────────────────
@@ -2151,7 +2196,7 @@ createApp({
       // computed
       athletes, currentWeek, currentWeekNumber, viewingWeekData, viewingWeekWorkouts, totalWeeks,
       events, newEvent, upcomingEvents, addEvent, removeEvent,
-      clearConfirm, confirmClear,
+      clearConfirm, confirmClear, downloadBackup, restoreBackup, backupRestoreMsg,
       selectedSession,
       selectedStrengthDay,
       selectedWorkout, displayedWorkout, displayedTitle, displayedDuration,

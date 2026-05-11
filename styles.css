@@ -85,6 +85,12 @@ body {
 .test-sound-btn:hover { background: var(--accent); color: #fff; }
 .test-sound-btn:disabled { opacity: 0.35; cursor: not-allowed; }
 
+.backup-buttons { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+.backup-btn { padding: 9px 18px; border: 1px solid var(--accent); border-radius: 10px; background: transparent; color: var(--accent); font-size: 0.88rem; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+.backup-btn:hover { background: var(--accent); color: #fff; }
+.restore-btn { cursor: pointer; }
+.backup-msg { font-size: 0.85rem; color: var(--accent); margin: 0; font-weight: 600; }
+
 .danger-section { border-top: 1px solid var(--border); padding-top: 20px; margin-top: 28px; }
 .clear-buttons { display: flex; gap: 10px; flex-wrap: wrap; }
 .clear-btn { padding: 9px 16px; border: 1px solid #e57373; border-radius: 20px; background: transparent; color: #e57373; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.15s; }

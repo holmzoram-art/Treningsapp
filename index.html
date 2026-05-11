@@ -1273,6 +1273,19 @@
         <button class="test-sound-btn" @click="beep(880, 300)" :disabled="audioMuted">▶ Test lyd</button>
       </section>
 
+      <section class="settings-section">
+        <h3>Sikkerhetskopi</h3>
+        <p class="settings-desc">Last ned all treningsdata som en JSON-fil, eller gjenopprett fra en tidligere backup. Data lagres kun lokalt i nettleseren — backup anbefales jevnlig.</p>
+        <div class="backup-buttons">
+          <button class="backup-btn" @click="downloadBackup">⬇ Last ned backup</button>
+          <label class="backup-btn restore-btn">
+            ⬆ Gjenopprett
+            <input type="file" accept=".json" style="display:none" @change="restoreBackup">
+          </label>
+        </div>
+        <p v-if="backupRestoreMsg" class="backup-msg">{{ backupRestoreMsg }}</p>
+      </section>
+
       <section class="settings-section danger-section">
         <h3>Slett treningsdata</h3>
         <p class="settings-desc">Sletter lagrede økter, RPE-historikk og notater. Tester slettes ikke.</p>
