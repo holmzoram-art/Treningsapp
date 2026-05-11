@@ -362,7 +362,11 @@ createApp({
     // ── ADJUST WORKOUT (dagsform / deload / short) ────────────────────────────
     function adjustSetsStr(s, vf) {
       if (!s || vf === 1) return s;
-      return s.replace(/^(\d+)(×)/, (_, n, x) => `${Math.max(1, Math.round(+n * vf))}${x}`);
+      // "6×3 min", "3×4 min" osv.
+      const r1 = s.replace(/^(\d+)(×)/, (_, n, x) => `${Math.max(1, Math.round(+n * vf))}${x}`);
+      if (r1 !== s) return r1;
+      // "2 serier × 4×3 min" — reduser antall serier
+      return s.replace(/^(\d+)(\s+serier\s+×\s+)/i, (_, n, mid) => `${Math.max(1, Math.round(+n * vf))}${mid}`);
     }
     function adjustSpeedInStr(s, sd) {
       if (!s || sd === 0) return s;
@@ -393,6 +397,7 @@ createApp({
       if (isDeload)            { vf *= 0.5; sd -= 1.0; }
       if (dgForm === 'yellow') { vf *= 0.8; sd -= 0.5; }
       if (dgForm === 'red')    { vf *= 0.5; sd -= 1.0; }
+      if (isShort)             { vf *= 0.5; }
       if (vf === 1 && sd === 0 && !isShort) return w;
       const w2 = { ...w };
       if (w2.rounds != null) w2.rounds = Math.max(1, Math.round(w2.rounds * vf));
