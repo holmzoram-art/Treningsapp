@@ -1169,7 +1169,7 @@ createApp({
 
     function prefillTimerConfig() {
       if (selectedSession.value?.type !== 'intervals') return;
-      const w = selectedWorkout.value;
+      const w = displayedWorkout.value;
       const src = w?.part1?.sets || w?.options?.[0] || '';
       const setsM   = src.match(/(\d+)[×x]/);
       const secM    = src.match(/(\d+)\s*sek/);
@@ -2105,7 +2105,7 @@ createApp({
     watch(selectedWorkout, () => { prefillTimerConfig(); });
     watch(selectedSessionKey, (key) => {
       if (key) {
-        prefillMetrics(selectedSession.value, selectedWorkout.value);
+        prefillMetrics(selectedSession.value, displayedWorkout.value);
         prefillTimerConfig();
         outdoorMainMin.value = parseMinFromDuration(selectedSession.value?.duration);
         resetOutdoorTimer();
@@ -2121,6 +2121,11 @@ createApp({
 
     watch(displayedWorkout, (newW) => {
       if (newW?.exercises_raw?.length) resyncExerciseSets();
+      // Re-prefill metrics when dagsform/deload changes for cardio sessions
+      if (selectedSessionKey.value && !selectedStrengthKey.value) {
+        prefillMetrics(selectedSession.value, newW);
+        prefillTimerConfig();
+      }
     });
     watch(selectedAthlete, (id) => {
       newTest.value.athlete = id;
