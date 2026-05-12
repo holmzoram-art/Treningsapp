@@ -1228,8 +1228,6 @@ createApp({
       return idx >= 0 ? idx : rounds.length - 1;
     });
 
-    watch(displayedWorkout, wo => { if (wo?.circuitMode) loadCircuitSettings(); });
-    watch(() => circuitSettings.value.rounds, () => { if (displayedWorkout.value?.circuitMode) initExerciseSets(); });
 
     // ── PER-ACTIVITY LOGGING (intervals/recovery) ─────────────────────────
     function parseActivityPart(id, part, isIntervals) {
@@ -1477,6 +1475,8 @@ createApp({
       const w = resolveWorkout(selectedSession.value, selectedAthlete.value);
       return replaceTokensDeep(w, athleteLevels.value);
     });
+
+    watch(() => circuitSettings.value.rounds, () => { if (displayedWorkout.value?.circuitMode) initExerciseSets(); });
 
     // ── LEVEL CALCULATION ──────────────────────────────────────────────────
     function replaceTokensDeep(obj, levels) {
