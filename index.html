@@ -907,10 +907,6 @@
       <div v-if="circuitTimerState.active" class="fullscreen-timer-inner">
         <div class="ft-circuit-meta">
           Runde {{ circuitTimerState.roundIdx + 1 }} / {{ circuitSettings.rounds }}
-          &nbsp;·&nbsp;
-          <span v-if="circuitTimerState.phase !== 'roundRest'">
-            Stasjon {{ circuitTimerState.stationIdx + 1 }} / {{ displayedWorkout.exercises_raw?.length }}
-          </span>
         </div>
         <div class="fullscreen-timer-phase"
              :class="{ prep: circuitTimerState.phase === 'prep',
@@ -918,9 +914,9 @@
                        transition: circuitTimerState.phase === 'transition',
                        roundrest: circuitTimerState.phase === 'roundRest' }">
           {{ circuitTimerState.phase === 'prep'       ? 'Gjør deg klar…'
-           : circuitTimerState.phase === 'transition' ? 'NESTE STASJON'
-           : circuitTimerState.phase === 'roundRest'  ? 'HVIL'
-           : displayedWorkout.exercises_raw?.[circuitTimerState.stationIdx]?.name ?? '' }}
+           : circuitTimerState.phase === 'transition' ? 'Bytt stasjon'
+           : circuitTimerState.phase === 'roundRest'  ? 'Hvil'
+           : 'Stasjon ' + (circuitTimerState.stationIdx + 1) + ' / ' + (displayedWorkout.exercises_raw?.length ?? 6) }}
         </div>
         <div class="fullscreen-timer-count"
              :class="{ prep: circuitTimerState.phase === 'prep',
@@ -928,19 +924,6 @@
                        transition: circuitTimerState.phase === 'transition',
                        roundrest: circuitTimerState.phase === 'roundRest' }">
           {{ circuitTimerState.remaining }}
-        </div>
-        <div v-if="circuitTimerState.phase === 'transition'" class="ft-next-station">
-          → {{ displayedWorkout.exercises_raw?.[circuitTimerState.stationIdx]?.name }}
-          <span class="ft-next-target">
-            {{ displayedWorkout.exercises_raw?.[circuitTimerState.stationIdx]?.time
-               ? circuitSettings.stationSec + ' sek'
-               : displayedWorkout.exercises_raw?.[circuitTimerState.stationIdx]?.reps }}
-          </span>
-        </div>
-        <div v-if="circuitTimerState.phase === 'work'" class="ft-station-target">
-          {{ displayedWorkout.exercises_raw?.[circuitTimerState.stationIdx]?.time
-             ? circuitSettings.stationSec + ' sek'
-             : displayedWorkout.exercises_raw?.[circuitTimerState.stationIdx]?.reps }}
         </div>
         <div class="fullscreen-timer-track">
           <div class="fullscreen-timer-fill"

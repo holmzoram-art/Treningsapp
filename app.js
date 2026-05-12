@@ -959,7 +959,7 @@ createApp({
       circuitTimerState.value = { active: true, phase: 'prep', stationIdx: 0, roundIdx: 0, remaining: PREP_SECS, total: PREP_SECS, tickId: null };
       toggleFullscreenTimer(true);
       beep(440, 80); setTimeout(() => beep(440, 80), 120);
-      speak(`Runde 1. ${stations[0].speakName || stations[0].name}`);
+      speak(`Runde 1. Gjør deg klar!`);
 
       const tickId = setInterval(() => {
         remaining--;
@@ -1001,8 +1001,7 @@ createApp({
               circuitTimerState.value = { ...circuitTimerState.value, phase, stationIdx, roundIdx, remaining, total: s.roundRestSec };
             } else {
               phase = 'transition'; remaining = s.transitionSec;
-              const nextName = stations[stationIdx].speakName || stations[stationIdx].name;
-              speak(`Neste: ${nextName}`);
+              speak('Bytt stasjon');
               circuitTimerState.value = { ...circuitTimerState.value, phase, stationIdx, roundIdx, remaining, total: s.transitionSec };
             }
           }
@@ -1026,7 +1025,7 @@ createApp({
           if (remaining <= 0) {
             phase = 'prep'; remaining = PREP_SECS;
             beep(440, 80); setTimeout(() => beep(440, 80), 120);
-            speak(`Runde ${roundIdx + 1}. ${stations[0].speakName || stations[0].name}`);
+            speak(`Runde ${roundIdx + 1}. Gjør deg klar!`);
             circuitTimerState.value = { ...circuitTimerState.value, phase, stationIdx: 0, roundIdx, remaining, total: PREP_SECS };
           }
         }
