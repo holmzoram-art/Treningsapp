@@ -959,8 +959,8 @@ createApp({
 
       circuitTimerState.value = { active: true, phase: 'prep', stationIdx: 0, roundIdx: 0, remaining: PREP_SECS, total: PREP_SECS, tickId: null };
       toggleFullscreenTimer(true);
-      beep(440, 80); setTimeout(() => beep(440, 80), 120);
-      speak(`Runde 1. Gjør deg klar!`);
+      // Oppmerksomhets-signal: 3 stigende beeps = "gjør deg klar"
+      beep(440, 100); setTimeout(() => beep(660, 100), 150); setTimeout(() => beep(880, 200), 300);
 
       const tickId = setInterval(() => {
         remaining--;
@@ -978,13 +978,12 @@ createApp({
 
         } else if (phase === 'work') {
           const half = Math.ceil(s.stationSec / 2);
-          if (remaining === half) { beep(880, 100); setTimeout(() => beep(880, 100), 150); speak('Halvveis!'); }
+          if (remaining === half) { beep(880, 100); setTimeout(() => beep(880, 100), 150); }  // 2 beeps = halvveis
           if (remaining === 10 && s.stationSec > 15) beep(660, 200);
           if      (remaining === 3) beep(880, 150);
           else if (remaining === 2) beep(660, 150);
           else if (remaining === 1) beep(440, 200);
           if (remaining <= 0) {
-            beep(880, 200); setTimeout(() => beep(1100, 300), 220);
             stationIdx++;
             if (stationIdx >= stations.length) {
               stationIdx = 0; roundIdx++;
@@ -992,25 +991,26 @@ createApp({
                 clearInterval(tickId);
                 circuitTimerState.value = { active: false, phase: 'done', stationIdx: 0, roundIdx: s.rounds, remaining: 0, total: 0, tickId: null };
                 toggleFullscreenTimer(false);
-                beep(1100, 300); setTimeout(() => beep(1320, 400), 350);
-                speak('Treningsøkt fullført! Fantastisk jobbet alle sammen!');
+                // Seier-fanfare: 4 stigende toner
+                beep(880, 150); setTimeout(() => beep(1100, 150), 180); setTimeout(() => beep(1320, 150), 360); setTimeout(() => beep(1760, 400), 540);
                 return;
               }
+              // Rundeslutt: 3 toner ned = "hvil nå"
+              beep(1100, 200); setTimeout(() => beep(880, 200), 250); setTimeout(() => beep(660, 400), 500);
               phase = 'roundRest'; remaining = s.roundRestSec;
-              const min = Math.floor(s.roundRestSec / 60);
-              speak(`Runde ${roundIdx} fullført! Hvil ${min} minutt${min > 1 ? 'er' : ''}`);
               circuitTimerState.value = { ...circuitTimerState.value, phase, stationIdx, roundIdx, remaining, total: s.roundRestSec };
             } else {
+              // Stasjonsslutt: 2 korte beeps ned = "bytt nå"
+              beep(880, 120); setTimeout(() => beep(660, 200), 150);
               phase = 'transition'; remaining = s.transitionSec;
-              speak('Bytt stasjon');
               circuitTimerState.value = { ...circuitTimerState.value, phase, stationIdx, roundIdx, remaining, total: s.transitionSec };
             }
           }
 
         } else if (phase === 'transition') {
-          if      (remaining === 3) { beep(440, 80); }
-          else if (remaining === 2) { beep(440, 80); }
-          else if (remaining === 1) { beep(440, 80); }
+          if      (remaining === 3) beep(880, 150);
+          else if (remaining === 2) beep(660, 150);
+          else if (remaining === 1) beep(440, 200);
           if (remaining <= 0) {
             phase = 'work'; remaining = s.stationSec;
             beep(880, 80); setTimeout(() => beep(1100, 200), 100);
@@ -1018,15 +1018,15 @@ createApp({
           }
 
         } else if (phase === 'roundRest') {
-          if (remaining === 30) speak('Tredve sekunder igjen');
-          if (remaining === 10) speak('Ti sekunder');
+          if (remaining === 30) { beep(660, 150); setTimeout(() => beep(660, 150), 200); }  // 2 beeps = 30 sek igjen
+          if (remaining === 10) { beep(660, 200); }
           if      (remaining === 3) beep(880, 150);
           else if (remaining === 2) beep(660, 150);
           else if (remaining === 1) beep(440, 200);
           if (remaining <= 0) {
             phase = 'prep'; remaining = PREP_SECS;
-            beep(440, 80); setTimeout(() => beep(440, 80), 120);
-            speak(`Runde ${roundIdx + 1}. Gjør deg klar!`);
+            // Ny runde: 3 stigende beeps = "gjør deg klar igjen"
+            beep(440, 100); setTimeout(() => beep(660, 100), 150); setTimeout(() => beep(880, 200), 300);
             circuitTimerState.value = { ...circuitTimerState.value, phase, stationIdx: 0, roundIdx, remaining, total: PREP_SECS };
           }
         }
