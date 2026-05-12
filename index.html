@@ -259,15 +259,20 @@
                   </div>
 
                   <div v-if="station.set" class="circuit-station-inputs">
-                    <input v-if="station.ex.tags?.includes('weighted')"
-                           type="number" min="0" step="0.5" v-model.number="station.set.weight"
-                           placeholder="kg" class="station-input station-weight" :disabled="station.set.done">
-                    <input type="number" min="0" step="1" v-model.number="station.set.reps"
-                           :placeholder="station.ex.tags?.includes('timed') ? 'sek' : 'reps'"
-                           class="station-input station-reps"
-                           :disabled="station.set.done || (station.ex.tags?.includes('timed')
-                             && workTimer.active && workTimer.exName === station.ex.name
-                             && workTimer.setIdx === station.setIdx)">
+                    <label v-if="station.ex.tags?.includes('weighted')" class="station-field-label">
+                      <input type="number" min="0" step="0.5" v-model.number="station.set.weight"
+                             placeholder="0" class="station-input station-weight" :disabled="station.set.done">
+                      <span class="station-field-unit">kg</span>
+                    </label>
+                    <label class="station-field-label">
+                      <input type="number" min="0" step="1" v-model.number="station.set.reps"
+                             placeholder="0"
+                             class="station-input station-reps"
+                             :disabled="station.set.done || (station.ex.tags?.includes('timed')
+                               && workTimer.active && workTimer.exName === station.ex.name
+                               && workTimer.setIdx === station.setIdx)">
+                      <span class="station-field-unit">{{ station.ex.tags?.includes('timed') ? 'sek' : 'reps' }}</span>
+                    </label>
                     <button class="sr-check"
                       :class="{
                         checked: station.set.done,

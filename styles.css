@@ -1426,6 +1426,8 @@ main { padding: 16px; max-width: 600px; margin: 0 auto; }
 .station-reps   { width: 60px; }
 .station-input:focus    { border-color: var(--accent); outline: none; }
 .station-input:disabled { opacity: 0.5; cursor: not-allowed; }
+.station-field-label { display: flex; align-items: center; gap: 4px; }
+.station-field-unit  { font-size: 0.78rem; color: var(--text2); font-weight: 600; white-space: nowrap; }
 
 /* ── PER-SET EXERCISE LOGGING (Hevy-inspirert) ── */
 .ex-set-list { display: flex; flex-direction: column; gap: 16px; margin-bottom: 14px; }
