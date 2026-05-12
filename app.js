@@ -509,8 +509,7 @@ createApp({
         const ctx = getAudioCtx();
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
-        const comp = ctx.createDynamicsCompressor();
-        osc.connect(gain); gain.connect(comp); comp.connect(ctx.destination);
+        osc.connect(gain); gain.connect(ctx.destination);
         osc.frequency.value = freq;
         const v = audioVolume.value;
         gain.gain.setValueAtTime(v, ctx.currentTime);
