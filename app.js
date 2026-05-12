@@ -978,7 +978,7 @@ createApp({
 
         } else if (phase === 'work') {
           const half = Math.ceil(s.stationSec / 2);
-          if (remaining === half) { beep(880, 100); setTimeout(() => beep(880, 100), 150); }  // 2 beeps = halvveis
+          if (remaining === half) { beep(880, 150); setTimeout(() => beep(880, 150), 300); }  // 2 beeps = halvveis
           if (remaining === 10 && s.stationSec > 15) beep(660, 200);
           if      (remaining === 3) beep(880, 150);
           else if (remaining === 2) beep(660, 150);
