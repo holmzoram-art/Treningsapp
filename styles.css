@@ -1332,6 +1332,67 @@ main { padding: 16px; max-width: 600px; margin: 0 auto; }
 .wrs-up   { color: #4CAF50; }
 .wrs-down { color: var(--yellow); }
 
+
+/* ── CIRCUIT MODE (Grep & bæring) ── */
+.circuit-rounds { display: flex; flex-direction: column; gap: 16px; margin-bottom: 14px; }
+
+.circuit-settings {
+  background: var(--card2); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 8px 12px; font-size: 0.82rem;
+}
+.circuit-settings summary { cursor: pointer; font-weight: 600; color: var(--text2); user-select: none; }
+.circuit-settings-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; margin-top: 10px;
+}
+.circuit-settings-grid label {
+  display: flex; flex-direction: column; gap: 3px; font-size: 0.75rem; color: var(--text2);
+}
+.circuit-settings-grid input {
+  background: var(--card); border: 1px solid var(--border); border-radius: 6px;
+  color: var(--text); font-size: 0.9rem; font-weight: 600; padding: 4px 6px; width: 100%;
+}
+.circuit-settings-grid input:focus { border-color: var(--accent); outline: none; }
+
+.circuit-status-bar {
+  background: var(--card2); border: 1px solid var(--accent); border-radius: 20px;
+  padding: 6px 14px; font-size: 0.82rem; font-weight: 600; color: var(--accent); text-align: center;
+}
+.circuit-round {
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px;
+  transition: border-color 0.2s;
+}
+.circuit-round.round-active { border-color: var(--accent); }
+.circuit-round.round-done   { opacity: 0.6; }
+.circuit-round-header {
+  display: flex; align-items: center; gap: 8px;
+  font-weight: 700; font-size: 0.9rem; margin-bottom: 10px; color: var(--text);
+}
+.round-done-badge {
+  background: var(--green); color: #fff; border-radius: 50%;
+  width: 18px; height: 18px; font-size: 0.7rem; display: flex; align-items: center; justify-content: center;
+}
+.circuit-station {
+  display: flex; flex-direction: column; gap: 4px;
+  padding: 8px 0; border-top: 1px solid var(--border); transition: opacity 0.15s;
+}
+.circuit-station:first-of-type { border-top: none; }
+.circuit-station.station-done  { opacity: 0.5; }
+.circuit-station-meta { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+.station-num    { font-size: 0.72rem; color: var(--text2); min-width: 16px; }
+.station-name   { font-weight: 600; font-size: 0.9rem; }
+.station-note   { font-size: 0.78rem; color: var(--text2); }
+.station-target { font-size: 0.8rem; color: var(--accent); font-weight: 600; margin-left: auto; white-space: nowrap; }
+.station-prev   { font-size: 0.72rem; color: var(--text2); padding-left: 22px; }
+.circuit-station-inputs { display: flex; gap: 8px; align-items: center; padding-left: 22px; }
+.station-input {
+  background: var(--card2); border: 1px solid var(--border); border-radius: 6px;
+  color: var(--text); font-size: 0.9rem; font-weight: 600; text-align: center; padding: 5px 4px;
+}
+.station-weight { width: 60px; }
+.station-reps   { width: 60px; }
+.station-input:focus    { border-color: var(--accent); outline: none; }
+.station-input:disabled { opacity: 0.5; cursor: not-allowed; }
+
 /* ── PER-SET EXERCISE LOGGING (Hevy-inspirert) ── */
 .ex-set-list { display: flex; flex-direction: column; gap: 16px; margin-bottom: 14px; }
 

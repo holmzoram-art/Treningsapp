@@ -517,11 +517,29 @@ createApp({
       } catch (e) {}
     }
 
+    let _preferredVoice = null;
+    function _initPreferredVoice() {
+      if (!window.speechSynthesis) return;
+      const voices = window.speechSynthesis.getVoices();
+      const nb = voices.filter(v => v.lang.startsWith('nb') || v.lang.startsWith('no'));
+      if (!nb.length) return;
+      nb.sort((a, b) => {
+        const rank = v => v.name.includes('Online') ? 2 : v.name.includes('Microsoft') ? 1 : 0;
+        return rank(b) - rank(a);
+      });
+      _preferredVoice = nb[0];
+    }
+    if (window.speechSynthesis) {
+      window.speechSynthesis.addEventListener('voiceschanged', _initPreferredVoice);
+      _initPreferredVoice();
+    }
+
     function speak(text) {
       if (audioMuted.value || !window.speechSynthesis) return;
       const utt = new SpeechSynthesisUtterance(text);
-      utt.lang = 'nb-NO'; utt.rate = 1.05;
+      utt.lang = 'nb-NO'; utt.rate = 1.0;
       utt.volume = audioVolume.value;
+      if (_preferredVoice) utt.voice = _preferredVoice;
       window.speechSynthesis.cancel();
       window.speechSynthesis.speak(utt);
     }
@@ -707,7 +725,7 @@ createApp({
     const workTimer = ref({ active: false, phase: 'prep', remaining: 0, total: 0, setIdx: null, exName: null, tickId: null });
     const workTimerDone = ref(false);
 
-    function startWorkTimer(seconds, exName, setIdx, restSec) {
+    function startWorkTimer(seconds, exName, setIdx, restSec, onComplete) {
       cancelWorkTimer();
       const secs = Math.max(1, Math.round(+seconds || 30));
       let phase = 'prep';
@@ -729,17 +747,17 @@ createApp({
           if (remaining <= 0) {
             phase = 'work';
             remaining = secs;
-            beep(880, 80); setTimeout(() => beep(1100, 200), 100);   // "start!" – stigende
+            beep(880, 80); setTimeout(() => beep(1100, 200), 100);
             workTimer.value = { active: true, phase: 'work', remaining: secs, total: secs, setIdx, exName, tickId };
           }
         } else {
           workTimer.value.remaining = remaining;
           const half = Math.ceil(secs / 2);
-          if (remaining === half)           { beep(880, 100); setTimeout(() => beep(880, 100), 150); }  // halvveis
-          if (remaining === 10 && secs > 15)  beep(660, 200);                                            // 10 sek igjen
-          if (remaining === 3) beep(660, 120);
-          else if (remaining === 2) beep(660, 120);
-          else if (remaining === 1) beep(660, 120);
+          if (remaining === half)            { beep(880, 100); setTimeout(() => beep(880, 100), 150); speak('Halvveis!'); }
+          if (remaining === 10 && secs > 15)   beep(660, 200);
+          if      (remaining === 3) { beep(660, 120); speak('Tre'); }
+          else if (remaining === 2) { beep(660, 120); speak('To'); }
+          else if (remaining === 1) { beep(660, 120); speak('En'); }
           if (remaining <= 0) {
             clearInterval(tickId);
             workTimer.value.active = false;
@@ -751,9 +769,13 @@ createApp({
               toggleFullscreenTimer(false);
               const sets = currentExerciseSets.value[exName];
               if (sets?.[setIdx]) {
-                sets[setIdx].done = true;
-                if (restSec > 0) startRestTimer(restSec, exName);
-                triggerLenaToast();
+                if (onComplete) {
+                  onComplete();
+                } else {
+                  sets[setIdx].done = true;
+                  if (restSec > 0) startRestTimer(restSec, exName);
+                  triggerLenaToast();
+                }
               }
             }, 2500);
           }
@@ -774,20 +796,78 @@ createApp({
       return m > 0 ? `${m}:${String(s).padStart(2, '0')}` : `${s}s`;
     }
 
-    const LENA_MESSAGES = [
-      'YOU GO GIRL! 💪✨', 'SLAY QUEEN! 👑💅', 'KILLING IT! 🔥💕',
-      'YAAAS! 💃🎀', 'OMG DU ER SÅ STERK! 🏋️‍♀️', 'WERK IT BESTIE! 👊🌸',
-      'TOTAL BOSS! 👸✨', 'DET HER ER DIN DAG! 🌟', 'POWERGIRRRL! 💥💗',
-      'INGEN STOPPER DEG NÅ! 🚀🎀', 'SÅ PROUD OF YOU! 🥹💖', 'LETS GOOOO! 🙌🔥',
-    ];
-    const lenaToast = ref(null);
-    let _lenaToastTimer = null;
+    const MOTIVATION_MESSAGES = {
+      lena: [
+        'YOU GO GIRL! 💪✨', 'SLAY QUEEN! 👑💅', 'KILLING IT! 🔥💕',
+        'YAAAS! 💃🎀', 'OMG DU ER SÅ STERK! 🏋️‍♀️', 'WERK IT BESTIE! 👊🌸',
+        'TOTAL BOSS! 👸✨', 'DET HER ER DIN DAG! 🌟', 'POWERGIRRRL! 💥💗',
+        'INGEN STOPPER DEG NÅ! 🚀🎀', 'SÅ PROUD OF YOU! 🥹💖', 'LETS GOOOO! 🙌🔥',
+      ],
+      sondre: [
+        'Du kunne klart litt til! 🏃', 'Burde kanskje ha løpt litt fortere? 😏',
+        'Neste gang setter du opp tempoet! ⚡', 'Du har mer i tanken, Sondre! 💨',
+        'Bra gjort – men du VET du hadde mer! 🔥', 'Neste runde: gir du litt ekstra? 👊',
+        'Akkurat så fort som du turte 😅', 'Komfortabelt er bra, men hardt er bedre! 💪',
+        'Nesten raskeste du har vært – prøv å slå det! 🏅',
+        'Hadde vært kult med litt mer drag på slutten! 🚀',
+        'Solid! Neste gang vet du hva du er god for 😤',
+        'Bra innsats – du stoppet akkurat ett minutt for tidlig 🤔',
+      ],
+      geir: [
+        'Pushe litt til så blir driven ekstra lang! 🏌️',
+        'Veldig bra jobba! Så kan du løpe hele golfrunden! ⛳🏃',
+        'Drivetrening i skjul – neste slag går lengre! 🏌️‍♂️',
+        'Kondisen din spiser birdie til frokost! 🐦⛳',
+        'Sånn trener de proffene på PGA Tour! 🏆',
+        'Legger du til dette hvert sett, er du over 300 yards! 💪',
+        'Under par på trening – under par på banen! 🥇',
+        'Neste golfrunde: 18 hull, ingen problemer! 🚶‍♂️⛳',
+        'Driver blir lengre for hvert steg du tar! 🏌️💨',
+        'Ace på trening – eagle på banen! 🦅',
+        'Bra jobba! Runden din blir kortere for hvert sett! ⏱️⛳',
+        'Nå bygger vi golfmuskler med turbotrening! 🔥',
+      ],
+      kjetil: [
+        'Se der ja! Litt tungt kanskje, men ferdig er ferdig! 🤷',
+        'Det var det som sto i programmet, så må jo være bra nok det! 📋',
+        'Ikke verst for et program ingen valgte selv 😅',
+        'Krysse av i skjemaet – dette teller! ✅',
+        'Akkurat passe tungt til at det teller som trening 💪',
+        'Gjort er bedre enn perfekt – og du er ferdig! 🏁',
+        'Godt du holdt ut – det var jo litt vel mange reps der 😬',
+        'Programmet sa det, du gjorde det. Enkelt! 🤝',
+        'Bra! Og du trengte ikke like det heller 😤',
+        'Tung dag, men tunge dager gir fremgang. Nesten sikkert 🔬',
+        'Se der ja! Ikke sikkert du likte det, men du GJORDE det! 👍',
+        'Helt etter planen – selv om planen var hard 📝',
+      ],
+      knut: [
+        'BEVEG DEG SOLDAT! 🪖', 'SMERTE ER SVAKHET SOM FORLATER KROPPEN! 💀',
+        'RASKERE! DU BEVEGER DEG SOM EN SLITEN SNEGL! 🐌',
+        'SLUTT Å KLAGE OG BEGYNN Å LØFTE! 🏋️',
+        'DET ER IKKE TID FOR HVILE NÅ, SOLDAT! ⏰',
+        'JEG HAR SETT BEDRE INNSATS FRA BESTEFORELDRE! 👴',
+        'DET DER KALLER DU EN INNSATS?! KOM IGJEN! 😤',
+        'SMIL ER FORBUDT TIL ALLE REP ER FERDIG! 😠',
+        'DEN SÅ NESTEN UT SOM EN SKIKKELIG ØVELSE! 💪',
+        'HVILE ER BARE FOR DE SVAKE! NESTE SETT NÅ! ⚔️',
+        'KROPPEN LYVER – DU HAR MER! PUSH! 🔥',
+        'HUSKER DU HVORFOR DU ER HER? NEI? LØFT TYNGRE! 🎯',
+      ],
+    };
+    const motivationToast = ref(null);
+    let _motivationToastTimer = null;
+    let _lastMotivationMsg = null;
 
     function triggerLenaToast() {
-      if (selectedAthlete.value !== 'lena') return;
-      if (_lenaToastTimer) clearTimeout(_lenaToastTimer);
-      lenaToast.value = LENA_MESSAGES[Math.floor(Math.random() * LENA_MESSAGES.length)];
-      _lenaToastTimer = setTimeout(() => { lenaToast.value = null; }, 2500);
+      const msgs = MOTIVATION_MESSAGES[selectedAthlete.value];
+      if (!msgs) return;
+      if (_motivationToastTimer) clearTimeout(_motivationToastTimer);
+      const pool = msgs.length > 1 ? msgs.filter(m => m !== _lastMotivationMsg) : msgs;
+      const msg = pool[Math.floor(Math.random() * pool.length)];
+      _lastMotivationMsg = msg;
+      motivationToast.value = msg;
+      _motivationToastTimer = setTimeout(() => { motivationToast.value = null; }, 2500);
     }
 
     function completeSet(s, restSec, exName) {
@@ -796,10 +876,65 @@ createApp({
       triggerLenaToast();
     }
 
-    function startRestTimer(sec, name) {
+    // ── CIRCUIT TRAINING ───────────────────────────────────────────────────────
+    const circuitSettings = ref({ stationSec: 60, transitionSec: 15, roundRestSec: 120, rounds: 3 });
+
+    const _circuitSettingsKey = computed(() =>
+      `onitio_circuit_${selectedAthlete.value}_${selectedSession.value?.key ?? 'default'}`
+    );
+
+    function loadCircuitSettings() {
+      const wo = displayedWorkout.value;
+      if (!wo?.circuitMode) return;
+      const defaults = {
+        stationSec:    wo.stationSec    ?? 60,
+        transitionSec: wo.transitionSec ?? 15,
+        roundRestSec:  wo.roundRestSec  ?? 120,
+        rounds:        wo.rounds        ?? 3,
+      };
+      const saved = JSON.parse(localStorage.getItem(_circuitSettingsKey.value) || 'null');
+      circuitSettings.value = saved ? { ...defaults, ...saved } : { ...defaults };
+    }
+
+    function saveCircuitSettings() {
+      localStorage.setItem(_circuitSettingsKey.value, JSON.stringify(circuitSettings.value));
+    }
+
+    function completeCircuitStation(ex, setIdx) {
+      const set = currentExerciseSets.value[ex.name]?.[setIdx];
+      if (!set || set.done) return;
+      set.done = true;
+      triggerLenaToast();
+
+      const wo = displayedWorkout.value;
+      const stations = wo?.exercises_raw ?? [];
+      const numStations = stations.length;
+      const numRounds   = circuitSettings.value.rounds;
+      const stIdx       = stations.findIndex(s => s.name === ex.name);
+      const isLastStation = stIdx === numStations - 1;
+      const isLastRound   = setIdx === numRounds - 1;
+
+      if (isLastStation && isLastRound) {
+        beep(880, 200); setTimeout(() => beep(1100, 300), 220);
+        speak('Treningsøkt fullført! Bra jobbet!');
+      } else if (isLastStation) {
+        const nextName = stations[0].speakName || stations[0].name;
+        startRestTimer(
+          circuitSettings.value.roundRestSec,
+          `Runde ${setIdx + 1} ferdig`,
+          `Runde ${setIdx + 1} fullført! Neste: ${nextName}`
+        );
+      } else {
+        const nextSt = stations[stIdx + 1];
+        const nextName = nextSt.speakName || nextSt.name;
+        startRestTimer(circuitSettings.value.transitionSec, nextSt.name, `Neste: ${nextName}`);
+      }
+    }
+
+    function startRestTimer(sec, name, startSpeech) {
       cancelRestTimer();
       restTimer.value = { active: true, remaining: sec, total: sec, exerciseName: name };
-      speak(`Pause – ${sec >= 60 ? Math.floor(sec/60) + ' minutt' : sec + ' sekunder'}`);
+      speak(startSpeech ?? `Pause – ${sec >= 60 ? Math.floor(sec/60) + ' minutt' : sec + ' sekunder'}`);
       _restInterval = setInterval(() => {
         restTimer.value.remaining--;
         const r = restTimer.value.remaining;
@@ -1038,6 +1173,21 @@ createApp({
         return { exercises_raw: exs.map(ex => ({ ...ex, tags: getExTags(ex) })) };
       }
       const workout = adjustWorkout(selectedWorkout.value, dagsform.value, deloadMode.value, shortMode.value);
+      // Circuit mode: Grep & bæring og lignende sirkeltrening
+      if (selectedSession.value?.type === 'strength' && workout?.circuitMode && workout?.stations?.length) {
+        const stationsRaw = workout.stations.map(s => ({
+          name: s.name, note: s.note || null,
+          sets: workout.rounds ?? 3,
+          reps: s.reps != null ? String(s.reps) : null,
+          time: s.time != null ? String(s.time) : null,
+          weight: null,
+          restSec: workout.transitionSec ?? 15,
+          tags: getExTags({ name: s.name, time: s.time }),
+          speakName: s.speakName || s.name,
+          circuitStation: true,
+        }));
+        return { ...workout, exercises_raw: stationsRaw };
+      }
       // Circuit/program.js strength sessions: build exercises_raw so per-set UI can be used
       if (selectedSession.value?.type === 'strength' && workout?.exercises?.length) {
         const parsed = parseExercises(workout.exercises)
@@ -1047,6 +1197,38 @@ createApp({
       }
       return workout;
     });
+
+    const circuitRounds = computed(() => {
+      const wo = displayedWorkout.value;
+      if (!wo?.circuitMode || !wo.exercises_raw?.length) return null;
+      const stations = wo.exercises_raw;
+      const numRounds = circuitSettings.value.rounds;
+      return Array.from({ length: numRounds }, (_, r) => ({
+        roundNum: r + 1,
+        stations: stations.map(ex => ({
+          ex, setIdx: r,
+          set: currentExerciseSets.value[ex.name]?.[r],
+        })),
+      }));
+    });
+
+    const circuitStatus = computed(() => {
+      const rounds = circuitRounds.value;
+      if (!rounds) return null;
+      let done = 0, total = 0;
+      rounds.forEach(r => r.stations.forEach(s => { total++; if (s.set?.done) done++; }));
+      return { totalRounds: rounds.length, stationsPerRound: rounds[0]?.stations.length ?? 0, done, total };
+    });
+
+    const circuitCurrentRound = computed(() => {
+      const rounds = circuitRounds.value;
+      if (!rounds) return 0;
+      const idx = rounds.findIndex(r => !r.stations.every(s => s.set?.done));
+      return idx >= 0 ? idx : rounds.length - 1;
+    });
+
+    watch(displayedWorkout, wo => { if (wo?.circuitMode) loadCircuitSettings(); }, { immediate: true });
+    watch(() => circuitSettings.value.rounds, () => { if (displayedWorkout.value?.circuitMode) initExerciseSets(); });
 
     // ── PER-ACTIVITY LOGGING (intervals/recovery) ─────────────────────────
     function parseActivityPart(id, part, isIntervals) {
@@ -1431,10 +1613,12 @@ createApp({
       const exs = displayedWorkout.value?.exercises_raw;
       if (!exs?.length) { currentExerciseSets.value = {}; return; }
       const prev = previousExerciseSets.value;
+      const isCircuit = displayedWorkout.value?.circuitMode;
       const result = {};
       for (const ex of exs) {
         const prevSets = prev[ex.name] || [];
-        result[ex.name] = Array.from({ length: ex.sets }, (_, i) => ({
+        const numSets = isCircuit ? circuitSettings.value.rounds : ex.sets;
+        result[ex.name] = Array.from({ length: numSets }, (_, i) => ({
           weight: prevSets[i]?.weight ?? (parseInt(ex.weight) || getExerciseDefaultWeight(ex.name, selectedAthlete.value)),
           reps:   prevSets[i]?.reps   ?? (ex.time ? (parseInt(ex.time) || 0) : (parseInt(ex.reps) || 0)),
           done:   false,
@@ -2287,8 +2471,11 @@ createApp({
       isSetPR,
       // rest timer
       restTimer, startRestTimer, cancelRestTimer, formatRestTime,
-      // lena
-      lenaToast, completeSet,
+      // motivasjon
+      motivationToast, completeSet,
+      // circuit
+      circuitSettings, circuitRounds, circuitStatus, circuitCurrentRound,
+      completeCircuitStation, saveCircuitSettings,
       // work timer
       workTimer, workTimerDone, startWorkTimer, cancelWorkTimer,
     };

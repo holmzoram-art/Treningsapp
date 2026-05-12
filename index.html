@@ -15,9 +15,9 @@
 <body>
   <div id="app" v-cloak :class="{ 'lena-mode': selectedAthlete === 'lena' }">
 
-    <!-- LENA TOAST -->
+    <!-- MOTIVASJONS-TOAST -->
     <transition name="lena-toast-anim">
-      <div v-if="lenaToast" class="lena-toast">{{ lenaToast }}</div>
+      <div v-if="motivationToast" class="lena-toast">{{ motivationToast }}</div>
     </transition>
 
     <!-- HEADER -->
@@ -194,8 +194,98 @@
           <!-- Øktinnhold -->
           <div v-else-if="displayedWorkout">
 
+            <!-- CIRCUIT MODE (Grep & bæring) -->
+            <div v-if="displayedWorkout.exercises_raw && displayedWorkout.circuitMode && circuitRounds"
+                 class="circuit-rounds">
+
+              <!-- Innstillinger -->
+              <details class="circuit-settings">
+                <summary>⚙️ Innstillinger</summary>
+                <div class="circuit-settings-grid">
+                  <label>Runder<input type="number" min="1" max="6" v-model.number="circuitSettings.rounds" @change="saveCircuitSettings"></label>
+                  <label>Stasjonstid (sek)<input type="number" min="10" max="300" step="5" v-model.number="circuitSettings.stationSec" @change="saveCircuitSettings"></label>
+                  <label>Pause mellom stasjoner<input type="number" min="5" max="60" step="5" v-model.number="circuitSettings.transitionSec" @change="saveCircuitSettings"></label>
+                  <label>Pause mellom runder (sek)<input type="number" min="30" max="300" step="30" v-model.number="circuitSettings.roundRestSec" @change="saveCircuitSettings"></label>
+                </div>
+              </details>
+
+              <!-- Statusbar -->
+              <div class="circuit-status-bar">
+                Runde {{ circuitCurrentRound + 1 }} / {{ circuitRounds.length }}
+                &bull; {{ circuitStatus.done }} / {{ circuitStatus.total }} stasjoner
+              </div>
+
+              <!-- Per runde -->
+              <div v-for="round in circuitRounds" :key="round.roundNum" class="circuit-round"
+                   :class="{ 'round-active': circuitCurrentRound === round.roundNum - 1,
+                             'round-done': round.stations.every(s => s.set?.done) }">
+
+                <div class="circuit-round-header">
+                  Runde {{ round.roundNum }}
+                  <span v-if="round.stations.every(s => s.set?.done)" class="round-done-badge">✓</span>
+                </div>
+
+                <div v-for="(station, si) in round.stations" :key="si"
+                     class="circuit-station" :class="{ 'station-done': station.set?.done }">
+
+                  <div class="circuit-station-meta">
+                    <span class="station-num">{{ si + 1 }}</span>
+                    <span class="station-name">{{ station.ex.name }}</span>
+                    <span v-if="station.ex.note" class="station-note">{{ station.ex.note }}</span>
+                    <span class="station-target">
+                      {{ station.ex.time ? circuitSettings.stationSec + ' sek' : station.ex.reps }}
+                    </span>
+                  </div>
+
+                  <div v-if="previousExerciseSets[station.ex.name]?.[station.setIdx]" class="station-prev">
+                    Forrige:
+                    {{ previousExerciseSets[station.ex.name][station.setIdx].weight
+                       ? previousExerciseSets[station.ex.name][station.setIdx].weight + ' kg × ' : '' }}{{ previousExerciseSets[station.ex.name][station.setIdx].reps }}
+                  </div>
+
+                  <div v-if="station.set" class="circuit-station-inputs">
+                    <input v-if="station.ex.tags?.includes('weighted')"
+                           type="number" min="0" step="0.5" v-model.number="station.set.weight"
+                           placeholder="kg" class="station-input station-weight" :disabled="station.set.done">
+                    <input type="number" min="0" step="1" v-model.number="station.set.reps"
+                           :placeholder="station.ex.tags?.includes('timed') ? 'sek' : 'reps'"
+                           class="station-input station-reps"
+                           :disabled="station.set.done || (station.ex.tags?.includes('timed')
+                             && workTimer.active && workTimer.exName === station.ex.name
+                             && workTimer.setIdx === station.setIdx)">
+                    <button class="sr-check"
+                      :class="{
+                        checked: station.set.done,
+                        timing: station.ex.tags?.includes('timed') && !station.set.done
+                                && workTimer.active && workTimer.phase === 'work'
+                                && workTimer.exName === station.ex.name && workTimer.setIdx === station.setIdx,
+                        'timing-prep': station.ex.tags?.includes('timed') && !station.set.done
+                                && workTimer.active && workTimer.phase === 'prep'
+                                && workTimer.exName === station.ex.name && workTimer.setIdx === station.setIdx
+                      }"
+                      @click="station.set.done
+                        ? (station.set.done = false)
+                        : (station.ex.tags?.includes('timed')
+                            ? (workTimer.active && workTimer.exName === station.ex.name && workTimer.setIdx === station.setIdx
+                                ? cancelWorkTimer()
+                                : startWorkTimer(
+                                    circuitSettings.stationSec,
+                                    station.ex.name, station.setIdx, 0,
+                                    () => completeCircuitStation(station.ex, station.setIdx)
+                                  ))
+                            : completeCircuitStation(station.ex, station.setIdx))">
+                      {{ station.set.done ? '✓'
+                         : (station.ex.tags?.includes('timed') && workTimer.active
+                            && workTimer.exName === station.ex.name && workTimer.setIdx === station.setIdx
+                            ? workTimer.remaining + 's' : (station.ex.tags?.includes('timed') ? '▶' : '○')) }}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <!-- Strukturerte øvelser (styrke/sirkel) – per-sett logging -->
-            <div v-if="displayedWorkout.exercises_raw" class="ex-set-list">
+            <div v-else-if="displayedWorkout.exercises_raw" class="ex-set-list">
               <div v-for="ex in displayedWorkout.exercises_raw" :key="ex.name" class="ex-block">
                 <div class="ex-block-header">
                   <div class="ex-block-title">

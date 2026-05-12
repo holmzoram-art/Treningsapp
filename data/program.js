@@ -908,15 +908,20 @@ function _p3Monday(wn) {
   return {
     title: isDeload ? "Grep & bæring (deload)" : "Grep & bæring",
     type: "strength", duration: isDeload ? "25–30 min" : "40–45 min",
-    summary: `${rounds} runder – gripstyrke, bæring, core`,
+    summary: `${rounds} runder × 6 stasjoner × 60 sek`,
     common: {
-      exercises: [
-        `Pull-up / TRX-roing ${rounds}×6–8`,
-        `Farmer's carry ${rounds}×40 m @ {{carry}} kg`,
-        `Dead hang ${rounds}×{{hang}} sek`,
-        `Push-press ${rounds}×8–10 (manualer)`,
-        `Sandsekk-squat ${rounds}×8`,
-        `Planke med skuldertrykk ${rounds}×12`
+      circuitMode: true,
+      rounds,
+      stationSec: 60,
+      transitionSec: 15,
+      roundRestSec: 120,
+      stations: [
+        { name: "Pull-up / TRX-roing",      reps: "6–8",  speakName: "Pull-up eller TRX-roing" },
+        { name: "Farmer's carry",            time: 60,     note: "40 m @ {{carry}} kg" },
+        { name: "Dead hang",                 time: "{{hang}}" },
+        { name: "Push-press",                reps: "8–10", note: "manualer" },
+        { name: "Sandsekk-squat",            reps: "8–10" },
+        { name: "Planke med skuldertrykk",   time: 60 },
       ]
     },
     athletes: _p3ath(),
