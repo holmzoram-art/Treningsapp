@@ -209,6 +209,16 @@
                 </div>
               </details>
 
+              <!-- Start/stopp-knapp -->
+              <div class="circuit-start-bar">
+                <button v-if="!circuitTimerState.active" @click="startCircuit()" class="circuit-start-btn">
+                  ▶ Start sirkel
+                </button>
+                <button v-else @click="stopCircuit()" class="circuit-stop-btn">
+                  ■ Stopp
+                </button>
+              </div>
+
               <!-- Statusbar -->
               <div class="circuit-status-bar">
                 Runde {{ circuitCurrentRound + 1 }} / {{ circuitRounds.length }}
@@ -226,7 +236,12 @@
                 </div>
 
                 <div v-for="(station, si) in round.stations" :key="si"
-                     class="circuit-station" :class="{ 'station-done': station.set?.done }">
+                     class="circuit-station"
+                     :class="{ 'station-done': station.set?.done,
+                               'station-active': circuitTimerState.active
+                                 && circuitTimerState.phase === 'work'
+                                 && circuitTimerState.stationIdx === si
+                                 && circuitTimerState.roundIdx === round.roundNum - 1 }">
 
                   <div class="circuit-station-meta">
                     <span class="station-num">{{ si + 1 }}</span>
@@ -886,9 +901,60 @@
     </main>
 
     <!-- Fullskjerm-timer overlay (utenfor main, dekker hele skjermen) -->
-    <div v-if="fullscreenTimer && (workTimer.active || workTimerDone)" class="fullscreen-timer-overlay">
-      <!-- Ferdig-skjerm med confetti -->
-      <div v-if="workTimerDone" class="fullscreen-done">
+    <div v-if="fullscreenTimer && (workTimer.active || workTimerDone || circuitTimerState.active)" class="fullscreen-timer-overlay">
+
+      <!-- Circuit-timer (felles gruppetimer) -->
+      <div v-if="circuitTimerState.active" class="fullscreen-timer-inner">
+        <div class="ft-circuit-meta">
+          Runde {{ circuitTimerState.roundIdx + 1 }} / {{ circuitSettings.rounds }}
+          &nbsp;·&nbsp;
+          <span v-if="circuitTimerState.phase !== 'roundRest'">
+            Stasjon {{ circuitTimerState.stationIdx + 1 }} / {{ displayedWorkout.exercises_raw?.length }}
+          </span>
+        </div>
+        <div class="fullscreen-timer-phase"
+             :class="{ prep: circuitTimerState.phase === 'prep',
+                       work: circuitTimerState.phase === 'work',
+                       transition: circuitTimerState.phase === 'transition',
+                       roundrest: circuitTimerState.phase === 'roundRest' }">
+          {{ circuitTimerState.phase === 'prep'       ? 'Gjør deg klar…'
+           : circuitTimerState.phase === 'transition' ? 'NESTE STASJON'
+           : circuitTimerState.phase === 'roundRest'  ? 'HVIL'
+           : displayedWorkout.exercises_raw?.[circuitTimerState.stationIdx]?.name ?? '' }}
+        </div>
+        <div class="fullscreen-timer-count"
+             :class="{ prep: circuitTimerState.phase === 'prep',
+                       work: circuitTimerState.phase === 'work',
+                       transition: circuitTimerState.phase === 'transition',
+                       roundrest: circuitTimerState.phase === 'roundRest' }">
+          {{ circuitTimerState.remaining }}
+        </div>
+        <div v-if="circuitTimerState.phase === 'transition'" class="ft-next-station">
+          → {{ displayedWorkout.exercises_raw?.[circuitTimerState.stationIdx]?.name }}
+          <span class="ft-next-target">
+            {{ displayedWorkout.exercises_raw?.[circuitTimerState.stationIdx]?.time
+               ? circuitSettings.stationSec + ' sek'
+               : displayedWorkout.exercises_raw?.[circuitTimerState.stationIdx]?.reps }}
+          </span>
+        </div>
+        <div v-if="circuitTimerState.phase === 'work'" class="ft-station-target">
+          {{ displayedWorkout.exercises_raw?.[circuitTimerState.stationIdx]?.time
+             ? circuitSettings.stationSec + ' sek'
+             : displayedWorkout.exercises_raw?.[circuitTimerState.stationIdx]?.reps }}
+        </div>
+        <div class="fullscreen-timer-track">
+          <div class="fullscreen-timer-fill"
+               :style="{ width: Math.round((1 - circuitTimerState.remaining / circuitTimerState.total) * 100) + '%',
+                         background: circuitTimerState.phase === 'work' ? 'var(--accent)'
+                                   : circuitTimerState.phase === 'transition' ? '#f0a500'
+                                   : '#4caf50' }">
+          </div>
+        </div>
+        <button class="fullscreen-timer-close" @click="stopCircuit()">■ Stopp</button>
+      </div>
+
+      <!-- Ferdig-skjerm med confetti (workTimer) -->
+      <div v-else-if="workTimerDone" class="fullscreen-done">
         <div class="confetti-wrap" aria-hidden="true">
           <span v-for="i in 30" :key="i" class="confetti-piece" :style="{ '--i': i }"></span>
         </div>

@@ -559,9 +559,13 @@ createApp({
     function releaseWakeLock() {
       if (_wakeLock) { _wakeLock.release(); _wakeLock = null; }
     }
+    // Holder skjermen aktiv hele tiden appen er åpen
+    requestWakeLock();
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') requestWakeLock(); });
+
     function toggleFullscreenTimer(on) {
       fullscreenTimer.value = on;
-      if (on) requestWakeLock();
+      if (!on) requestWakeLock(); // re-acquire etter fullskjerm (kan ha blitt released)
       else releaseWakeLock();
     }
 
@@ -930,6 +934,105 @@ createApp({
         const nextName = nextSt.speakName || nextSt.name;
         startRestTimer(circuitSettings.value.transitionSec, nextSt.name, `Neste: ${nextName}`);
       }
+    }
+
+    const circuitTimerState = ref({ active: false, phase: 'idle', stationIdx: 0, roundIdx: 0, remaining: 0, total: 0, tickId: null });
+
+    function stopCircuit() {
+      if (circuitTimerState.value.tickId) clearInterval(circuitTimerState.value.tickId);
+      circuitTimerState.value = { active: false, phase: 'idle', stationIdx: 0, roundIdx: 0, remaining: 0, total: 0, tickId: null };
+      toggleFullscreenTimer(false);
+    }
+
+    function startCircuit() {
+      stopCircuit();
+      const s = circuitSettings.value;
+      const stations = displayedWorkout.value?.exercises_raw ?? [];
+      if (!stations.length) return;
+
+      let stationIdx = 0, roundIdx = 0, phase = 'prep', remaining = PREP_SECS;
+
+      const setState = (extra) => {
+        circuitTimerState.value = { ...circuitTimerState.value, phase, stationIdx, roundIdx, remaining, total: circuitTimerState.value.total, ...extra };
+      };
+
+      circuitTimerState.value = { active: true, phase: 'prep', stationIdx: 0, roundIdx: 0, remaining: PREP_SECS, total: PREP_SECS, tickId: null };
+      toggleFullscreenTimer(true);
+      beep(440, 80); setTimeout(() => beep(440, 80), 120);
+      speak(`Runde 1. ${stations[0].speakName || stations[0].name}`);
+
+      const tickId = setInterval(() => {
+        remaining--;
+        circuitTimerState.value.remaining = remaining;
+
+        if (phase === 'prep') {
+          if      (remaining === 3) { beep(660, 120); speak('Tre'); }
+          else if (remaining === 2) { beep(660, 120); speak('To'); }
+          else if (remaining === 1) { beep(660, 120); speak('En'); }
+          if (remaining <= 0) {
+            phase = 'work'; remaining = s.stationSec;
+            beep(880, 80); setTimeout(() => beep(1100, 200), 100);
+            circuitTimerState.value = { ...circuitTimerState.value, phase, stationIdx, roundIdx, remaining, total: s.stationSec };
+          }
+
+        } else if (phase === 'work') {
+          const half = Math.ceil(s.stationSec / 2);
+          if (remaining === half) { beep(880, 100); setTimeout(() => beep(880, 100), 150); speak('Halvveis!'); }
+          if (remaining === 10 && s.stationSec > 15) beep(660, 200);
+          if      (remaining === 3) { beep(660, 120); speak('Tre'); }
+          else if (remaining === 2) { beep(660, 120); speak('To'); }
+          else if (remaining === 1) { beep(660, 120); speak('En'); }
+          if (remaining <= 0) {
+            beep(880, 200); setTimeout(() => beep(1100, 300), 220);
+            stationIdx++;
+            if (stationIdx >= stations.length) {
+              stationIdx = 0; roundIdx++;
+              if (roundIdx >= s.rounds) {
+                clearInterval(tickId);
+                circuitTimerState.value = { active: false, phase: 'done', stationIdx: 0, roundIdx: s.rounds, remaining: 0, total: 0, tickId: null };
+                toggleFullscreenTimer(false);
+                beep(1100, 300); setTimeout(() => beep(1320, 400), 350);
+                speak('Treningsøkt fullført! Fantastisk jobbet alle sammen!');
+                return;
+              }
+              phase = 'roundRest'; remaining = s.roundRestSec;
+              const min = Math.floor(s.roundRestSec / 60);
+              speak(`Runde ${roundIdx} fullført! Hvil ${min} minutt${min > 1 ? 'er' : ''}`);
+              circuitTimerState.value = { ...circuitTimerState.value, phase, stationIdx, roundIdx, remaining, total: s.roundRestSec };
+            } else {
+              phase = 'transition'; remaining = s.transitionSec;
+              const nextName = stations[stationIdx].speakName || stations[stationIdx].name;
+              speak(`Neste: ${nextName}`);
+              circuitTimerState.value = { ...circuitTimerState.value, phase, stationIdx, roundIdx, remaining, total: s.transitionSec };
+            }
+          }
+
+        } else if (phase === 'transition') {
+          if      (remaining === 3) { beep(440, 80); }
+          else if (remaining === 2) { beep(440, 80); }
+          else if (remaining === 1) { beep(440, 80); }
+          if (remaining <= 0) {
+            phase = 'work'; remaining = s.stationSec;
+            beep(880, 80); setTimeout(() => beep(1100, 200), 100);
+            circuitTimerState.value = { ...circuitTimerState.value, phase, stationIdx, roundIdx, remaining, total: s.stationSec };
+          }
+
+        } else if (phase === 'roundRest') {
+          if (remaining === 30) speak('Tredve sekunder igjen');
+          if (remaining === 10) speak('Ti sekunder');
+          if      (remaining === 3) { beep(660, 120); speak('Tre'); }
+          else if (remaining === 2) { beep(660, 120); speak('To'); }
+          else if (remaining === 1) { beep(660, 120); speak('En'); }
+          if (remaining <= 0) {
+            phase = 'prep'; remaining = PREP_SECS;
+            beep(440, 80); setTimeout(() => beep(440, 80), 120);
+            speak(`Runde ${roundIdx + 1}. ${stations[0].speakName || stations[0].name}`);
+            circuitTimerState.value = { ...circuitTimerState.value, phase, stationIdx: 0, roundIdx, remaining, total: PREP_SECS };
+          }
+        }
+      }, 1000);
+
+      circuitTimerState.value.tickId = tickId;
     }
 
     function startRestTimer(sec, name, startSpeech) {
@@ -2477,6 +2580,7 @@ createApp({
       // circuit
       circuitSettings, circuitRounds, circuitStatus, circuitCurrentRound,
       completeCircuitStation, saveCircuitSettings,
+      circuitTimerState, startCircuit, stopCircuit,
       // work timer
       workTimer, workTimerDone, startWorkTimer, cancelWorkTimer,
     };
