@@ -509,7 +509,8 @@ createApp({
         const ctx = getAudioCtx();
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
-        osc.connect(gain); gain.connect(ctx.destination);
+        const comp = ctx.createDynamicsCompressor();
+        osc.connect(gain); gain.connect(comp); comp.connect(ctx.destination);
         osc.frequency.value = freq;
         const v = audioVolume.value;
         gain.gain.setValueAtTime(v, ctx.currentTime);
@@ -539,7 +540,7 @@ createApp({
       if (audioMuted.value || !window.speechSynthesis) return;
       const utt = new SpeechSynthesisUtterance(text);
       utt.lang = 'nb-NO'; utt.rate = 1.0;
-      utt.volume = audioVolume.value;
+      utt.volume = Math.min(audioVolume.value, 1.0);
       if (_preferredVoice) utt.voice = _preferredVoice;
       window.speechSynthesis.cancel();
       window.speechSynthesis.speak(utt);
@@ -746,9 +747,9 @@ createApp({
 
         if (phase === 'prep') {
           workTimer.value.remaining = remaining;
-          if (remaining === 3) beep(660, 120);
-          else if (remaining === 2) beep(660, 120);
-          else if (remaining === 1) beep(660, 120);
+          if      (remaining === 3) beep(880, 150);
+          else if (remaining === 2) beep(660, 150);
+          else if (remaining === 1) beep(440, 200);
           if (remaining <= 0) {
             phase = 'work';
             remaining = secs;
@@ -760,9 +761,9 @@ createApp({
           const half = Math.ceil(secs / 2);
           if (remaining === half)            { beep(880, 100); setTimeout(() => beep(880, 100), 150); speak('Halvveis!'); }
           if (remaining === 10 && secs > 15)   beep(660, 200);
-          if      (remaining === 3) { beep(660, 120); speak('Tre'); }
-          else if (remaining === 2) { beep(660, 120); speak('To'); }
-          else if (remaining === 1) { beep(660, 120); speak('En'); }
+          if      (remaining === 3) beep(880, 150);
+          else if (remaining === 2) beep(660, 150);
+          else if (remaining === 1) beep(440, 200);
           if (remaining <= 0) {
             clearInterval(tickId);
             workTimer.value.active = false;
@@ -966,9 +967,9 @@ createApp({
         circuitTimerState.value.remaining = remaining;
 
         if (phase === 'prep') {
-          if      (remaining === 3) { beep(660, 120); speak('Tre'); }
-          else if (remaining === 2) { beep(660, 120); speak('To'); }
-          else if (remaining === 1) { beep(660, 120); speak('En'); }
+          if      (remaining === 3) beep(880, 150);
+          else if (remaining === 2) beep(660, 150);
+          else if (remaining === 1) beep(440, 200);
           if (remaining <= 0) {
             phase = 'work'; remaining = s.stationSec;
             beep(880, 80); setTimeout(() => beep(1100, 200), 100);
@@ -979,9 +980,9 @@ createApp({
           const half = Math.ceil(s.stationSec / 2);
           if (remaining === half) { beep(880, 100); setTimeout(() => beep(880, 100), 150); speak('Halvveis!'); }
           if (remaining === 10 && s.stationSec > 15) beep(660, 200);
-          if      (remaining === 3) { beep(660, 120); speak('Tre'); }
-          else if (remaining === 2) { beep(660, 120); speak('To'); }
-          else if (remaining === 1) { beep(660, 120); speak('En'); }
+          if      (remaining === 3) beep(880, 150);
+          else if (remaining === 2) beep(660, 150);
+          else if (remaining === 1) beep(440, 200);
           if (remaining <= 0) {
             beep(880, 200); setTimeout(() => beep(1100, 300), 220);
             stationIdx++;
@@ -1019,9 +1020,9 @@ createApp({
         } else if (phase === 'roundRest') {
           if (remaining === 30) speak('Tredve sekunder igjen');
           if (remaining === 10) speak('Ti sekunder');
-          if      (remaining === 3) { beep(660, 120); speak('Tre'); }
-          else if (remaining === 2) { beep(660, 120); speak('To'); }
-          else if (remaining === 1) { beep(660, 120); speak('En'); }
+          if      (remaining === 3) beep(880, 150);
+          else if (remaining === 2) beep(660, 150);
+          else if (remaining === 1) beep(440, 200);
           if (remaining <= 0) {
             phase = 'prep'; remaining = PREP_SECS;
             beep(440, 80); setTimeout(() => beep(440, 80), 120);

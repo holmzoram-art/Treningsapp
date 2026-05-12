@@ -1424,10 +1424,10 @@
           <button class="mute-toggle-btn" @click="audioMuted = !audioMuted">
             {{ audioMuted ? '🔇 Lyd av' : '🔊 Lyd på' }}
           </button>
-          <input type="range" class="volume-slider" min="0.05" max="1" step="0.05"
+          <input type="range" class="volume-slider" min="0.05" max="3" step="0.05"
             v-model.number="audioVolume" :disabled="audioMuted"
             @change="!audioMuted && beep(880, 250)">
-          <span class="volume-pct">{{ Math.round(audioVolume * 100) }}%</span>
+          <span class="volume-pct">{{ audioVolume >= 1.05 ? '🔊 ' : '' }}{{ Math.round(audioVolume * 100) }}%</span>
         </div>
         <button class="test-sound-btn" @click="beep(880, 300)" :disabled="audioMuted">▶ Test lyd</button>
       </section>
