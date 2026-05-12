@@ -747,9 +747,9 @@ createApp({
 
         if (phase === 'prep') {
           workTimer.value.remaining = remaining;
-          if      (remaining === 3) beep(880, 150);
-          else if (remaining === 2) beep(660, 150);
-          else if (remaining === 1) beep(440, 200);
+          if      (remaining === 3) beep(880, 120);
+          else if (remaining === 2) beep(880, 120);
+          else if (remaining === 1) beep(880, 600);
           if (remaining <= 0) {
             phase = 'work';
             remaining = secs;
@@ -761,9 +761,9 @@ createApp({
           const half = Math.ceil(secs / 2);
           if (remaining === half)            { beep(880, 100); setTimeout(() => beep(880, 100), 150); speak('Halvveis!'); }
           if (remaining === 10 && secs > 15)   beep(660, 200);
-          if      (remaining === 3) beep(880, 150);
-          else if (remaining === 2) beep(660, 150);
-          else if (remaining === 1) beep(440, 200);
+          if      (remaining === 3) beep(880, 120);
+          else if (remaining === 2) beep(880, 120);
+          else if (remaining === 1) beep(880, 600);
           if (remaining <= 0) {
             clearInterval(tickId);
             workTimer.value.active = false;
@@ -967,9 +967,9 @@ createApp({
         circuitTimerState.value.remaining = remaining;
 
         if (phase === 'prep') {
-          if      (remaining === 3) beep(880, 150);
-          else if (remaining === 2) beep(660, 150);
-          else if (remaining === 1) beep(440, 200);
+          if      (remaining === 3) beep(880, 120);
+          else if (remaining === 2) beep(880, 120);
+          else if (remaining === 1) beep(880, 600);
           if (remaining <= 0) {
             phase = 'work'; remaining = s.stationSec;
             beep(880, 80); setTimeout(() => beep(1100, 200), 100);
@@ -980,9 +980,9 @@ createApp({
           const half = Math.ceil(s.stationSec / 2);
           if (remaining === half) { beep(880, 150); setTimeout(() => beep(880, 150), 300); }  // 2 beeps = halvveis
           if (remaining === 10 && s.stationSec > 15) beep(660, 200);
-          if      (remaining === 3) beep(880, 150);
-          else if (remaining === 2) beep(660, 150);
-          else if (remaining === 1) beep(440, 200);
+          if      (remaining === 3) beep(880, 120);
+          else if (remaining === 2) beep(880, 120);
+          else if (remaining === 1) beep(880, 600);
           if (remaining <= 0) {
             stationIdx++;
             if (stationIdx >= stations.length) {
@@ -1008,9 +1008,9 @@ createApp({
           }
 
         } else if (phase === 'transition') {
-          if      (remaining === 3) beep(880, 150);
-          else if (remaining === 2) beep(660, 150);
-          else if (remaining === 1) beep(440, 200);
+          if      (remaining === 3) beep(880, 120);
+          else if (remaining === 2) beep(880, 120);
+          else if (remaining === 1) beep(880, 600);
           if (remaining <= 0) {
             phase = 'work'; remaining = s.stationSec;
             beep(880, 80); setTimeout(() => beep(1100, 200), 100);
@@ -1020,9 +1020,9 @@ createApp({
         } else if (phase === 'roundRest') {
           if (remaining === 30) { beep(660, 150); setTimeout(() => beep(660, 150), 200); }  // 2 beeps = 30 sek igjen
           if (remaining === 10) { beep(660, 200); }
-          if      (remaining === 3) beep(880, 150);
-          else if (remaining === 2) beep(660, 150);
-          else if (remaining === 1) beep(440, 200);
+          if      (remaining === 3) beep(880, 120);
+          else if (remaining === 2) beep(880, 120);
+          else if (remaining === 1) beep(880, 600);
           if (remaining <= 0) {
             phase = 'prep'; remaining = PREP_SECS;
             // Ny runde: 3 stigende beeps = "gjør deg klar igjen"
