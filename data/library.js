@@ -104,6 +104,50 @@ const LIBRARY_SESSIONS = {
     },
     dagsform: { yellow: 'Kun del 1–2 (50 min)', red: '40 min rolig' }
   },
+
+  // ── LØPSSTYRKE ───────────────────────────────────────────────────────────────
+  run_strength_a: {
+    title: 'Løpsstyrke A – Hofter & Sete', category: 'Løpsstyrke', type: 'strength', duration: '30–35 min',
+    common: {
+      exercises_raw: [
+        { name: 'Hip thrust (gulv)',            sets: 3, reps: '12–15',    restSec: 60,  note: 'Press hoftene rett opp, klem setet i topp',    tags: ['bodyweight', 'reps'] },
+        { name: 'Sideligg hofteabduksjon',      sets: 3, reps: '15',       restSec: 45,  note: 'Hvert bein – kontroller ned',                  tags: ['bodyweight', 'reps'] },
+        { name: 'Tåhev enben stående',          sets: 3, reps: '15',       restSec: 60,  note: 'Hvert bein – langsomt ned (3 sek eksentrisk)', tags: ['bodyweight', 'reps'] },
+        { name: 'Lateral band walk',            sets: 3, reps: '12 skritt', restSec: 45, note: 'Begge retninger – hold knærne utover',          tags: ['bodyweight', 'reps'] },
+        { name: 'Enbensknebøy til stol',        sets: 3, reps: '8–10',     restSec: 75,  note: 'Hvert bein – kontroller kneet over tå',        tags: ['bodyweight', 'reps'] },
+      ]
+    },
+    dagsform: { yellow: '2 sett i stedet for 3. Reduser range of motion ved behov.', red: '2 sett, dropp enbensøvelser – gjør begge bein.' }
+  },
+
+  run_strength_b: {
+    title: 'Løpsstyrke B – Stabilitet & Kraft', category: 'Løpsstyrke', type: 'strength', duration: '35–40 min',
+    common: {
+      exercises_raw: [
+        { name: 'Enbensknebøy',                sets: 3, reps: '8–10',  restSec: 90,  note: 'Hvert bein – armer frem for balanse',            tags: ['bodyweight', 'reps'] },
+        { name: 'Nordic Hamstring Curl',        sets: 3, reps: '5–8',   restSec: 120, note: 'Kontroller ned – hjelp med hendene i bunn',      tags: ['bodyweight', 'reps'] },
+        { name: 'Step-up',                      sets: 3, reps: '10',    restSec: 75,  note: 'Hvert bein – trinn 20–30 cm, ikke skyv fra',     tags: ['bodyweight', 'reps'] },
+        { name: 'Bulgarian split squat',        sets: 3, reps: '8–10',  restSec: 90,  note: 'Hvert bein – bakre fot på benk/stol',            tags: ['bodyweight', 'reps'] },
+        { name: 'Tåhev enben (eksentrisk)',     sets: 3, reps: '12',    restSec: 60,  note: 'Opp på to bein, ned på ett – 3 sek ned',         tags: ['bodyweight', 'reps'] },
+        { name: 'Planke',                       sets: 3, reps: '40',    restSec: 45,  note: 'Strak kropp – hold i sekunder',                  tags: ['timed'] },
+      ]
+    },
+    dagsform: { yellow: '2 sett. Dropp Nordic Hamstring Curl ved øm baksidelår.', red: '2 sett, kun bilateral (begge bein). Dropp Nordic.' }
+  },
+
+  run_strength_c: {
+    title: 'Løpsstyrke C – Rask 20 min', category: 'Løpsstyrke', type: 'strength', duration: '20–25 min',
+    common: {
+      exercises_raw: [
+        { name: 'Hip thrust (gulv)',       sets: 2, reps: '15',    restSec: 45, note: 'Press hoftene opp, klem setet i topp',              tags: ['bodyweight', 'reps'] },
+        { name: 'Sideligg hofteabduksjon', sets: 2, reps: '15',    restSec: 45, note: 'Hvert bein',                                        tags: ['bodyweight', 'reps'] },
+        { name: 'Tåhev stående',           sets: 2, reps: '20',    restSec: 45, note: 'Begge bein – langsomt ned',                         tags: ['bodyweight', 'reps'] },
+        { name: 'Glute bridge enben',      sets: 2, reps: '12',    restSec: 60, note: 'Hvert bein – hold 2 sek i topp',                   tags: ['bodyweight', 'reps'] },
+        { name: 'Planke',                  sets: 2, reps: '30',    restSec: 45, note: 'Hold i sekunder',                                   tags: ['timed'] },
+      ]
+    },
+    dagsform: { yellow: '1 sett per øvelse.', red: 'Dropp – hvil eller gå en rolig tur.' }
+  },
 };
 
-const LIBRARY_CATEGORIES = ['Rolig', 'Langtur', 'Terskel', 'Intervall', 'Maraton'];
+const LIBRARY_CATEGORIES = ['Rolig', 'Langtur', 'Terskel', 'Intervall', 'Maraton', 'Løpsstyrke'];
