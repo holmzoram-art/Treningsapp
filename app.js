@@ -246,6 +246,7 @@ createApp({
       editingLog.value = false;
       currentExerciseSets.value = {};
       initExerciseSets();
+      if (displayedWorkout.value?.circuitMode) loadCircuitSettings();
     }
 
     function selectStrengthSession(key) {
@@ -1227,7 +1228,7 @@ createApp({
       return idx >= 0 ? idx : rounds.length - 1;
     });
 
-    watch(displayedWorkout, wo => { if (wo?.circuitMode) loadCircuitSettings(); }, { immediate: true });
+    watch(displayedWorkout, wo => { if (wo?.circuitMode) loadCircuitSettings(); });
     watch(() => circuitSettings.value.rounds, () => { if (displayedWorkout.value?.circuitMode) initExerciseSets(); });
 
     // ── PER-ACTIVITY LOGGING (intervals/recovery) ─────────────────────────
