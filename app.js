@@ -872,7 +872,7 @@ createApp({
       const msg = pool[Math.floor(Math.random() * pool.length)];
       _lastMotivationMsg = msg;
       motivationToast.value = msg;
-      _motivationToastTimer = setTimeout(() => { motivationToast.value = null; }, 2500);
+      _motivationToastTimer = setTimeout(() => { motivationToast.value = null; }, 4000);
     }
 
     function completeSet(s, restSec, exName) {
