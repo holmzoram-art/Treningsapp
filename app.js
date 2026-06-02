@@ -2525,6 +2525,70 @@ createApp({
       }
     }, { immediate: true });
 
+    // ──────────── SPORTS DRINK CALCULATOR ────────────
+    const drinkRatios = [
+      {
+        id: '1:1',
+        label: '1:1',
+        whyTitle: 'Hvorfor 1:1? (Enkel å lage, Super Billig & Svært Effektiv)',
+        whyText: 'Vanlig sukker (sukrose) gir naturlig en 1:1 blanding av glukose og fruktose, som matcher de to tarmtransportørene (SGLT1 og GLUT5) perfekt. Dette gir svært høy absorpsjon og oksidasjonsrate med minimal kompleksitet. Det er billig, enkelt og forskningsstøttet for inntak opp til rundt 90 g/t, og enda høyere for idrettsutøvere med veltrente mager. Ulempe: noen utøvere kan oppleve milde GI-problemer ved svært høye doser hvis de ikke er tilvendt.',
+        carbsPerHour: 60,
+        ingredients: [
+          { name: 'Vanlig Sukker (Sukrose)', gramsPerHour: 60 },
+          { name: 'Bordsalt (~0.5 ts)', gramsPerHour: 1.0 },
+        ],
+        costPerHour: 0.25,
+      },
+      {
+        id: '2:1',
+        label: '2:1',
+        whyTitle: 'Hvorfor 2:1? (Optimal for høy intensitet)',
+        whyText: 'En 2:1 glukose:fruktose-ratio er den mest forskningsstøttede blandingen for maksimal karbohydratoksidasjon (opptil 90 g/t). Maltodekstrin gir glukose uten søt smak. Ideelt for konkurranser og harde treninger over 90 minutter. Maltodekstrin er lett tilgjengelig i sportsbutikker.',
+        carbsPerHour: 75,
+        ingredients: [
+          { name: 'Maltodekstrin', gramsPerHour: 50 },
+          { name: 'Fruktose', gramsPerHour: 25 },
+          { name: 'Bordsalt (~0.5 ts)', gramsPerHour: 1.0 },
+        ],
+        costPerHour: 0.40,
+      },
+      {
+        id: '1:0.8',
+        label: '1:0.8',
+        whyTitle: 'Hvorfor 1:0.8? (Kompromiss)',
+        whyText: 'En 1:0.8 ratio er et godt kompromiss mellom enkelthet og ytelse. Litt mer fruktose enn 1:1, men ikke fullt 2:1. Passer utøvere som vil ha litt mer fruktose uten å bruke maltodekstrin. Bruk sukker + litt ekstra fruktose.',
+        carbsPerHour: 65,
+        ingredients: [
+          { name: 'Vanlig Sukker (Sukrose)', gramsPerHour: 50 },
+          { name: 'Fruktose', gramsPerHour: 15 },
+          { name: 'Bordsalt (~0.5 ts)', gramsPerHour: 1.0 },
+        ],
+        costPerHour: 0.30,
+      },
+    ];
+
+    const drinkRatio = ref('1:1');
+    const drinkHours = ref(1.5);
+
+    const drinkCurrentRatio = computed(() => drinkRatios.find(r => r.id === drinkRatio.value) || drinkRatios[0]);
+
+    const drinkWater = computed(() => {
+      const liters = drinkHours.value * 0.5;
+      return Math.round(liters * 10) / 10;
+    });
+
+    const drinkIngredients = computed(() => {
+      return drinkCurrentRatio.value.ingredients.map(ing => {
+        const grams = Math.round(ing.gramsPerHour * drinkHours.value);
+        return { name: ing.name, amount: `${grams}g` };
+      });
+    });
+
+    const drinkCost = computed(() => {
+      const cost = drinkCurrentRatio.value.costPerHour * drinkHours.value;
+      return `kr ${cost.toFixed(2)}`;
+    });
+
     return {
       // state
       selectedAthlete, dagsform, view, viewWeek, selectedSessionKey, selectedStrengthKey,
@@ -2582,6 +2646,8 @@ createApp({
       circuitTimerState, startCircuit, stopCircuit,
       // work timer
       workTimer, workTimerDone, startWorkTimer, cancelWorkTimer,
+      // sports drink
+      drinkRatio, drinkHours, drinkRatios, drinkCurrentRatio, drinkWater, drinkIngredients, drinkCost,
     };
   }
 }).mount('#app');

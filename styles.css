@@ -1761,3 +1761,53 @@ details.history-card[open] .hc-summary::after { transform: rotate(90deg); }
 .csc-input:focus { border-color: var(--accent); outline: none; }
 .csc-input-text { width: 100px; text-align: left; font-weight: 400; }
 .csc-unit { font-size: 0.78rem; color: var(--text2); white-space: nowrap; }
+
+/* ──────────── SPORTSDRIKK ──────────── */
+.view-drink { padding: 1rem; max-width: 600px; margin: 0 auto; }
+.drink-section { display: flex; flex-direction: column; gap: 1.2rem; }
+.drink-title { font-size: 1.4rem; font-weight: 700; color: var(--text1); margin: 0; }
+.drink-subtitle { font-size: 0.88rem; color: var(--text2); margin: 0; line-height: 1.5; }
+
+.drink-ratio-tabs { display: flex; gap: 0.5rem; background: var(--card-bg); border-radius: 10px; padding: 4px; }
+.drink-ratio-btn {
+  flex: 1; padding: 0.6rem 0.4rem; border: none; border-radius: 7px;
+  background: transparent; color: var(--text2); font-size: 0.95rem; font-weight: 600;
+  cursor: pointer; transition: background 0.18s, color 0.18s;
+}
+.drink-ratio-btn.active { background: var(--accent); color: #fff; }
+
+.drink-why-card {
+  background: var(--card-bg); border-radius: 12px; padding: 1rem;
+  border-left: 3px solid var(--accent);
+}
+.drink-why-title { font-size: 0.95rem; font-weight: 700; color: var(--text1); margin-bottom: 0.5rem; }
+.drink-why-text { font-size: 0.83rem; color: var(--text2); margin: 0; line-height: 1.55; }
+
+.drink-label { font-size: 0.88rem; color: var(--text2); font-weight: 600; }
+.drink-input-row { display: flex; flex-direction: column; gap: 0.5rem; }
+.drink-number-row { display: flex; align-items: center; gap: 1rem; }
+.drink-num-btn {
+  width: 2.2rem; height: 2.2rem; border-radius: 50%; border: none;
+  background: var(--accent); color: #fff; font-size: 1.3rem; font-weight: 700;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  line-height: 1;
+}
+.drink-num-val { font-size: 1.15rem; font-weight: 700; color: var(--text1); min-width: 4rem; text-align: center; }
+
+.drink-result-title { font-size: 1.1rem; font-weight: 700; color: var(--text1); }
+.drink-result-sub { font-size: 0.85rem; color: var(--text2); margin: -0.6rem 0 0; }
+
+.drink-result-grid { display: flex; flex-direction: column; gap: 0.7rem; }
+.drink-result-card {
+  background: var(--card-bg); border-radius: 10px; padding: 1rem 1.2rem;
+  display: flex; flex-direction: column; align-items: center; gap: 0.1rem;
+}
+.drink-result-value { font-size: 1.9rem; font-weight: 800; color: var(--accent); }
+.drink-result-label { font-size: 0.88rem; color: var(--text2); }
+
+.drink-mix-note { font-size: 0.82rem; color: var(--text2); text-align: center; font-style: italic; margin: 0; }
+.drink-cost-note {
+  background: var(--card-bg); border-radius: 10px; padding: 0.8rem 1rem;
+  font-size: 0.85rem; color: var(--text2); text-align: center;
+}
+.drink-cost-note strong { color: var(--accent); }

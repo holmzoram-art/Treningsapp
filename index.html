@@ -71,6 +71,7 @@
       <button :class="{ active: view === 'tests' }" @click="view = 'tests'">Tester</button>
       <button :class="{ active: view === 'equipment' }" @click="view = 'equipment'">Utstyr</button>
       <button :class="{ active: view === 'settings' }" @click="view = 'settings'">⚙ Innstillinger</button>
+      <button :class="{ active: view === 'drink' }" @click="view = 'drink'">🥤 Sportsdrikk</button>
     </nav>
 
     <!-- ───────────── I DAG ───────────── -->
@@ -1470,6 +1471,58 @@
             <button class="clear-btn-cancel" @click="clearConfirm = null">Avbryt</button>
           </div>
         </div>
+      </section>
+    </main>
+
+    <!-- ───────────── SPORTSDRIKK ───────────── -->
+    <main v-if="view === 'drink'" class="view-drink">
+      <section class="drink-section">
+        <h2 class="drink-title">Hjemmelaget Sportsdrikk</h2>
+        <p class="drink-subtitle">Velg Glukose:Fruktose-ratio. Blanding av vanlig sukker (sukrose) og maltodekstrin lar deg lage vitenskapelig dokumentert, budsjett­vennlig drivstoff.</p>
+
+        <!-- Ratio selector -->
+        <div class="drink-ratio-tabs">
+          <button
+            v-for="r in drinkRatios"
+            :key="r.id"
+            :class="['drink-ratio-btn', { active: drinkRatio === r.id }]"
+            @click="drinkRatio = r.id"
+          >{{ r.label }}</button>
+        </div>
+
+        <!-- Ratio explanation -->
+        <div class="drink-why-card">
+          <div class="drink-why-title">{{ drinkCurrentRatio.whyTitle }}</div>
+          <p class="drink-why-text">{{ drinkCurrentRatio.whyText }}</p>
+        </div>
+
+        <!-- Session duration input -->
+        <div class="drink-input-row">
+          <label class="drink-label">Varighet på økt (timer)</label>
+          <div class="drink-number-row">
+            <button class="drink-num-btn" @click="drinkHours = Math.max(0.5, drinkHours - 0.5)">−</button>
+            <span class="drink-num-val">{{ drinkHours }} t</span>
+            <button class="drink-num-btn" @click="drinkHours = Math.min(8, drinkHours + 0.5)">+</button>
+          </div>
+        </div>
+
+        <!-- Result -->
+        <div class="drink-result-title">Din Tilpassede Blanding ({{ drinkCurrentRatio.label }})</div>
+        <p class="drink-result-sub">For din {{ drinkHours }}-timers økt, lag følgende:</p>
+
+        <div class="drink-result-grid">
+          <div class="drink-result-card">
+            <div class="drink-result-value">{{ drinkWater }} Liter</div>
+            <div class="drink-result-label">Vann</div>
+          </div>
+          <div class="drink-result-card" v-for="ing in drinkIngredients" :key="ing.name">
+            <div class="drink-result-value">{{ ing.amount }}</div>
+            <div class="drink-result-label">{{ ing.name }}</div>
+          </div>
+        </div>
+
+        <p class="drink-mix-note">Bland alle ingrediensene grundig til de er oppløst.</p>
+        <div class="drink-cost-note">Estimert kostnad: <strong>{{ drinkCost }}</strong> — Du sparer penger sammenlignet med kommersielle produkter.</div>
       </section>
     </main>
 
